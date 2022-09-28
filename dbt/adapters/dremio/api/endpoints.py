@@ -25,9 +25,9 @@
 import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 
-from error import (
+from .error import (
     DremioBadRequestException,
     DremioException,
     DremioNotFoundException,
@@ -37,7 +37,12 @@ from error import (
 )
 
 def _get_headers(token):
-    headers = {"Authorization": "_dremio{}".format(token), "content-type": "application/json"}
+    headers = {'Content-Type':'application/json', 'Authorization': '_dremio{authToken}'.format(authToken=token)}
+    
+    # debug
+    _dump_json('_get_headers', jsonlib.dumps(headers, indent=4))
+    ##
+
     return headers
 
 def _get(url, token, details="", ssl_verify=True):
@@ -78,6 +83,9 @@ def _check_error(r, details=""):
     if not error:
         try:
             data = r.json()
+            # debug
+            _dump_json('_check_error', data)
+            ##
             return data
         except:  # NOQA
             return r.text
@@ -92,6 +100,12 @@ def _check_error(r, details=""):
     if code == 409:
         raise DremioAlreadyExistsException("Already exists:" + details, error, r)
     raise DremioException("Unknown error", error)
+
+def _dump_json(debug_message : str, json : str):
+    with open('api.endpoints._dump_json.txt', 'a') as fp:
+        fp.write(debug_message)
+        jsonlib.dump(json, fp, indent=4)
+        fp.write("\n---------\n")
 
 def catalog_item(token, base_url, cid=None, path=None, ssl_verify=True):
     """fetch a specific catalog item by id or by path
@@ -113,7 +127,7 @@ def catalog_item(token, base_url, cid=None, path=None, ssl_verify=True):
     endpoint = "/{}".format(cid) if cid else "/by-path/{}".format("/".join(cpath).replace('"', ""))
     return _get(base_url + "/api/v3/catalog{}".format(endpoint), token, idpath, ssl_verify=ssl_verify)
 
-def sql(token, base_url, query, context=None, ssl_verify=True):
+def sql_endpoint(token, base_url, query, context=None, ssl_verify=True):
     """submit job w/ given sql
 
     https://docs.dremio.com/rest-api/sql/post-sql.html
@@ -171,10 +185,10 @@ def delete_catalog(token, base_url, cid, tag, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: None
     """
-    if tag is None:
-        return _delete(base_url + "/api/v3/catalog/{}".format(cid), token, ssl_verify=ssl_verify)
-    else:
-        return _delete(base_url + "/api/v3/catalog/{}?tag={}".format(cid, tag), token, ssl_verify=ssl_verify)
+    # if tag is None:
+    #     return _delete(base_url + "/api/v3/catalog/{}".format(cid), token, ssl_verify=ssl_verify)
+    # else:
+    #     return _delete(base_url + "/api/v3/catalog/{}?tag={}".format(cid, tag), token, ssl_verify=ssl_verify)
 
 
 def set_catalog(token, base_url, json, ssl_verify=True):
@@ -203,7 +217,7 @@ def update_catalog(token, base_url, cid, json, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: updated catalog entity
     """
-    return _put(base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify)
+    # return _put(base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify)
 
 
 def promote_catalog(token, base_url, cid, json, ssl_verify=True):
