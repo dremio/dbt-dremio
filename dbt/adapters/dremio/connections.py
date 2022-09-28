@@ -1,13 +1,21 @@
 from contextlib import contextmanager
+from textwrap import indent
 
 import pyodbc
 import time
+import json
 
 import dbt.exceptions
 from dbt.adapters.base import Credentials
 from dbt.adapters.sql import SQLConnectionManager
 from dbt.adapters.dremio.relation import DremioRelation
 from dbt.contracts.connection import AdapterResponse
+
+# poc hack
+from dbt.adapters.dremio.api.basic import login
+from dbt.adapters.dremio.api.endpoints import sql_endpoint
+from dbt.adapters.dremio.api.endpoints import job_status
+
 #from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
@@ -29,8 +37,12 @@ class DremioCredentials(Credentials):
     schema: Optional[str]
     datalake: Optional[str]
     root_path: Optional[str]
-    port: Optional[int] = 31010
+    port: Optional[int] = 31010 # for sql endpoint, not rest
     additional_parameters: Optional[str] = None
+    # poc hack
+    token: Optional[str] = None
+    rest_api_port: Optional[int] = 9047
+    ##
 
     _ALIASES = {
         'user': 'UID'
@@ -117,6 +129,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     @classmethod
     def open(cls, connection):
+        #breakpoint()
 
         if connection.state == 'open':
             logger.debug('Connection is already open, skipping open.')
@@ -149,6 +162,12 @@ class DremioConnectionManager(SQLConnectionManager):
             connection.state = 'fail'
 
             raise dbt.exceptions.FailedToConnectException(str(e))
+        
+        # REST API hack
+        base_url = _build_base_url(credentials)
+        token = login(base_url, credentials.UID, credentials.PWD)
+        connection.credentials.token = token
+        ##
 
         return connection
 
@@ -175,7 +194,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def add_query(self, sql, auto_begin=True, bindings=None,
                   abridge_sql_log=False):
-
+    
         connection = self.get_thread_connection()
 
         if auto_begin and connection.transaction_open is False:
@@ -199,7 +218,21 @@ class DremioConnectionManager(SQLConnectionManager):
                 cursor.execute(sql)
             else:
                 cursor.execute(sql, bindings)
+            
+            # poc hack
+            token = connection.credentials.token
+            base_url = _build_base_url(connection.credentials)
+            json_payload = sql_endpoint(token, base_url, sql, context=None, ssl_verify=True)
+            
+            job_id = json_payload["id"]
+            json_payload = job_status(token, base_url, job_id, ssl_verify=True)
 
+            # Next steps:
+            ## keep checking job staus until status is one of COMPLETE, CANCELLED, FAILED
+            ## then call endpoints.job_results -> payload is schema and rows (unlikey to use offset as there shouldn't be too many rows)
+            ## mapr job results to cursor
+            ##
+            
             logger.debug("SQL status: {} in {:0.2f} seconds".format(
                          self.get_response(cursor), (time.time() - pre)))
 
@@ -231,3 +264,8 @@ class DremioConnectionManager(SQLConnectionManager):
             table = dbt.clients.agate_helper.empty_table()
         cursor.close()
         return response, table
+
+
+def _build_base_url(credentials : DremioCredentials) -> str:
+    return "http://{host}:{port}".format(host=credentials.host, port=credentials.rest_api_port)
+        
