@@ -25,10 +25,8 @@
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
-from .error import DremioException
-from .endpoints import sql_endpoint
-from .endpoints import job_results
-from .endpoints import job_status
+from error import DremioException
+from endpoints import job_results, job_status, sql
 
 
 executor = ThreadPoolExecutor(max_workers=8)
@@ -67,7 +65,7 @@ def run(token, base_url, query, context=None, sleep_time=10, ssl_verify=True):
     [{'record':'1'}, {'record':'2'}]
     """
     assert sleep_time > 0
-    job = sql_endpoint(token, base_url, query, context, ssl_verify=ssl_verify)
+    job = sql(token, base_url, query, context, ssl_verify=ssl_verify)
     job_id = job["id"]
     while True:
         state = job_status(token, base_url, job_id, ssl_verify=ssl_verify)
