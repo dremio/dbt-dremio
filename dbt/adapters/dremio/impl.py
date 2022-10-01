@@ -1,6 +1,9 @@
+import agate
+from dbt.adapters.base.meta import available
 from dbt.adapters.sql import SQLAdapter
 from dbt.adapters.dremio import DremioConnectionManager
 from dbt.adapters.dremio.relation import DremioRelation
+
 
 from typing import List
 from typing import Optional
@@ -10,9 +13,6 @@ from dbt.adapters.base.relation import BaseRelation
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
-from dbt.adapters.base.meta import available
-
-import agate
 
 class DremioAdapter(SQLAdapter):
     ConnectionManager = DremioConnectionManager
@@ -46,3 +46,9 @@ class DremioAdapter(SQLAdapter):
     @classmethod
     def convert_time_type(cls, agate_table, col_idx):
         return "time"
+
+    def create_schema(self, relation: DremioRelation) -> None:
+        database = relation.database
+        schema = relation.schema
+        logger.debug('Creating schema "{}.{}".', database, schema)
+        DremioConnectionManager.create_catalog(database, schema)

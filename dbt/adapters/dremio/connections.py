@@ -1,3 +1,7 @@
+import agate
+from typing import Tuple, Union
+from typing import Optional, Union, Any
+from dataclasses import dataclass
 from contextlib import contextmanager
 from textwrap import indent
 
@@ -13,18 +17,12 @@ from dbt.contracts.connection import AdapterResponse
 
 # poc hack
 from dbt.adapters.dremio.api.basic import login
-from dbt.adapters.dremio.api.endpoints import sql_endpoint
-from dbt.adapters.dremio.api.endpoints import job_status
+from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, set_catalog
 
 #from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
-from dataclasses import dataclass
-from typing import Optional, Union, Any
-
-from typing import Tuple, Union
-import agate
 
 @dataclass
 class DremioCredentials(Credentials):
@@ -37,24 +35,24 @@ class DremioCredentials(Credentials):
     schema: Optional[str]
     datalake: Optional[str]
     root_path: Optional[str]
-    port: Optional[int] = 31010 # for sql endpoint, not rest
+    port: Optional[int] = 31010  # for sql endpoint, not rest
     additional_parameters: Optional[str] = None
     # poc hack
     token: Optional[str] = None
     rest_api_port: Optional[int] = 9047
-    ##
+    #
 
     _ALIASES = {
-        'user': 'UID'
-        , 'username': 'UID'
-        , 'pass': 'PWD'
-        , 'password': 'PWD'
-        , 'server': 'host'
-        , 'track': 'environment'
-        , 'space': 'database'
-        , 'folder': 'schema'
-        , 'materialization_database' : 'datalake'
-        , 'materialization_schema' : 'root_path'
+        'user': 'UID',
+        'username': 'UID',
+        'pass': 'PWD',
+        'password': 'PWD',
+        'server': 'host',
+        'track': 'environment',
+        'space': 'database',
+        'folder': 'schema',
+        'materialization_database': 'datalake',
+        'materialization_schema': 'root_path'
     }
 
     @property
@@ -87,13 +85,14 @@ class DremioCredentials(Credentials):
 
     def __post_init__(self):
         if self.database is None:
-              self.database = '@' + self.UID
+            self.database = '@' + self.UID
         if self.schema is None:
-              self.schema = DremioRelation.no_schema
+            self.schema = DremioRelation.no_schema
         if self.datalake is None:
-              self.datalake = '$scratch'
+            self.datalake = '$scratch'
         if self.root_path is None:
-              self.root_path = DremioRelation.no_schema
+            self.root_path = DremioRelation.no_schema
+
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = 'dremio'
@@ -129,7 +128,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     @classmethod
     def open(cls, connection):
-        #breakpoint()
+        # breakpoint()
 
         if connection.state == 'open':
             logger.debug('Connection is already open, skipping open.')
@@ -138,7 +137,8 @@ class DremioConnectionManager(SQLConnectionManager):
         credentials = connection.credentials
 
         try:
-            con_str = ["ConnectionType=Direct", "AuthenticationType=Plain", "QueryTimeout=600"]
+            con_str = ["ConnectionType=Direct",
+                       "AuthenticationType=Plain", "QueryTimeout=600"]
             con_str.append(f"Driver={{{credentials.driver}}}")
             con_str.append(f"HOST={credentials.host}")
             con_str.append(f"PORT={credentials.port}")
@@ -162,7 +162,7 @@ class DremioConnectionManager(SQLConnectionManager):
             connection.state = 'fail'
 
             raise dbt.exceptions.FailedToConnectException(str(e))
-        
+
         # REST API hack
         base_url = _build_base_url(credentials)
         token = login(base_url, credentials.UID, credentials.PWD)
@@ -194,7 +194,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def add_query(self, sql, auto_begin=True, bindings=None,
                   abridge_sql_log=False):
-    
+
         connection = self.get_thread_connection()
 
         if auto_begin and connection.transaction_open is False:
@@ -218,21 +218,22 @@ class DremioConnectionManager(SQLConnectionManager):
                 cursor.execute(sql)
             else:
                 cursor.execute(sql, bindings)
-            
+
             # poc hack
             token = connection.credentials.token
             base_url = _build_base_url(connection.credentials)
-            json_payload = sql_endpoint(token, base_url, sql, context=None, ssl_verify=True)
-            
+            json_payload = sql_endpoint(
+                token, base_url, sql, context=None, ssl_verify=True)
+
             job_id = json_payload["id"]
             json_payload = job_status(token, base_url, job_id, ssl_verify=True)
 
             # Next steps:
-            ## keep checking job staus until status is one of COMPLETE, CANCELLED, FAILED
-            ## then call endpoints.job_results -> payload is schema and rows (unlikey to use offset as there shouldn't be too many rows)
-            ## mapr job results to cursor
+            # keep checking job staus until status is one of COMPLETE, CANCELLED, FAILED
+            # then call endpoints.job_results -> payload is schema and rows (unlikey to use offset as there shouldn't be too many rows)
+            # mapr job results to cursor
             ##
-            
+
             logger.debug("SQL status: {} in {:0.2f} seconds".format(
                          self.get_response(cursor), (time.time() - pre)))
 
@@ -265,7 +266,35 @@ class DremioConnectionManager(SQLConnectionManager):
         cursor.close()
         return response, table
 
+    def _build_base_url(self, credentials: DremioCredentials) -> str:
+        return "http://{host}:{port}".format(host=credentials.host, port=credentials.rest_api_port)
 
-def _build_base_url(credentials : DremioCredentials) -> str:
-    return "http://{host}:{port}".format(host=credentials.host, port=credentials.rest_api_port)
-        
+    def create_catalog(self, database, schema):
+        connection = self.get_thread_connection()
+        credentials = connection.credentials
+        base_url = self._build_base_url(credentials)
+
+        path = [database]
+        folders = schema.split(".")
+        path.extend(folders)
+
+        space_json = self._make_new_space_json(database)
+        folder_json = self._make_new_folder_json(path)
+
+        set_catalog(credentials.token, base_url, space_json, False)
+        set_catalog(credentials.token, base_url, folder_json, False)
+
+    def _make_new_space_json(self, name) -> json:
+        python_dict = {
+            "entityType": "space",
+            "name": name
+        }
+        return json.dumps(python_dict)
+
+    def _make_new_folder_json(self, path) -> json:
+        python_dict = {
+            "entityType": "folder",
+            "path": path
+
+        }
+        return json.dumps(python_dict)

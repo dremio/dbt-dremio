@@ -1,5 +1,5 @@
 {% macro dremio__create_schema(relation) -%}
-  {{ log('create_schema macro (' + relation.render() + ') not implemented yet for adapter ' + adapter.type(), info=True) }}
+  {{ adapter.create_schema(relation) }}
 {% endmacro %}
 
 {% macro dremio__drop_schema(relation) -%}
