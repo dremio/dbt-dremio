@@ -13,8 +13,7 @@ from dbt.contracts.connection import AdapterResponse
 
 # poc hack
 from dbt.adapters.dremio.api.basic import login
-from dbt.adapters.dremio.api.endpoints import sql_endpoint
-from dbt.adapters.dremio.api.endpoints import job_status
+from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, job_results
 
 #from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
@@ -225,25 +224,42 @@ class DremioConnectionManager(SQLConnectionManager):
             json_payload = sql_endpoint(token, base_url, sql, context=None, ssl_verify=True)
             
             job_id = json_payload["id"]
-            json_payload = job_status(token, base_url, job_id, ssl_verify=True)
-
-            # Next steps:
-            ## keep checking job staus until status is one of COMPLETE, CANCELLED, FAILED
-            ## then call endpoints.job_results -> payload is schema and rows (unlikey to use offset as there shouldn't be too many rows)
-            ## mapr job results to cursor
-            ##
             
-            logger.debug("SQL status: {} in {:0.2f} seconds".format(
-                         self.get_response(cursor), (time.time() - pre)))
+            #logger.debug("SQL status: {} in {:0.2f} seconds".format(self.get_response(cursor), (time.time() - pre)))
 
-            return connection, cursor
+            return connection, cursor, job_id
 
     @classmethod
     def get_credentials(cls, credentials):
         return credentials
 
     @classmethod
-    def get_response(cls, cursor: pyodbc.Cursor) -> AdapterResponse:
+    def get_response(cls, connection, cursor: pyodbc.Cursor, job_id) -> AdapterResponse:
+        ## keep checking job status until status is one of COMPLETE, CANCELLED, FAILED or METADATA
+        ## then call endpoints.job_results -> payload is schema and rows (unlikey to use offset as there shouldn't be too many rows)
+        ## mapr job results to cursor
+
+        token = connection.credentials.token
+        base_url = _build_base_url(connection.credentials)
+        last_job_state = ""
+        job_state = job_status(token, base_url, job_id, ssl_verify=True)["jobState"]
+
+        while True:
+            if job_state != last_job_state:
+                logger.debug(f"Job State = {job_state}")
+            if job_state == "COMPLETED" or job_state == "CANCELLED" or job_state == "FAILED":
+                break
+            last_job_state = job_state
+            job_state = job_status(token, base_url, job_id, ssl_verify=True)["jobState"]
+        
+        logger.debug(f"Job_id: {job_id}")
+        json_payload = job_results(token, base_url, job_id, offset=0, limit=100, ssl_verify=True)
+        # debug
+        logger.debug("Write JSON")
+        with open('dremio.connections.json', 'a') as fp:
+            fp.write(f"\nJob_id: {job_id}\n")
+            json.dump(json_payload, fp, indent=4)
+
         rows = cursor.rowcount
         message = 'OK' if rows == -1 else str(rows)
         return AdapterResponse(
@@ -255,8 +271,8 @@ class DremioConnectionManager(SQLConnectionManager):
         self, sql: str, auto_begin: bool = False, fetch: bool = False
     ) -> Tuple[AdapterResponse, agate.Table]:
         sql = self._add_query_comment(sql)
-        _, cursor = self.add_query(sql, auto_begin)
-        response = self.get_response(cursor)
+        connection, cursor, job_id = self.add_query(sql, auto_begin)
+        response = self.get_response(connection, cursor, job_id)
         fetch = True
         if fetch:
             table = self.get_result_from_cursor(cursor)
