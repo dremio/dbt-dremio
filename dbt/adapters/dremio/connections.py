@@ -276,10 +276,16 @@ class DremioConnectionManager(SQLConnectionManager):
         fetch = True
         if fetch:
             table = self.get_result_from_cursor(cursor)
+            api_table = get_result_from_api(connection, job_id)
             if table is not None:
                 with open('dremio.connections.get_result_from_cursor.txt', 'a') as fp:
                     fp.write(f"Job ID : {job_id}\n")
-                    table.print_table(output=fp)
+                    table.print_table(max_rows=None, max_columns=None, output=fp, max_column_width=500)
+                    fp.write("\n")
+            if api_table is not None:
+                with open('dremio.connections.get_result_from_api.txt', 'a') as fp:
+                    fp.write(f"Job ID : {job_id}\n")
+                    api_table.print_table(max_rows=None, max_columns=None, output=fp, max_column_width=500)
                     fp.write("\n")
         else:
             table = dbt.clients.agate_helper.empty_table()
@@ -289,4 +295,9 @@ class DremioConnectionManager(SQLConnectionManager):
 
 def _build_base_url(credentials : DremioCredentials) -> str:
     return "http://{host}:{port}".format(host=credentials.host, port=credentials.rest_api_port)
-        
+
+def get_result_from_api(connection, job_id) -> agate.Table:
+    token = connection.credentials.token
+    base_url = _build_base_url(connection.credentials)
+    json_payload = job_results(token, base_url, job_id, offset=0, limit=100, ssl_verify=True)["rows"]
+    return agate.Table.from_object(json_payload)
