@@ -276,6 +276,11 @@ class DremioConnectionManager(SQLConnectionManager):
         fetch = True
         if fetch:
             table = self.get_result_from_cursor(cursor)
+            if table is not None:
+                with open('dremio.connections.get_result_from_cursor.txt', 'a') as fp:
+                    fp.write(f"Job ID : {job_id}\n")
+                    table.print_table(output=fp)
+                    fp.write("\n")
         else:
             table = dbt.clients.agate_helper.empty_table()
         cursor.close()
