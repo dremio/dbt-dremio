@@ -1,17 +1,17 @@
-from dbt.adapters.dremio.api.basic import login
 from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, job_results
+from dbt import exceptions as dbtexceptions
 
 #from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
 class DremioCursor:
-    def __init__(self, host, port, token, job_id):
+    def __init__(self, host, port, token):
         self._host = host
         self._port = port
         self._token = token
-        self._job_id = job_id
-        self._description = None # SQLCONNECTIONMANAGER
+        self._job_id = None
+        self._closed = False
 
     @property
     def host(self):
@@ -28,11 +28,10 @@ class DremioCursor:
     @property
     def job_id(self):
         return self._job_id
-
+    
     @property
-    def description(self):
-        # column names?
-        return self.description
+    def closed(self):
+        return self._closed
 
     @token.setter
     def token(self, new_token):
@@ -41,21 +40,42 @@ class DremioCursor:
     @job_id.setter
     def job_id(self, new_job_id):
         self._job_id = new_job_id
+    
+    @closed.setter
+    def closed(self, new_closed_value):
+        self._closed = new_closed_value
+
+    def __build_base_url(self):
+        return "http://{host}:{port}".format(host=self._host, port=self._port)
+
+    def job_results(self):
+        if self.closed:
+            raise Exception("CursorClosed")
+        if not self.closed:
+            base_url = self.__build_base_url()
+            json_payload = job_results(self._token, base_url, self._job_id, offset=0, limit=100, ssl_verify=True)
+
+        return json_payload
 
     def close(self):
-        pass
+        if self.closed:
+            raise Exception("CursorClosed")
+        self.closed = True
 
-    def execute(self, sql):
-        pass
-
-    def execute(self, sql, bindings):
-        pass
-
-    def fetchall(self):# SQLCONNECTIONMANAGER
-        pass
+    def execute(self, sql, bindings=None):
+        if self.closed:
+            raise Exception("CursorClosed")
+        if bindings is None:
+            base_url = self.__build_base_url()
+            json_payload = sql_endpoint(self._token, base_url, sql, context=None, ssl_verify=True)
+            self._job_id = json_payload["id"]
+        else:
+            raise Exception("Bindings not currently supported.")
 
     @property
     def rowcount(self):
+        if self.closed:
+            raise Exception("CursorClosed")
         ## keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
         ## map job results to AdapterResponse
         token = self._token
@@ -69,11 +89,7 @@ class DremioCursor:
         while True:
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
-            if job_status_state == "COMPLETED":
-                message = job_status_state
-                break
-            elif job_status_state == "CANCELLED" or job_status_state == "FAILED":
-                message = job_status_state + ": " + job_status_response["errorMessage"]
+            if job_status_state == "COMPLETED" or job_status_state == "CANCELLED" or job_status_state == "FAILED":
                 break
             last_job_state = job_status_state
             job_status_response = job_status(token, base_url, job_id, ssl_verify=True)
@@ -90,6 +106,4 @@ class DremioCursor:
         
         return rows
     
-    def __build_base_url(self):
-        return "http://{host}:{port}".format(host=self._host, port=self._port)
 
