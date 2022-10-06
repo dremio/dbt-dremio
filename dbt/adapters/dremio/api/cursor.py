@@ -1,7 +1,5 @@
-from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, job_results
-from dbt import exceptions as dbtexceptions
+from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, job_results, job_cancel
 
-#from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
@@ -12,34 +10,10 @@ class DremioCursor:
         self._token = token
         self._job_id = None
         self._closed = False
-
-    @property
-    def host(self):
-        return self._host
-    
-    @property
-    def port(self):
-        return self._port
-    
-    @property
-    def token(self):
-        return self._token
-
-    @property
-    def job_id(self):
-        return self._job_id
     
     @property
     def closed(self):
         return self._closed
-
-    @token.setter
-    def token(self, new_token):
-        self._token = new_token
-    
-    @job_id.setter
-    def job_id(self, new_job_id):
-        self._job_id = new_job_id
     
     @closed.setter
     def closed(self, new_closed_value):
@@ -56,6 +30,12 @@ class DremioCursor:
             json_payload = job_results(self._token, base_url, self._job_id, offset=0, limit=100, ssl_verify=True)
 
         return json_payload
+    
+    def job_cancel(self):
+        #cancels current job
+        logger.debug(f"Cancelling job {self._job_id}")
+        base_url = self.__build_base_url()
+        return job_cancel(self._token, base_url, self._job_id)
 
     def close(self):
         if self.closed:

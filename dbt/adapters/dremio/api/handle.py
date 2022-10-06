@@ -2,7 +2,6 @@ from dbt.adapters.dremio.api.cursor import DremioCursor
 
 from dbt.adapters.dremio.api.basic import login
 
-#from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
@@ -32,7 +31,6 @@ class DremioHandle:
             raise Exception("HandleClosed")
         self.closed = True
 
-
     def rollback(self):
         #todo
-        logger.debug("Handle Rollback is not ready yet.")
+        raise Exception("Handle rollback not implemented.")

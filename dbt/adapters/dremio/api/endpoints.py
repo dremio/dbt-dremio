@@ -154,6 +154,19 @@ def job_status(token, base_url, job_id, ssl_verify=True):
     """
     return _get(base_url + "/api/v3/job/{}".format(job_id), token, ssl_verify=ssl_verify)
 
+def job_cancel(token, base_url, job_id, ssl_verify=True):
+    """fetch job status
+
+    https://docs.dremio.com/software/rest-api/jobs/post-job/
+
+    :param token: auth token
+    :param base_url: sql query
+    :param job_id: job id (as returned by sql)
+    :param ssl_verify: ignore ssl errors if False
+    :return: status object
+    """
+    return _post(base_url + "/api/v3/job/{}/cancel".format(job_id), token, json=None, ssl_verify=ssl_verify)
+
 def job_results(token, base_url, job_id, offset=0, limit=100, ssl_verify=True):
     """fetch job results
 

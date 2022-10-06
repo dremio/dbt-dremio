@@ -1,12 +1,10 @@
 from contextlib import contextmanager
-from textwrap import indent
 
 from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
 
 import time
-import json
 
 import dbt.exceptions
 from dbt.adapters.base import Credentials
@@ -138,10 +136,11 @@ class DremioConnectionManager(SQLConnectionManager):
 
     @classmethod
     def is_cancelable(cls) -> bool:
-        return False
+        return True
 
     def cancel(self, connection):
-        pass
+        #cancel cursor job
+        return connection.handle.cursor.job_cancel()
 
     def commit(self, *args, **kwargs):
         pass
