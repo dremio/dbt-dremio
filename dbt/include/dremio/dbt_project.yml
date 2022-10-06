@@ -1,6 +1,5 @@
-
 name: dbt_dremio
-version: 1.0
+version: 1.2.2
 config-version: 2
 
 quoting:
