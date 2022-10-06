@@ -1,3 +1,4 @@
+from sqlite3 import connect
 import agate
 from dbt.adapters.base.meta import available
 from dbt.adapters.sql import SQLAdapter
@@ -51,4 +52,10 @@ class DremioAdapter(SQLAdapter):
         database = relation.database
         schema = relation.schema
         logger.debug('Creating schema "{}.{}".', database, schema)
-        DremioConnectionManager.create_catalog(database, schema)
+        self.connections.create_catalog(database, schema)
+
+    def drop_schema(self, relation: DremioRelation) -> None:
+        database = relation.database
+        schema = relation.schema
+        logger.debug('Dropping schema "{}.{}".', database, schema)
+        self.connections.drop_catalog(database, schema)

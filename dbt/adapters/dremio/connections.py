@@ -1,3 +1,5 @@
+from email.mime import base
+from warnings import catch_warnings
 import agate
 from typing import Tuple, Union
 from typing import Optional, Union, Any
@@ -17,7 +19,9 @@ from dbt.contracts.connection import AdapterResponse
 
 # poc hack
 from dbt.adapters.dremio.api.basic import login
-from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, set_catalog
+from dbt.adapters.dremio.api.endpoints import delete_catalog, sql_endpoint, job_status, \
+    set_catalog, catalog_item
+from dbt.adapters.dremio.api.error import DremioAlreadyExistsException
 
 #from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
@@ -164,7 +168,7 @@ class DremioConnectionManager(SQLConnectionManager):
             raise dbt.exceptions.FailedToConnectException(str(e))
 
         # REST API hack
-        base_url = _build_base_url(credentials)
+        base_url = cls._build_base_url(credentials)
         token = login(base_url, credentials.UID, credentials.PWD)
         connection.credentials.token = token
         ##
@@ -221,7 +225,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
             # poc hack
             token = connection.credentials.token
-            base_url = _build_base_url(connection.credentials)
+            base_url = self._build_base_url(connection.credentials)
             json_payload = sql_endpoint(
                 token, base_url, sql, context=None, ssl_verify=True)
 
@@ -266,23 +270,66 @@ class DremioConnectionManager(SQLConnectionManager):
         cursor.close()
         return response, table
 
-    def _build_base_url(self, credentials: DremioCredentials) -> str:
+    @classmethod
+    def _build_base_url(cls, credentials: DremioCredentials) -> str:
         return "http://{host}:{port}".format(host=credentials.host, port=credentials.rest_api_port)
 
-    def create_catalog(self, database, schema):
+    def drop_catalog(self, database, schema):
         connection = self.get_thread_connection()
         credentials = connection.credentials
         base_url = self._build_base_url(credentials)
+
+        if (database == '@' + credentials.UID):
+            logger.debug("Skipping drop schema")
+            return
 
         path = [database]
         folders = schema.split(".")
         path.extend(folders)
 
-        space_json = self._make_new_space_json(database)
-        folder_json = self._make_new_folder_json(path)
+        catalog_info = catalog_item(
+            credentials.token, base_url, None, path, False)
+        delete_catalog(credentials.token, base_url,
+                       catalog_info.id, catalog_info.tag, False)
 
-        set_catalog(credentials.token, base_url, space_json, False)
-        set_catalog(credentials.token, base_url, folder_json, False)
+    def create_catalog(self, database, schema):
+        connection = self.get_thread_connection()
+        credentials = connection.credentials
+
+        base_url = self._build_base_url(credentials)
+        token = login(base_url, credentials.UID, credentials.PWD)
+        connection.credentials.token = token
+
+        path = [database]
+        folders = schema.split(".")
+        path.extend(folders)
+
+        # if default space then create the folder within the space only
+        if (database == '@' + credentials.UID):
+            logger.debug("Database is default: creating folder only")
+            folder_json = self._make_new_folder_json(path)
+            try:
+                set_catalog(credentials.token, base_url, folder_json, False)
+            except DremioAlreadyExistsException:
+                logger.debug("Folder already exists. Returning.")
+
+            """credentials.database = credentials.datalake
+            credentials.schema = credentials.root_path """
+            return
+
+        space_json = self._make_new_space_json(database)
+
+        try:
+            set_catalog(credentials.token, base_url, space_json, False)
+        except DremioAlreadyExistsException:
+            logger.debug("Database already exists. Skipping creation.")
+        """ try:
+                set_catalog(credentials.token, base_url, folder_json, False)
+            except DremioAlreadyExistsException:
+                logger.debug("Folder already exists. Returning.")
+        except:
+            pass
+        """
 
     def _make_new_space_json(self, name) -> json:
         python_dict = {

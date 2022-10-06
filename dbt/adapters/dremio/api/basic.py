@@ -27,6 +27,7 @@ import requests
 # debug help
 import json
 
+
 def login(base_url, username, password, timeout=10, verify=True):
     """
     Log into dremio using basic auth
@@ -39,8 +40,9 @@ def login(base_url, username, password, timeout=10, verify=True):
     """
     url = base_url + "/apiv2/login"
 
-    r = requests.post(url, json={"userName": username, "password": password}, timeout=timeout, verify=verify)
-    
+    r = requests.post(url, json={
+                      "userName": username, "password": password}, timeout=timeout, verify=verify)
+
     # debug
     with open('api.basic.login.json', 'w') as fp:
         json.dump(r.json(), fp, indent=4)

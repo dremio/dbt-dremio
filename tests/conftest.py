@@ -20,5 +20,8 @@ def dbt_profile_target():
         'driver': os.getenv('DREMIO_DRIVER'),
         'user': os.getenv('DREMIO_USERNAME'),
         'password': os.getenv('DREMIO_PASSWORD'),
+        'datalake': "rav-test",
+        'root_path': "rav-test.blah",
+        'schema': None,
         'additional_parameters': 'useEncryption=0;'
     }
