@@ -307,7 +307,6 @@ def api_get_response(connection, job_id) -> AdapterResponse:
     )
 
 def get_result_from_api(connection, job_id) -> agate.Table:
-    
     token = connection.credentials.token
     base_url = _build_base_url(connection.credentials)
     json_payload = job_results(token, base_url, job_id, offset=0, limit=100, ssl_verify=True)["rows"]
