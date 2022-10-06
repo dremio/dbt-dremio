@@ -33,11 +33,8 @@ class DremioCredentials(Credentials):
     schema: Optional[str]
     datalake: Optional[str]
     root_path: Optional[str]
-    port: Optional[int] = 9047 # for sql endpoint, not rest
+    port: Optional[int] = 9047 # for rest endpoint
     additional_parameters: Optional[str] = None
-    #
-    rest_api_port: Optional[int] = 9047
-    ##
 
     _ALIASES = {
         'user': 'UID'
@@ -118,7 +115,7 @@ class DremioConnectionManager(SQLConnectionManager):
         credentials = connection.credentials
 
         try:
-            handle = DremioHandle(credentials.host, credentials.rest_api_port, credentials.UID, credentials.PWD)
+            handle = DremioHandle(credentials.host, credentials.port, credentials.UID, credentials.PWD)
             _ = handle.cursor()
             connection.state = 'open'
             connection.handle = handle
