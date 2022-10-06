@@ -25,9 +25,6 @@ Installing the dbt-dremio package will install or update dbt-core to version 1.2
 
 ## Reporting bugs and contributing code
 
-- Want to report a bug or request a feature? Let us know on [Slack](http://community.getdbt.com/), or open [an issue](https://github.com/dremio/dbt-dremio/issues/new)
-- Want to help us build dbt? Check out the [Contributing Guide](https://github.com/dbt-labs/dbt/blob/HEAD/CONTRIBUTING.md)
+- Want to report a bug or request a feature? Let us know by opening [an issue](https://github.com/dremio/dbt-dremio/issues/new)
 
-## Code of Conduct
 
-Everyone interacting in the dbt project's codebases, issue trackers, chat rooms, and mailing lists is expected to follow the [dbt Code of Conduct](https://community.getdbt.com/code-of-conduct).
