@@ -26,14 +26,16 @@ import agate
 class DremioCredentials(Credentials):
     driver: str
     host: str
-    UID: str
-    PWD: str
     environment: Optional[str]
     database: Optional[str]
     schema: Optional[str]
     datalake: Optional[str]
     root_path: Optional[str]
+    UID: Optional[str] = None
+    PWD: Optional[str] = None
     port: Optional[int] = 9047 # for rest endpoint
+    use_ssl: Optional[bool] = True
+    pat: Optional[str] = None
     additional_parameters: Optional[str] = None
 
     _ALIASES = {
@@ -60,7 +62,7 @@ class DremioCredentials(Credentials):
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
         # raise NotImplementedError
-        return 'driver', 'host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment'
+        return 'driver', 'host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
 
     @classmethod
     def __pre_deserialize__(cls, data):
@@ -75,6 +77,8 @@ class DremioCredentials(Credentials):
             data['root_path'] = None
         if 'environment' not in data:
             data['environment'] = None
+        if 'pat' not in data:
+            data['pat'] = None
         return data
 
     def __post_init__(self):
