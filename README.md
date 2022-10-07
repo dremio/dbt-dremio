@@ -9,7 +9,7 @@ If you are reading this documentation, I assume you already know well both dbt a
 
 # Installation
 dbt dependencies :
- - dbt-core=1.1.x,
+ - dbt-core=1.2.2,
  - pyodbc>=4.0.27
 
 dremio dependency :
