@@ -1,0 +1,35 @@
+fixed:
+  type: dremio
+  driver: Arrow Flight SQL ODBC Driver
+  use_ssl: true
+prompts:
+  _choose_cloud_or_software:
+    cloud:
+      host: 
+        default: data.dremio.cloud
+        hint: data.dremio.cloud or data.eu.dremio.cloud
+      port:
+        default: 443
+      database:
+        hint: "@[Dremio Cloud user email]"
+      pat: 
+        hint: 'personal access token'
+        hide_input: true
+    software:
+      host: 
+        hint: 
+      port:
+        default: 32010
+      user:
+        hint: "username"
+      password: 
+        hint: 'password or personal access token'
+        hide_input: true
+      use_ssl:
+        default: false
+        hint: 'use encrypted connection'
+  threads:
+    hint: '1 or more'
+    type: 'int'
+    default: 1
+
