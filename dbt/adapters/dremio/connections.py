@@ -2,7 +2,6 @@ from contextlib import contextmanager
 
 import pyodbc
 import time
-import urllib
 
 import dbt.exceptions
 from dbt.adapters.base import Credentials
