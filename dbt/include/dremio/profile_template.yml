@@ -6,10 +6,10 @@ prompts:
   _choose_cloud_or_software:
     cloud:
       host: 
-        default: data.dremio.cloud
-        hint: data.dremio.cloud or data.eu.dremio.cloud
+        default: api.dremio.cloud #https://docs.dremio.com/cloud/getting-started/supported-regions/
+        hint: api.dremio.cloud or api.eu.dremio.cloud
       port:
-        default: 443
+        default: 9047
       database:
         hint: "@[Dremio Cloud user email]"
       pat: 
@@ -19,7 +19,7 @@ prompts:
       host: 
         hint: 
       port:
-        default: 32010
+        default: 9047
       user:
         hint: "username"
       password: 

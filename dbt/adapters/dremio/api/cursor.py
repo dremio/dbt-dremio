@@ -4,9 +4,8 @@ from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
 class DremioCursor:
-    def __init__(self, host, port, token):
-        self._host = host
-        self._port = port
+    def __init__(self, base_url, token):
+        self._base_url = base_url
         self._token = token
         self._job_id = None
         self._closed = False
@@ -19,23 +18,18 @@ class DremioCursor:
     def closed(self, new_closed_value):
         self._closed = new_closed_value
 
-    def __build_base_url(self):
-        return "http://{host}:{port}".format(host=self._host, port=self._port)
-
     def job_results(self):
         if self.closed:
             raise Exception("CursorClosed")
         if not self.closed:
-            base_url = self.__build_base_url()
-            json_payload = job_results(self._token, base_url, self._job_id, offset=0, limit=100, ssl_verify=True)
+            json_payload = job_results(self._token, self._base_url, self._job_id, offset=0, limit=100, ssl_verify=True)
 
         return json_payload
     
     def job_cancel(self):
         #cancels current job
         logger.debug(f"Cancelling job {self._job_id}")
-        base_url = self.__build_base_url()
-        return job_cancel(self._token, base_url, self._job_id)
+        return job_cancel(self._token, self._base_url, self._job_id)
 
     def close(self):
         if self.closed:
@@ -46,8 +40,7 @@ class DremioCursor:
         if self.closed:
             raise Exception("CursorClosed")
         if bindings is None:
-            base_url = self.__build_base_url()
-            json_payload = sql_endpoint(self._token, base_url, sql, context=None, ssl_verify=True)
+            json_payload = sql_endpoint(self._token, self._base_url, sql, context=None, ssl_verify=True)
             self._job_id = json_payload["id"]
         else:
             raise Exception("Bindings not currently supported.")
@@ -61,9 +54,8 @@ class DremioCursor:
         token = self._token
         job_id = self._job_id
 
-        base_url = self.__build_base_url()
         last_job_state = ""
-        job_status_response = job_status(token, base_url, job_id, ssl_verify=True)
+        job_status_response = job_status(token, self._base_url, job_id, ssl_verify=True)
         job_status_state = job_status_response["jobState"]
 
         while True:
@@ -72,7 +64,7 @@ class DremioCursor:
             if job_status_state == "COMPLETED" or job_status_state == "CANCELLED" or job_status_state == "FAILED":
                 break
             last_job_state = job_status_state
-            job_status_response = job_status(token, base_url, job_id, ssl_verify=True)
+            job_status_response = job_status(token, self._base_url, job_id, ssl_verify=True)
             job_status_state = job_status_response["jobState"]
 
         #this is done as job status does not return a rowCount if there are no rows affected (even in completed job_state)

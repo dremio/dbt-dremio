@@ -37,7 +37,6 @@ class DremioCredentials(Credentials):
     use_ssl: Optional[bool] = True
     pat: Optional[str] = None
     additional_parameters: Optional[str] = None
-    pat: Optional[str] = None
 
     _ALIASES = {
         'user': 'UID'
@@ -113,12 +112,19 @@ class DremioConnectionManager(SQLConnectionManager):
 
     @classmethod
     def open(cls, connection):
+        def __build_base_url(host, port, use_ssl):
+            protocol = "http"
+            if use_ssl:
+                protocol = "https"
+            return f"{protocol}://{host}:{port}"
+
         if connection.state == 'open':
             logger.debug('Connection is already open, skipping open.')
             return connection
         credentials = connection.credentials
         try:
-            handle = DremioHandle(credentials.host, credentials.port, credentials.UID, credentials.PWD)
+            base_url = __build_base_url(credentials.host, credentials.port, credentials.use_ssl)
+            handle = DremioHandle(base_url, credentials.UID, credentials.PWD)
             _ = handle.cursor()
             connection.state = 'open'
             connection.handle = handle
@@ -207,4 +213,5 @@ class DremioConnectionManager(SQLConnectionManager):
             table = dbt.clients.agate_helper.empty_table()
         cursor.close()
         return response, table
+    
 
