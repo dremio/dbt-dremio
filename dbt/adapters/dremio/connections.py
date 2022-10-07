@@ -30,7 +30,7 @@ class DremioCredentials(Credentials):
     root_path: Optional[str]
     UID: Optional[str] = None
     PWD: Optional[str] = None
-    port: Optional[int] = 31010
+    port: Optional[int] = 32010
     use_ssl: Optional[bool] = True
     additional_parameters: Optional[str] = None
     pat: Optional[str] = None
@@ -59,7 +59,8 @@ class DremioCredentials(Credentials):
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
         # raise NotImplementedError
-        return 'driver', 'host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl', 'pat'
+        return 'driver', 'host', 'port', 'UID', 'database', 'schema', 
+        'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
 
     @classmethod
     def __pre_deserialize__(cls, data):
