@@ -3,22 +3,24 @@
 > *This project is developed during my spare time, along side my lead dev position at [MAIF-VIE](http://www.maif.fr), and aims to provide a competitive alternative solution for our current ETL stack.*
 
 # dbt-dremio
-[dbt](https://www.getdbt.com/)'s adapter for [dremio](https://www.dremio.com/)
+[dbt](https://www.getdbt.com/)'s adapter for [dremio](https://www.dremio.com/), v1.1.0b
 
 If you are reading this documentation, I assume you already know well both dbt and dremio. Please refer to their respective documentation.
 
 # Installation
 dbt dependencies :
- - dbt-core>=1.0.6,
+ - dbt-core=1.2.2,
  - pyodbc>=4.0.27
 
 dremio dependency :
- - latest dremio's odbc driver
- - dremio >= 21.0.0
+ - latest Dremio's Flight SQL ODBC driver
+ - Dremio >= 21.0.0
  - `dremio.iceberg.enabled`, `dremio.iceberg.ctas.enabled` and `dremio.execution.support_unlimited_splits` enabled
 
 os dependency :
-- odbc (unixodbc-dev on linux)
+- Windows OS
+- Linux
+- Not currently supported: Apple Silicon MacOS (current limitation on Flight SQL ODBC driver)
 
 `pip install dbt-dremio`
 

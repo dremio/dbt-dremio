@@ -22,15 +22,17 @@ import agate
 class DremioCredentials(Credentials):
     driver: str
     host: str
-    UID: str
-    PWD: str
     environment: Optional[str]
     database: Optional[str]
     schema: Optional[str]
     datalake: Optional[str]
     root_path: Optional[str]
-    port: Optional[int] = 31010
+    UID: Optional[str] = None
+    PWD: Optional[str] = None
+    port: Optional[int] = 32010
+    use_ssl: Optional[bool] = True
     additional_parameters: Optional[str] = None
+    pat: Optional[str] = None
 
     _ALIASES = {
         'user': 'UID'
@@ -56,7 +58,8 @@ class DremioCredentials(Credentials):
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
         # raise NotImplementedError
-        return 'driver', 'host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment'
+        return 'driver', 'host', 'port', 'UID', 'database', 'schema', 
+        'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
 
     @classmethod
     def __pre_deserialize__(cls, data):
@@ -71,6 +74,8 @@ class DremioCredentials(Credentials):
             data['root_path'] = None
         if 'environment' not in data:
             data['environment'] = None
+        if 'pat' not in data:
+            data['pat'] = None
         return data
 
     def __post_init__(self):
@@ -123,18 +128,32 @@ class DremioConnectionManager(SQLConnectionManager):
             return connection
 
         credentials = connection.credentials
+        logger.debug(credentials.pat)
 
         try:
             con_str = ["ConnectionType=Direct", "AuthenticationType=Plain", "QueryTimeout=600"]
             con_str.append(f"Driver={{{credentials.driver}}}")
             con_str.append(f"HOST={credentials.host}")
             con_str.append(f"PORT={credentials.port}")
-            con_str.append(f"UID={credentials.UID}")
-            con_str.append(f"PWD={credentials.PWD}")
+
+            if credentials.pat != None:
+                con_str.append(f"token={credentials.pat}")
+                if credentials.UID != None or credentials.PWD != None:
+                    logger.warning("""A username or password is not required when using a personal 
+                                      access token with Dremio Cloud.""")
+            else:
+                con_str.append(f"UID={credentials.UID}")
+                con_str.append(f"PWD={credentials.PWD}")
+
+            if credentials.use_ssl == True:
+                con_str.append("useEncryption=1")
+            else:
+                con_str.append("useEncryption=0")
+            
             if credentials.additional_parameters:
                 con_str.append(f"{credentials.additional_parameters}")
+            
             con_str_concat = ';'.join(con_str)
-            logger.debug(f'Using connection string: {con_str_concat}')
 
             handle = pyodbc.connect(con_str_concat, autocommit=True)
 
