@@ -138,6 +138,9 @@ class DremioConnectionManager(SQLConnectionManager):
 
             if credentials.pat != None:
                 con_str.append(f"token={credentials.pat}")
+                if credentials.UID != None or credentials.PWD != None:
+                    logger.warning("""A username or password is not required when using a personal 
+                                      access token with Dremio Cloud.""")
             else:
                 con_str.append(f"UID={credentials.UID}")
                 con_str.append(f"PWD={credentials.PWD}")
@@ -151,7 +154,6 @@ class DremioConnectionManager(SQLConnectionManager):
                 con_str.append(f"{credentials.additional_parameters}")
             
             con_str_concat = ';'.join(con_str)
-            logger.debug(f'Using connection string: {con_str_concat}')
 
             handle = pyodbc.connect(con_str_concat, autocommit=True)
 
