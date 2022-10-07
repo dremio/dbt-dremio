@@ -111,24 +111,18 @@ class DremioConnectionManager(SQLConnectionManager):
         if connection.state == 'open':
             logger.debug('Connection is already open, skipping open.')
             return connection
-
         credentials = connection.credentials
-
         try:
             handle = DremioHandle(credentials.host, credentials.port, credentials.UID, credentials.PWD)
             _ = handle.cursor()
             connection.state = 'open'
             connection.handle = handle
             logger.debug(f'Connected to db: {credentials.database}')
-
         except Exception as e:
             logger.debug(f"Could not connect to db: {e}")
-
             connection.handle = None
             connection.state = 'fail'
-
             raise dbt.exceptions.FailedToConnectException(str(e))
-        
         return connection
 
     @classmethod
@@ -136,7 +130,6 @@ class DremioConnectionManager(SQLConnectionManager):
         return True
 
     def cancel(self, connection):
-        #cancel cursor job
         return connection.handle.cursor.job_cancel()
 
     def commit(self, *args, **kwargs):
@@ -155,15 +148,11 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def add_query(self, sql, auto_begin=True, bindings=None,
                   abridge_sql_log=False):
-    
         connection = self.get_thread_connection()
-
         if auto_begin and connection.transaction_open is False:
             self.begin()
-
         logger.debug('Using {} connection "{}".'
                      .format(self.TYPE, connection.name))
-
         with self.exception_handler(sql):
             if abridge_sql_log:
                 logger.debug('On {}: {}....'.format(
@@ -171,18 +160,14 @@ class DremioConnectionManager(SQLConnectionManager):
             else:
                 logger.debug('On {}: {}'.format(connection.name, sql))
             pre = time.time()
-
             cursor = connection.handle.cursor()
-
             # pyodbc does not handle a None type binding!
             if bindings is None:
                 cursor.execute(sql)
             else:
                 logger.debug(f"Bindings: {bindings}")
                 cursor.execute(sql, bindings)
-            
             logger.debug("SQL status: {} in {:0.2f} seconds".format(self.get_response(cursor), (time.time() - pre)))
-
             return connection, cursor
 
     @classmethod
@@ -213,11 +198,6 @@ class DremioConnectionManager(SQLConnectionManager):
         fetch = True
         if fetch:
             table = self.get_result_from_cursor(cursor)
-            if table is not None:
-                with open('dremio.connections.get_result_from_cursor.txt', 'a') as fp:
-                    table.print_table(max_rows=None, max_columns=None, output=fp, max_column_width=500)
-                    fp.write("\n")
-
         else:
             table = dbt.clients.agate_helper.empty_table()
         cursor.close()
