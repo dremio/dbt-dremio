@@ -33,8 +33,9 @@ class DremioCredentials(Credentials):
     root_path: Optional[str]
     UID: Optional[str] = None
     PWD: Optional[str] = None
-    port: Optional[int] = 32010
+    port: Optional[int] = 9047 # for rest endpoint
     use_ssl: Optional[bool] = True
+    pat: Optional[str] = None
     additional_parameters: Optional[str] = None
     pat: Optional[str] = None
 
