@@ -2,8 +2,6 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from tests.functional.adapter.test_basic import SCHEMA
-
 # Import the fuctional fixtures as a plugin
 # Note: fixtures with session scope need to be local
 
@@ -23,6 +21,5 @@ def dbt_profile_target():
         'user': os.getenv('DREMIO_USERNAME'),
         'password': os.getenv('DREMIO_PASSWORD'),
         'datalake': "rav-test",
-        'root_path': f"{SCHEMA}",
         'additional_parameters': 'useEncryption=0;'
     }

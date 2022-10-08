@@ -1,5 +1,5 @@
 import pytest
-
+from tests.functional.adapter.utils.test_utils import relation_from_name, check_relations_equal, check_relation_types
 from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
 from dbt.tests.adapter.basic.test_singular_tests import BaseSingularTests
 from dbt.tests.adapter.basic.test_singular_tests_ephemeral import (
@@ -12,36 +12,28 @@ from dbt.tests.adapter.basic.test_generic_tests import BaseGenericTests
 from dbt.tests.adapter.basic.test_snapshot_check_cols import BaseSnapshotCheckCols
 from dbt.tests.adapter.basic.test_snapshot_timestamp import BaseSnapshotTimestamp
 from dbt.tests.adapter.basic.test_adapter_methods import BaseAdapterMethod
-from dbt.tests.adapter.basic.files import base_view_sql, base_table_sql, base_materialized_var_sql, seeds_base_csv
+from dbt.tests.adapter.basic.files import base_view_sql, base_table_sql, base_materialized_var_sql
 
 from dbt.tests.util import (
     run_dbt,
-    check_result_nodes_by_name,
-    relation_from_name,
-    check_relation_types,
-    check_relations_equal,
+    check_result_nodes_by_name
 )
-SCHEMA = "rav-test"
+from dbt.events import AdapterLogger
+logger = AdapterLogger("dremio")
 
 schema_base_yml = """
 version: 2
 sources:
   - name: raw
-    schema: "rav-test"
     database: "rav-test"
+    schema: "{{ target.schema }}"
     tables:
       - name: seed
-        identifier: "{{ var('seed_name', 'hola') }}"
+        identifier: "{{ var('seed_name', 'base') }}"
 """
 
 
 class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
-    @pytest.fixture(scope="class")
-    def seeds(self):
-        return {
-            "hola.csv": seeds_base_csv,
-        }
-
     @pytest.fixture(scope="class")
     def models(self):
         return {
@@ -55,12 +47,40 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
     def project_config_update(self):
         return {
             "models": {
-                "+twin_strategy": "allow",
+                "+twin_strategy": "prevent",
             },
             "seeds": {
                 "+twin_strategy": "allow"
             }
         }
+
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
     def test_base(self, project):
 
@@ -88,8 +108,7 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         check_relation_types(project.adapter, expected)
 
         # base table rowcount
-        relation = relation_from_name(
-            project.adapter, f"rav-test.{SCHEMA}.hola")
+        relation = relation_from_name(project.adapter, "base")
         result = project.run_sql(
             f"select count(*) as num_rows from {relation}", fetch="one")
         assert result[0] == 10
@@ -114,7 +133,6 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
             results = run_dbt(
                 ["run", "-m", "swappable", "--vars", "materialized_var: view"])
         assert len(results) == 1
-
         # check relation types, swappable is view
         expected = {
             "base": "table",
@@ -122,6 +140,7 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
             "table_model": "table",
             "swappable": "view",
         }
+
         check_relation_types(project.adapter, expected)
 
         # run_dbt changing materialized_var to incremental
@@ -144,7 +163,33 @@ class TestSingularTestsDremio(BaseSingularTests):
 
 
 class TestSingularTestsEphemeralDremio(BaseSingularTestsEphemeral):
-    pass
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
 
 class TestEmptyDremio(BaseEmpty):
@@ -152,19 +197,123 @@ class TestEmptyDremio(BaseEmpty):
 
 
 class TestEphemeralDremio(BaseEphemeral):
-    pass
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
 
 class TestIncrementalDremio(BaseIncremental):
-    pass
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
 
 class TestGenericTestsDremio(BaseGenericTests):
-    pass
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
 
 class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):
-    pass
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
 
 class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):

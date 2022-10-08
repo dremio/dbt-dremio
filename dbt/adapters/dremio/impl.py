@@ -51,7 +51,6 @@ class DremioAdapter(SQLAdapter):
     def create_schema(self, relation: DremioRelation) -> None:
         database = relation.database
         schema = relation.schema
-        logger.debug('Creating schema "{}.{}".', database, schema)
         self.connections.create_catalog(database, schema)
 
     def drop_schema(self, relation: DremioRelation) -> None:

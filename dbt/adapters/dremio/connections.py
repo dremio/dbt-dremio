@@ -279,9 +279,8 @@ class DremioConnectionManager(SQLConnectionManager):
         credentials = connection.credentials
         base_url = self._build_base_url(credentials)
 
-        if (database == '@' + credentials.UID):
-            logger.debug("Skipping drop schema")
-            return
+        token = login(base_url, credentials.UID, credentials.PWD)
+        connection.credentials.token = token
 
         path = [database]
         folders = schema.split(".")
@@ -295,8 +294,8 @@ class DremioConnectionManager(SQLConnectionManager):
     def create_catalog(self, database, schema):
         connection = self.get_thread_connection()
         credentials = connection.credentials
-
         base_url = self._build_base_url(credentials)
+
         token = login(base_url, credentials.UID, credentials.PWD)
         connection.credentials.token = token
 
@@ -306,15 +305,17 @@ class DremioConnectionManager(SQLConnectionManager):
 
         # if default space then create the folder within the space only
         if (database == '@' + credentials.UID):
-            logger.debug("Database is default: creating folder only")
-            folder_json = self._make_new_folder_json(path)
-            try:
-                set_catalog(credentials.token, base_url, folder_json, False)
-            except DremioAlreadyExistsException:
-                logger.debug("Folder already exists. Returning.")
-
-            """credentials.database = credentials.datalake
-            credentials.schema = credentials.root_path """
+            logger.debug("Database is default: creating folders only")
+            # create each folder in schema
+            temp_path = [database]
+            for folder in folders:
+                temp_path.append(folder)
+                folder_json = self._make_new_folder_json(temp_path)
+                try:
+                    set_catalog(credentials.token, base_url,
+                                folder_json, False)
+                except DremioAlreadyExistsException:
+                    logger.debug("Folder already exists. Returning.")
             return
 
         space_json = self._make_new_space_json(database)
@@ -323,13 +324,6 @@ class DremioConnectionManager(SQLConnectionManager):
             set_catalog(credentials.token, base_url, space_json, False)
         except DremioAlreadyExistsException:
             logger.debug("Database already exists. Skipping creation.")
-        """ try:
-                set_catalog(credentials.token, base_url, folder_json, False)
-            except DremioAlreadyExistsException:
-                logger.debug("Folder already exists. Returning.")
-        except:
-            pass
-        """
 
     def _make_new_space_json(self, name) -> json:
         python_dict = {
