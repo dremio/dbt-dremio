@@ -1,6 +1,5 @@
 fixed:
   type: dremio
-  driver: Arrow Flight SQL ODBC Driver
   use_ssl: true
 prompts:
   _choose_cloud_or_software_with_passowrd_or_software_with_pat:
@@ -13,6 +12,8 @@ prompts:
       pat: 
         hint: 'personal access token'
         hide_input: true
+      cloud_project_id:
+        hint: project id found on project general information page
     software_with_username_password:
       software_host: 
         hint: 

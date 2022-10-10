@@ -31,6 +31,7 @@ class DremioCredentials(Credentials):
     schema: Optional[str]
     datalake: Optional[str]
     root_path: Optional[str]
+    cloud_project_id: Optional[str] = None
     cloud_host: Optional[str] = None
     software_host: Optional[str] = None
     UID: Optional[str] = None
@@ -64,7 +65,7 @@ class DremioCredentials(Credentials):
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
         # raise NotImplementedError
-        return 'driver', 'cloud_host', 'software_host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
+        return 'driver', 'cloud_host', 'cloud_project_id', 'software_host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
 
     @classmethod
     def __pre_deserialize__(cls, data):
@@ -185,7 +186,7 @@ class DremioConnectionManager(SQLConnectionManager):
             else:
                 logger.debug(f"Bindings: {bindings}")
                 cursor.execute(sql, bindings)
-                
+
             logger.debug("SQL status: {} in {:0.2f} seconds".format(self.get_response(cursor), (time.time() - pre)))
             return connection, cursor
 
@@ -238,9 +239,9 @@ class DremioConnectionManager(SQLConnectionManager):
         dremio_authentication = DremioAuthentication.build(credentials.UID, credentials.PWD, credentials.pat)
 
         if credentials.cloud_host != None:
-            api_parameters = Parameters(__build_cloud_base_url(credentials.cloud_host), dremio_authentication, is_cloud = True)
+            api_parameters = Parameters(__build_cloud_base_url(credentials.cloud_host), dremio_authentication, is_cloud = True, cloud_project_id = credentials.cloud_project_id)
         elif credentials.software_host != None:
-            api_parameters = Parameters(__build_software_base_url(credentials.software_host, credentials.port, credentials.use_ssl), dremio_authentication, is_cloud = False)
+            api_parameters = Parameters(__build_software_base_url(credentials.software_host, credentials.port, credentials.use_ssl), dremio_authentication, is_cloud = False, cloud_project_id = None)
         else:
             raise dbt.exceptions.DbtProfileError(dbt.exceptions.DbtConfigError('A cloud_host or software_host must be set in poject profile.'))
         

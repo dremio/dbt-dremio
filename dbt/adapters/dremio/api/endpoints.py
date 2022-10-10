@@ -117,31 +117,19 @@ def catalog_item(token, base_url, cid=None, path=None, ssl_verify=True):
     return _get(base_url + "/api/v3/catalog{}".format(endpoint), token, idpath, ssl_verify=ssl_verify)
 
 def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
-    url = UrlBuilder.sql_url(api_parameters.base_url, api_parameters.is_cloud)
-    ############
-    # breakpoint()
-    ############
+    url = UrlBuilder.sql_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
     return _post(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify, json={"sql": query, "context": context})
 
 def job_status(api_parameters: Parameters, job_id, ssl_verify=True):
-    url = UrlBuilder.job_status_url(api_parameters.base_url, job_id, api_parameters.is_cloud)
-    ############
-    # breakpoint()
-    ############
+    url = UrlBuilder.job_status_url(api_parameters.base_url, job_id, api_parameters.is_cloud, api_parameters.cloud_project_id)
     return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
 
 def job_cancel(api_parameters: Parameters, job_id, ssl_verify=True):
     url = UrlBuilder.job_cancel_url(api_parameters.base_url, job_id, api_parameters.is_cloud)
-    ############
-    # breakpoint()
-    ############
     return _post(url, api_parameters.authentication.get_headers(), json=None, ssl_verify=ssl_verify)
 
 def job_results(api_parameters: Parameters, job_id, offset=0, limit=100, ssl_verify=True):
-    url = UrlBuilder.job_results_url(api_parameters.base_url, job_id, api_parameters.is_cloud, offset, limit)
-    ############
-    # breakpoint()
-    ############
+    url = UrlBuilder.job_results_url(api_parameters.base_url, job_id, api_parameters.is_cloud, offset, limit, api_parameters.cloud_project_id)
     return _get(
         url,
         api_parameters.authentication.get_headers(),
