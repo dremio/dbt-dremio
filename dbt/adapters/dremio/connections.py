@@ -65,7 +65,9 @@ class DremioCredentials(Credentials):
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
         # raise NotImplementedError
+
         return 'driver', 'cloud_host', 'cloud_project_id', 'software_host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
+
 
     @classmethod
     def __pre_deserialize__(cls, data):
@@ -125,7 +127,9 @@ class DremioConnectionManager(SQLConnectionManager):
             return connection
 
         credentials = connection.credentials
+
         api_parameters = DremioConnectionManager.build_api_parameters(connection.credentials)
+
 
         try:
             handle = DremioHandle(api_parameters)
