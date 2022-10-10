@@ -3,27 +3,38 @@ fixed:
   driver: Arrow Flight SQL ODBC Driver
   use_ssl: true
 prompts:
-  _choose_cloud_or_software:
-    cloud:
-      host: 
-        default: api.dremio.cloud #https://docs.dremio.com/cloud/getting-started/supported-regions/
+  _choose_cloud_or_software_with_passowrd_or_software_with_pat:
+    dremio_cloud:
+      cloud_host: 
+        default: api.dremio.cloud
         hint: api.dremio.cloud or api.eu.dremio.cloud
-      port:
-        default: 9047
-      database:
-        hint: "@[Dremio Cloud user email]"
+      user:
+        hint: "login email address"
       pat: 
         hint: 'personal access token'
         hide_input: true
-    software:
-      host: 
+    software_with_username_password:
+      software_host: 
         hint: 
       port:
         default: 9047
       user:
         hint: "username"
       password: 
-        hint: 'password or personal access token'
+        hint: 'password'
+        hide_input: true
+      use_ssl:
+        default: false
+        hint: 'use encrypted connection'
+    software_with_pat:
+      software_host: 
+        hint: 
+      port:
+        default: 9047
+      user:
+        hint: "username"
+      pat:
+        hint: 'personal access token'
         hide_input: true
       use_ssl:
         default: false

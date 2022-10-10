@@ -3,6 +3,8 @@ from contextlib import contextmanager
 from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
+from dbt.adapters.dremio.api.parameters import Parameters
+from dbt.adapters.dremio.api.authentication import DremioAuthentication
 
 import time
 
@@ -24,13 +26,13 @@ import agate
 
 @dataclass
 class DremioCredentials(Credentials):
-    driver: str
-    host: str
     environment: Optional[str]
     database: Optional[str]
     schema: Optional[str]
     datalake: Optional[str]
     root_path: Optional[str]
+    cloud_host: Optional[str] = None
+    software_host: Optional[str] = None
     UID: Optional[str] = None
     PWD: Optional[str] = None
     port: Optional[int] = 9047 # for rest endpoint
@@ -62,11 +64,15 @@ class DremioCredentials(Credentials):
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
         # raise NotImplementedError
-        return 'driver', 'host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
+        return 'driver', 'cloud_host', 'software_host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
 
     @classmethod
     def __pre_deserialize__(cls, data):
         data = super().__pre_deserialize__(data)
+        if 'cloud_host' not in data:
+            data['cloud_host'] = None
+        if 'software_host' not in data:
+            data['software_host'] = None
         if 'database' not in data:
             data['database'] = None
         if 'schema' not in data:
@@ -112,19 +118,16 @@ class DremioConnectionManager(SQLConnectionManager):
 
     @classmethod
     def open(cls, connection):
-        def __build_base_url(host, port, use_ssl):
-            protocol = "http"
-            if use_ssl:
-                protocol = "https"
-            return f"{protocol}://{host}:{port}"
 
         if connection.state == 'open':
             logger.debug('Connection is already open, skipping open.')
             return connection
+
         credentials = connection.credentials
+        api_parameters = DremioConnectionManager.build_api_parameters(connection.credentials)
+
         try:
-            base_url = __build_base_url(credentials.host, credentials.port, credentials.use_ssl)
-            handle = DremioHandle(base_url, credentials.UID, credentials.PWD)
+            handle = DremioHandle(api_parameters)
             _ = handle.cursor()
             connection.state = 'open'
             connection.handle = handle
@@ -159,25 +162,30 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def add_query(self, sql, auto_begin=True, bindings=None,
                   abridge_sql_log=False):
+
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
             self.begin()
         logger.debug('Using {} connection "{}".'
                      .format(self.TYPE, connection.name))
+
         with self.exception_handler(sql):
             if abridge_sql_log:
                 logger.debug('On {}: {}....'.format(
                     connection.name, sql[0:512]))
             else:
                 logger.debug('On {}: {}'.format(connection.name, sql))
+
             pre = time.time()
             cursor = connection.handle.cursor()
+
             # pyodbc does not handle a None type binding!
             if bindings is None:
                 cursor.execute(sql)
             else:
                 logger.debug(f"Bindings: {bindings}")
                 cursor.execute(sql, bindings)
+                
             logger.debug("SQL status: {} in {:0.2f} seconds".format(self.get_response(cursor), (time.time() - pre)))
             return connection, cursor
 
@@ -213,5 +221,29 @@ class DremioConnectionManager(SQLConnectionManager):
             table = dbt.clients.agate_helper.empty_table()
         cursor.close()
         return response, table
+
+    @classmethod
+    def build_api_parameters(cls, credentials):
+        def __build_software_base_url(host, port, use_ssl):
+            protocol = "http"
+            if use_ssl:
+                protocol = "https"
+            return f"{protocol}://{host}:{port}"
+
+        def __build_cloud_base_url(host):
+            protocol = "https"
+            return f"{protocol}://{host}"
+
+        api_parameters = None
+        dremio_authentication = DremioAuthentication.build(credentials.UID, credentials.PWD, credentials.pat)
+
+        if credentials.cloud_host != None:
+            api_parameters = Parameters(__build_cloud_base_url(credentials.cloud_host), dremio_authentication, is_cloud = True)
+        elif credentials.software_host != None:
+            api_parameters = Parameters(__build_software_base_url(credentials.software_host, credentials.port, credentials.use_ssl), dremio_authentication, is_cloud = False)
+        else:
+            raise dbt.exceptions.DbtProfileError(dbt.exceptions.DbtConfigError('A cloud_host or software_host must be set in poject profile.'))
+        
+        return api_parameters
     
 
