@@ -247,7 +247,7 @@ class DremioConnectionManager(SQLConnectionManager):
         elif credentials.software_host != None:
             api_parameters = Parameters(__build_software_base_url(credentials.software_host, credentials.port, credentials.use_ssl), dremio_authentication, is_cloud = False, cloud_project_id = None)
         else:
-            raise dbt.exceptions.DbtProfileError(dbt.exceptions.DbtConfigError('A cloud_host or software_host must be set in poject profile.'))
+            raise dbt.exceptions.DbtProfileError(dbt.exceptions.DbtConfigError('A cloud_host or software_host must be set in project profile.'))
         
         return api_parameters
     
