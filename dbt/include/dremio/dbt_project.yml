@@ -10,4 +10,4 @@ quoting:
 macro-paths: ["macros"]
 
 vars:
-  'dremio:reflections_enabled': true
+  'dremio:reflections_enabled': false
