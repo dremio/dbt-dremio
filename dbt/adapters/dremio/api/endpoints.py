@@ -33,16 +33,18 @@ from .error import (
     DremioNotFoundException,
     DremioPermissionException,
     DremioUnauthorizedException,
-    DremioAlreadyExistsException
+    DremioAlreadyExistsException,
 )
 
 
 def _get_headers(token):
-    headers = {'Content-Type': 'application/json',
-               'Authorization': '_dremio{authToken}'.format(authToken=token)}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "_dremio{authToken}".format(authToken=token),
+    }
 
     # debug
-    _dump_json('_get_headers', jsonlib.dumps(headers, indent=4))
+    _dump_json("_get_headers", jsonlib.dumps(headers, indent=4))
     ##
 
     return headers
@@ -56,8 +58,7 @@ def _get(url, token, details="", ssl_verify=True):
 def _post(url, token, json=None, details="", ssl_verify=True):
     if isinstance(json, str):
         json = jsonlib.loads(json)
-    r = requests.post(url, headers=_get_headers(
-        token), verify=ssl_verify, json=json)
+    r = requests.post(url, headers=_get_headers(token), verify=ssl_verify, json=json)
     return _check_error(r, details)
 
 
@@ -79,12 +80,18 @@ def _raise_for_status(self):
         reason = self.reason
 
     if 400 <= self.status_code < 500:
-        http_error_msg = u"%s Client Error: %s for url: %s" % (
-            self.status_code, reason, self.url)
+        http_error_msg = "%s Client Error: %s for url: %s" % (
+            self.status_code,
+            reason,
+            self.url,
+        )
 
     elif 500 <= self.status_code < 600:
-        http_error_msg = u"%s Server Error: %s for url: %s" % (
-            self.status_code, reason, self.url)
+        http_error_msg = "%s Server Error: %s for url: %s" % (
+            self.status_code,
+            reason,
+            self.url,
+        )
 
     if http_error_msg:
         return HTTPError(http_error_msg, response=self), self.status_code, reason
@@ -98,7 +105,7 @@ def _check_error(r, details=""):
         try:
             data = r.json()
             # debug
-            _dump_json('_check_error', data)
+            _dump_json("_check_error", data)
             ##
             return data
         except:  # NOQA
@@ -112,13 +119,12 @@ def _check_error(r, details=""):
     if code == 404:
         raise DremioNotFoundException("Not found:" + details, error, r)
     if code == 409:
-        raise DremioAlreadyExistsException(
-            "Already exists:" + details, error, r)
+        raise DremioAlreadyExistsException("Already exists:" + details, error, r)
     raise DremioException("Unknown error", error)
 
 
 def _dump_json(debug_message: str, json: str):
-    with open('api.endpoints._dump_json.txt', 'a') as fp:
+    with open("api.endpoints._dump_json.txt", "a") as fp:
         fp.write(debug_message)
         jsonlib.dump(json, fp, indent=4)
         fp.write("\n---------\n")
@@ -138,15 +144,22 @@ def catalog_item(token, base_url, cid=None, path=None, ssl_verify=True):
     :return: json of resource
     """
     if cid is None and path is None:
-        raise TypeError(
-            "both id and path can't be None for a catalog_item call")
+        raise TypeError("both id and path can't be None for a catalog_item call")
     idpath = (cid if cid else "") + ", " + (".".join(path) if path else "")
     cpath = [quote(i, safe="") for i in path] if path else ""
 
-    endpoint = "/{}".format(cid) if cid else "/by-path/{}".format(
-        "/".join(cpath).replace('"', ""))
+    endpoint = (
+        "/{}".format(cid)
+        if cid
+        else "/by-path/{}".format("/".join(cpath).replace('"', ""))
+    )
 
-    return _get(base_url + "/api/v3/catalog{}".format(endpoint), token, idpath, ssl_verify=ssl_verify)
+    return _get(
+        base_url + "/api/v3/catalog{}".format(endpoint),
+        token,
+        idpath,
+        ssl_verify=ssl_verify,
+    )
 
 
 def sql_endpoint(token, base_url, query, context=None, ssl_verify=True):
@@ -161,7 +174,12 @@ def sql_endpoint(token, base_url, query, context=None, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: job id json object
     """
-    return _post(base_url + "/api/v3/sql", token, ssl_verify=ssl_verify, json={"sql": query, "context": context})
+    return _post(
+        base_url + "/api/v3/sql",
+        token,
+        ssl_verify=ssl_verify,
+        json={"sql": query, "context": context},
+    )
 
 
 def job_status(token, base_url, job_id, ssl_verify=True):
@@ -175,7 +193,9 @@ def job_status(token, base_url, job_id, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: status object
     """
-    return _get(base_url + "/api/v3/job/{}".format(job_id), token, ssl_verify=ssl_verify)
+    return _get(
+        base_url + "/api/v3/job/{}".format(job_id), token, ssl_verify=ssl_verify
+    )
 
 
 def job_results(token, base_url, job_id, offset=0, limit=100, ssl_verify=True):
@@ -192,16 +212,15 @@ def job_results(token, base_url, job_id, offset=0, limit=100, ssl_verify=True):
     :return: result object
     """
     return _get(
-        base_url +
-        "/api/v3/job/{}/results?offset={}&limit={}".format(
-            job_id, offset, limit),
+        base_url
+        + "/api/v3/job/{}/results?offset={}&limit={}".format(job_id, offset, limit),
         token,
         ssl_verify=ssl_verify,
     )
 
 
 def delete_catalog(token, base_url, cid, tag, ssl_verify=True):
-    """ remove a catalog item from Dremio
+    """remove a catalog item from Dremio
 
     https://docs.dremio.com/rest-api/catalog/delete-catalog-id.html
 
@@ -212,14 +231,17 @@ def delete_catalog(token, base_url, cid, tag, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: None
     """
-    if tag is None:
-        return _delete(base_url + "/api/v3/catalog/{}".format(cid), token, ssl_verify=ssl_verify)
-    else:
-        return _delete(base_url + "/api/v3/catalog/{}?tag={}".format(cid, tag), token, ssl_verify=ssl_verify)
+    # if tag is None:
+    return _delete(
+        base_url + "/api/v3/catalog/{}".format(cid), token, ssl_verify=ssl_verify
+    )
+
+    # else:
+    #   return _delete(base_url + "/api/v3/catalog/{}?tag={}".format(cid, tag), token, ssl_verify=ssl_verify)
 
 
 def set_catalog(token, base_url, json, ssl_verify=True):
-    """ add a new catalog entity
+    """add a new catalog entity
 
     https://docs.dremio.com/rest-api/catalog/post-catalog.html
 
@@ -233,7 +255,7 @@ def set_catalog(token, base_url, json, ssl_verify=True):
 
 
 def update_catalog(token, base_url, cid, json, ssl_verify=True):
-    """ update a catalog entity
+    """update a catalog entity
 
     https://docs.dremio.com/rest-api/catalog/put-catalog-id.html
 
@@ -248,7 +270,7 @@ def update_catalog(token, base_url, cid, json, ssl_verify=True):
 
 
 def promote_catalog(token, base_url, cid, json, ssl_verify=True):
-    """ promote a catalog entity (only works on folders and files in sources
+    """promote a catalog entity (only works on folders and files in sources
 
     https://docs.dremio.com/rest-api/catalog/post-catalog-id.html
 
@@ -259,7 +281,9 @@ def promote_catalog(token, base_url, cid, json, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: updated catalog entity
     """
-    return _post(base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify)
+    return _post(
+        base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify
+    )
 
 
 def collaboration_tags(token, base_url, cid, ssl_verify=True):
@@ -273,7 +297,11 @@ def collaboration_tags(token, base_url, cid, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: result object
     """
-    return _get(base_url + "/api/v3/catalog/{}/collaboration/tag".format(cid), token, ssl_verify=ssl_verify)
+    return _get(
+        base_url + "/api/v3/catalog/{}/collaboration/tag".format(cid),
+        token,
+        ssl_verify=ssl_verify,
+    )
 
 
 def collaboration_wiki(token, base_url, cid, ssl_verify=True):
@@ -287,11 +315,15 @@ def collaboration_wiki(token, base_url, cid, ssl_verify=True):
     :param ssl_verify: ignore ssl errors if False
     :return: result object
     """
-    return _get(base_url + "/api/v3/catalog/{}/collaboration/wiki".format(cid), token, ssl_verify=ssl_verify)
+    return _get(
+        base_url + "/api/v3/catalog/{}/collaboration/wiki".format(cid),
+        token,
+        ssl_verify=ssl_verify,
+    )
 
 
 def set_collaboration_tags(token, base_url, cid, tags, ssl_verify=True):
-    """ set tags on a given catalog entity
+    """set tags on a given catalog entity
 
     https://docs.dremio.com/rest-api/catalog/post-catalog-collaboration.html
 
@@ -308,11 +340,16 @@ def set_collaboration_tags(token, base_url, cid, tags, ssl_verify=True):
         json["version"] = old_tags["version"]
     except:  # NOQA
         pass
-    return _post(base_url + "/api/v3/catalog/{}/collaboration/tag".format(cid), token, ssl_verify=ssl_verify, json=json)
+    return _post(
+        base_url + "/api/v3/catalog/{}/collaboration/tag".format(cid),
+        token,
+        ssl_verify=ssl_verify,
+        json=json,
+    )
 
 
 def set_collaboration_wiki(token, base_url, cid, wiki, ssl_verify=True):
-    """ set wiki on a given catalog entity
+    """set wiki on a given catalog entity
 
     https://docs.dremio.com/rest-api/catalog/post-catalog-collaboration.html
 
@@ -330,7 +367,10 @@ def set_collaboration_wiki(token, base_url, cid, wiki, ssl_verify=True):
     except:  # NOQA
         pass
     return _post(
-        base_url + "/api/v3/catalog/{}/collaboration/wiki".format(cid), token, ssl_verify=ssl_verify, json=json
+        base_url + "/api/v3/catalog/{}/collaboration/wiki".format(cid),
+        token,
+        ssl_verify=ssl_verify,
+        json=json,
     )
 
 
