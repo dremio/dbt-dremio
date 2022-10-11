@@ -17,7 +17,7 @@ class DremioAuthentication:
     
     @classmethod
     def build_headers(cls, authorization_field):
-        headers = {'Content-Type':'application/json', 'Authorization': '{authorization_otken}'.format(authorization_otken=authorization_field)}
+        headers = {'Content-Type':'application/json', 'Authorization': '{authorization_token}'.format(authorization_token=authorization_field)}
         return headers
 
     @abstractmethod

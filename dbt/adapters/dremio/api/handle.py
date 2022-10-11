@@ -27,4 +27,4 @@ class DremioHandle:
 
     def rollback(self):
         #todo
-        raise Exception("Handle rollback not implemented.")
+        logger.debug("Handle rollback not implemented.")
