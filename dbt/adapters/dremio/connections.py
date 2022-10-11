@@ -54,7 +54,7 @@ class DremioCredentials(Credentials):
     software_host: Optional[str] = None
     UID: Optional[str] = None
     PWD: Optional[str] = None
-    port: Optional[int] = 9047 # for rest endpoint
+    port: Optional[int] = 9047  # for rest endpoint
     use_ssl: Optional[bool] = True
     pat: Optional[str] = None
     additional_parameters: Optional[str] = None
@@ -88,27 +88,41 @@ class DremioCredentials(Credentials):
         # return an iterator of keys to pretty-print in 'dbt debug'
         # raise NotImplementedError
 
-        return 'driver', 'cloud_host', 'cloud_project_id', 'software_host', 'port', 'UID', 'database', 'schema', 'additional_parameters', 'datalake', 'root_path', 'environment', 'use_ssl'
+        return (
+            "driver",
+            "cloud_host",
+            "cloud_project_id",
+            "software_host",
+            "port",
+            "UID",
+            "database",
+            "schema",
+            "additional_parameters",
+            "datalake",
+            "root_path",
+            "environment",
+            "use_ssl",
+        )
 
     @classmethod
     def __pre_deserialize__(cls, data):
         data = super().__pre_deserialize__(data)
-        if 'cloud_host' not in data:
-            data['cloud_host'] = None
-        if 'software_host' not in data:
-            data['software_host'] = None
-        if 'database' not in data:
-            data['database'] = None
-        if 'schema' not in data:
-            data['schema'] = None
-        if 'datalake' not in data:
-            data['datalake'] = None
-        if 'root_path' not in data:
-            data['root_path'] = None
-        if 'environment' not in data:
-            data['environment'] = None
-        if 'pat' not in data:
-            data['pat'] = None
+        if "cloud_host" not in data:
+            data["cloud_host"] = None
+        if "software_host" not in data:
+            data["software_host"] = None
+        if "database" not in data:
+            data["database"] = None
+        if "schema" not in data:
+            data["schema"] = None
+        if "datalake" not in data:
+            data["datalake"] = None
+        if "root_path" not in data:
+            data["root_path"] = None
+        if "environment" not in data:
+            data["environment"] = None
+        if "pat" not in data:
+            data["pat"] = None
         return data
 
     def __post_init__(self):
@@ -128,7 +142,7 @@ class DremioConnectionManager(SQLConnectionManager):
     @contextmanager
     def exception_handler(self, sql):
         try:
-            yield   
+            yield
         except Exception as e:
             logger.debug(f"Error running SQL: {sql}")
             logger.debug("Rolling back transaction.")
@@ -150,20 +164,18 @@ class DremioConnectionManager(SQLConnectionManager):
             return connection
 
         credentials = connection.credentials
-
-        api_parameters = DremioConnectionManager.build_api_parameters(connection.credentials)
-
+        api_parameters = DremioConnectionManager.build_api_parameters(credentials)
 
         try:
             handle = DremioHandle(api_parameters)
             _ = handle.cursor()
-            connection.state = 'open'
+            connection.state = "open"
             connection.handle = handle
-            logger.debug(f'Connected to db: {credentials.database}')
+            logger.debug(f"Connected to db: {credentials.database}")
         except Exception as e:
             logger.debug(f"Could not connect to db: {e}")
             connection.handle = None
-            connection.state = 'fail'
+            connection.state = "fail"
             raise dbt.exceptions.FailedToConnectException(str(e))
         return connection
 
@@ -194,13 +206,13 @@ class DremioConnectionManager(SQLConnectionManager):
         if auto_begin and connection.transaction_open is False:
             self.begin()
 
-        logger.debug(f'Using {self.TYPE} connection "{connection.name}")
+        logger.debug(f'Using {self.TYPE} connection "{connection.name}')
 
         with self.exception_handler(sql):
             if abridge_sql_log:
                 logger.debug("On {}: {}....".format(connection.name, sql[0:512]))
             else:
-                logger.debug('On {}: {}'.format(connection.name, sql))
+                logger.debug("On {}: {}".format(connection.name, sql))
 
             pre = time.time()
             cursor = connection.handle.cursor()
@@ -212,7 +224,11 @@ class DremioConnectionManager(SQLConnectionManager):
                 logger.debug(f"Bindings: {bindings}")
                 cursor.execute(sql, bindings)
 
-            logger.debug("SQL status: {} in {:0.2f} seconds".format(self.get_response(cursor), (time.time() - pre)))
+            logger.debug(
+                "SQL status: {} in {:0.2f} seconds".format(
+                    self.get_response(cursor), (time.time() - pre)
+                )
+            )
             return connection, cursor
 
     @classmethod
@@ -222,14 +238,11 @@ class DremioConnectionManager(SQLConnectionManager):
     @classmethod
     def get_response(cls, cursor: DremioCursor) -> AdapterResponse:
         rows = cursor.rowcount
-        message = 'OK' if rows == -1 else str(rows)
-        return AdapterResponse(
-            _message=message,
-            rows_affected=rows
-        )
-    
+        message = "OK" if rows == -1 else str(rows)
+        return AdapterResponse(_message=message, rows_affected=rows)
+
     @classmethod
-    def get_result_from_cursor(cls, cursor:DremioCursor) -> agate.Table:
+    def get_result_from_cursor(cls, cursor: DremioCursor) -> agate.Table:
         json_payload = cursor.job_results()
         json_rows = json_payload["rows"]
         return agate.Table.from_object(json_rows)
@@ -257,56 +270,49 @@ class DremioConnectionManager(SQLConnectionManager):
     def drop_catalog(self, database, schema):
         connection = self.get_thread_connection()
         credentials = connection.credentials
-        base_url = self._build_base_url(credentials)
+        api_parameters = self.build_api_parameters(credentials)
 
-        token = login(base_url, credentials.UID, credentials.PWD)
+        token = login(api_parameters)
         connection.credentials.token = token
 
         path = [database]
         folders = schema.split(".")
         path.extend(folders)
         try:
-            catalog_info = catalog_item(credentials.token, base_url, None, path, False)
-        except DremioNotFoundException as exc:
+            catalog_info = catalog_item(api_parameters, None, path, False)
+        except DremioNotFoundException:
             logger.debug("Catalog not found. Returning")
             return
 
-        delete_catalog(
-            credentials.token, base_url, catalog_info["id"], catalog_info["tag"], False
-        )
+        delete_catalog(api_parameters, catalog_info["id"], catalog_info["tag"], False)
 
     def create_catalog(self, database, schema):
         connection = self.get_thread_connection()
         credentials = connection.credentials
-        base_url = self._build_base_url(credentials)
+        api_parameters = self.build_api_parameters(credentials)
 
-        token = login(base_url, credentials.UID, credentials.PWD)
+        token = login(api_parameters)
         connection.credentials.token = token
 
         path = [database]
         folders = schema.split(".")
         path.extend(folders)
 
-        # if default space then create the folder within the space only
-        if database == "@" + credentials.UID:
-            logger.debug("Database is default: creating folders only")
-            # create each folder in schema
-            temp_path = [database]
-            for folder in folders:
-                temp_path.append(folder)
-                folder_json = self._make_new_folder_json(temp_path)
-                try:
-                    set_catalog(credentials.token, base_url, folder_json, False)
-                except DremioAlreadyExistsException:
-                    logger.debug("Folder already exists. Returning.")
-            return
-
         space_json = self._make_new_space_json(database)
-
         try:
-            set_catalog(credentials.token, base_url, space_json, False)
+            set_catalog(api_parameters, space_json, False)
         except DremioAlreadyExistsException:
-            logger.debug("Database already exists. Skipping creation.")
+            logger.debug(f"Database {database} already exists. Creating folders only.")
+
+        temp_path = [database]
+        for folder in folders:
+            temp_path.append(folder)
+            folder_json = self._make_new_folder_json(temp_path)
+            try:
+                set_catalog(api_parameters, folder_json, False)
+            except DremioAlreadyExistsException:
+                logger.debug(f"Folder {folder} already exists.")
+        return
 
     def _make_new_space_json(self, name) -> json:
         python_dict = {"entityType": "space", "name": name}
@@ -328,14 +334,31 @@ class DremioConnectionManager(SQLConnectionManager):
             return f"{protocol}://{host}"
 
         api_parameters = None
-        dremio_authentication = DremioAuthentication.build(credentials.UID, credentials.PWD, credentials.pat)
+        dremio_authentication = DremioAuthentication.build(
+            credentials.UID, credentials.PWD, credentials.pat
+        )
 
         if credentials.cloud_host != None:
-            api_parameters = Parameters(__build_cloud_base_url(credentials.cloud_host), dremio_authentication, is_cloud = True, cloud_project_id = credentials.cloud_project_id)
+            api_parameters = Parameters(
+                __build_cloud_base_url(credentials.cloud_host),
+                dremio_authentication,
+                is_cloud=True,
+                cloud_project_id=credentials.cloud_project_id,
+            )
         elif credentials.software_host != None:
-            api_parameters = Parameters(__build_software_base_url(credentials.software_host, credentials.port, credentials.use_ssl), dremio_authentication, is_cloud = False, cloud_project_id = None)
+            api_parameters = Parameters(
+                __build_software_base_url(
+                    credentials.software_host, credentials.port, credentials.use_ssl
+                ),
+                dremio_authentication,
+                is_cloud=False,
+                cloud_project_id=None,
+            )
         else:
-            raise dbt.exceptions.DbtProfileError(dbt.exceptions.DbtConfigError('A cloud_host or software_host must be set in project profile.'))
-        
-        return api_parameters
+            raise dbt.exceptions.DbtProfileError(
+                dbt.exceptions.DbtConfigError(
+                    "A cloud_host or software_host must be set in project profile."
+                )
+            )
 
+        return api_parameters

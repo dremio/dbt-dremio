@@ -1,4 +1,5 @@
 from dbt.adapters.dremio.api.error import DremioException
+from urllib.parse import quote
 
 class UrlBuilder:
     SOFTWARE_LOGIN_ENDPOINT = '/apiv2/login'
@@ -10,6 +11,9 @@ class UrlBuilder:
 
     SOFTWARE_JOB_ENDPOINT = '/api/v3/job'
     CLOUD_JOB_ENDPOINT = CLOUD_PROJECTS_ENDPOINT + '/{}/job'
+
+    SOFTWARE_CATALOG_ENDPOINT = '/api/v3/catalog'
+    CLOUD_CATALOG_ENDPOINT = CLOUD_PROJECTS_ENDPOINT + '/{}/catalog'
     
 
     @classmethod
@@ -47,3 +51,26 @@ class UrlBuilder:
             url_path = base_url + UrlBuilder.SOFTWARE_JOB_ENDPOINT
 
         return url_path + "/{}/results?offset={}&limit={}".format(job_id, offset, limit)
+
+    @classmethod
+    def set_catalog_url(cls, base_url, is_cloud = False, cloud_project_id = None):
+        url_path = None
+        if is_cloud == True:
+            url_path = base_url + UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(cloud_project_id)
+        else:
+            url_path = base_url + UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
+
+        return url_path
+
+    @classmethod
+    def catalog_item_url(cls, base_url, cid, path, is_cloud = False, cloud_project_id = None):
+        url_path = None
+        if is_cloud == True:
+            url_path = base_url + UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(cloud_project_id)
+        else:
+            url_path = base_url + UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
+        if cid is None and path is None:
+            raise TypeError("both id and path can't be None for a catalog_item call")
+        cpath = [quote(i, safe="") for i in path] if path else ""
+        endpoint = "/{}".format(cid) if cid else "/by-path/{}".format("/".join(cpath).replace('"', ""))
+        return url_path + endpoint

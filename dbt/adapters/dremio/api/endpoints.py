@@ -53,11 +53,9 @@ def _post(url, request_headers, json=None, details="", ssl_verify=True):
     r = requests.post(url, headers=request_headers, verify=ssl_verify, json=json)
     return _check_error(r, details)
 
-
-def _delete(url, token, details="", ssl_verify=True):
-    r = requests.delete(url, headers=_get_headers(token), verify=ssl_verify)
+def _delete(url, request_headers, details="", ssl_verify=True):
+    r = requests.delete(url, headers=request_headers, verify=ssl_verify)
     return _check_error(r, details)
-
 
 def _raise_for_status(self):
     """Raises stored :class:`HTTPError`, if one occurred. Copy from requests request.raise_for_status()"""
@@ -114,31 +112,11 @@ def _check_error(r, details=""):
         raise DremioAlreadyExistsException("Already exists:" + details, error, r)
     raise DremioException("Unknown error", error)
 
-
 def _dump_json(debug_message: str, json: str):
     with open("api.endpoints._dump_json.txt", "a") as fp:
         fp.write(debug_message)
         jsonlib.dump(json, fp, indent=4)
         fp.write("\n---------\n")
-
-
-def catalog_item(token, base_url, cid=None, path=None, ssl_verify=True):
-    """fetch a specific catalog item by id or by path
-
-    https://docs.dremio.com/rest-api/catalog/get-catalog-id.html
-    https://docs.dremio.com/rest-api/catalog/get-catalog-path.html
-
-    :param token: auth token from previous login attempt
-    :param base_url: base Dremio url
-    :param cid: unique dremio id for resource
-    :param path: list ['space', 'folder', 'vds']
-    :param ssl_verify: ignore ssl errors if False
-    :return: json of resource
-    """
-    if cid is None and path is None:
-        raise TypeError("both id and path can't be None for a catalog_item call")
-    idpath = (cid if cid else "") + ", " + (".".join(path) if path else "")
-    cpath = [quote(i, safe="") for i in path] if path else ""
 
 def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
     url = UrlBuilder.sql_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
@@ -160,41 +138,22 @@ def job_results(api_parameters: Parameters, job_id, offset=0, limit=100, ssl_ver
         ssl_verify=ssl_verify,
     )
 
+def set_catalog(api_parameters, json, ssl_verify=True):
+    url = UrlBuilder.set_catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
+    return _post(url, api_parameters.authentication.get_headers(), json=json, ssl_verify=ssl_verify)
 
-def delete_catalog(token, base_url, cid, tag, ssl_verify=True):
-    """remove a catalog item from Dremio
+def catalog_item(api_parameters, cid=None, path=None, ssl_verify=True):
+    url = UrlBuilder.catalog_item_url(api_parameters.base_url, cid, path, api_parameters.is_cloud, api_parameters.cloud_project_id)
+    idpath = (cid if cid else "") + ", " + (".".join(path) if path else "")
+    return _get(url, api_parameters.authentication.get_headers(), idpath, ssl_verify=ssl_verify)
 
-    https://docs.dremio.com/rest-api/catalog/delete-catalog-id.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param cid: id of a catalog entity
-    :param tag: version tag of entity
-    :param ssl_verify: ignore ssl errors if False
-    :return: None
-    """
-    # if tag is None:
-    return _delete(
-        base_url + "/api/v3/catalog/{}".format(cid), token, ssl_verify=ssl_verify
-    )
-    # TODO: else:
-    #   return _delete(base_url + "/api/v3/catalog/{}?tag={}".format(cid, tag), token, ssl_verify=ssl_verify)
-
-
-
-def set_catalog(token, base_url, json, ssl_verify=True):
-    """add a new catalog entity
-
-    https://docs.dremio.com/rest-api/catalog/post-catalog.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param json: json document for new catalog entity
-    :param ssl_verify: ignore ssl errors if False
-    :return: new catalog entity
-    """
-    return _post(base_url + "/api/v3/catalog", token, json, ssl_verify=ssl_verify)
-
+def delete_catalog(api_parameters, cid, tag, ssl_verify=True):
+    if tag is None:
+        url = UrlBuilder.set_catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
+        return _delete(url + f"/{cid}", api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
+    else:
+        url = UrlBuilder.set_catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
+        return _delete(url + f"/{cid}?tag={tag}", api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
 
 def update_catalog(token, base_url, cid, json, ssl_verify=True):
     """update a catalog entity
@@ -209,7 +168,6 @@ def update_catalog(token, base_url, cid, json, ssl_verify=True):
     :return: updated catalog entity
     """
     # return _put(base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify)
-
 
 def promote_catalog(token, base_url, cid, json, ssl_verify=True):
     """promote a catalog entity (only works on folders and files in sources
@@ -226,7 +184,6 @@ def promote_catalog(token, base_url, cid, json, ssl_verify=True):
     return _post(
         base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify
     )
-
 
 def collaboration_tags(token, base_url, cid, ssl_verify=True):
     """fetch tags for a catalog entry
@@ -245,7 +202,6 @@ def collaboration_tags(token, base_url, cid, ssl_verify=True):
         ssl_verify=ssl_verify,
     )
 
-
 def collaboration_wiki(token, base_url, cid, ssl_verify=True):
     """fetch wiki for a catalog entry
 
@@ -262,7 +218,6 @@ def collaboration_wiki(token, base_url, cid, ssl_verify=True):
         token,
         ssl_verify=ssl_verify,
     )
-
 
 def set_collaboration_tags(token, base_url, cid, tags, ssl_verify=True):
     """set tags on a given catalog entity
@@ -288,7 +243,6 @@ def set_collaboration_tags(token, base_url, cid, tags, ssl_verify=True):
         ssl_verify=ssl_verify,
         json=json,
     )
-
 
 def set_collaboration_wiki(token, base_url, cid, wiki, ssl_verify=True):
     """set wiki on a given catalog entity
