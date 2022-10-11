@@ -12,7 +12,7 @@ class DremioAuthentication:
     @classmethod
     def build(cls, username: None, password: None, pat: None):
         if password != None:
-            return DremioPasswordAuthenication(username, password, token = None)
+            return DremioPasswordAuthentication(username, password, token = None)
         return DremioPatAuthentication(username, pat)
     
     @classmethod
@@ -25,12 +25,12 @@ class DremioAuthentication:
         pass
 
 @dataclass
-class DremioPasswordAuthenication(DremioAuthentication):
+class DremioPasswordAuthentication(DremioAuthentication):
     password: Optional[str] = None
     token: Optional[str] = None
 
     def get_headers(self):
-        authorization_field = '_dremio{authToken}'.format(authToken=self.token)
+        authorization_field = '_dremio{authorization_token}'.format(authorization_token=self.token)
         return self.build_headers(authorization_field)
 
 @dataclass
@@ -38,7 +38,7 @@ class DremioPatAuthentication(DremioAuthentication):
     pat: Optional[str] = None
 
     def get_headers(self):
-        authorization_field = 'Bearer {authToken}'.format(authToken=self.pat)
+        authorization_field = 'Bearer {authorization_token}'.format(authorization_token=self.pat)
         return self.build_headers(authorization_field)
 
 
