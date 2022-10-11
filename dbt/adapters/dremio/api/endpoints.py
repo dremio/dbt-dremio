@@ -22,10 +22,17 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+from asyncio.log import logger
 import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
 from urllib.parse import quote
+
+from dbt.adapters.dremio.api.parameters import Parameters
+from dbt.adapters.dremio.api.url_builder import UrlBuilder
+
+from dbt.events import AdapterLogger
+logger = AdapterLogger("dremio")
 
 from .error import (
     DremioBadRequestException,
@@ -36,29 +43,14 @@ from .error import (
     DremioAlreadyExistsException,
 )
 
-
-def _get_headers(token):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "_dremio{authToken}".format(authToken=token),
-    }
-
-    # debug
-    _dump_json("_get_headers", jsonlib.dumps(headers, indent=4))
-    ##
-
-    return headers
-
-
-def _get(url, token, details="", ssl_verify=True):
-    r = requests.get(url, headers=_get_headers(token), verify=ssl_verify)
+def _get(url, request_headers, details="", ssl_verify=True):
+    r = requests.get(url, headers=request_headers, verify=ssl_verify)
     return _check_error(r, details)
 
-
-def _post(url, token, json=None, details="", ssl_verify=True):
+def _post(url, request_headers, json=None, details="", ssl_verify=True):
     if isinstance(json, str):
         json = jsonlib.loads(json)
-    r = requests.post(url, headers=_get_headers(token), verify=ssl_verify, json=json)
+    r = requests.post(url, headers=request_headers, verify=ssl_verify, json=json)
     return _check_error(r, details)
 
 
@@ -148,73 +140,23 @@ def catalog_item(token, base_url, cid=None, path=None, ssl_verify=True):
     idpath = (cid if cid else "") + ", " + (".".join(path) if path else "")
     cpath = [quote(i, safe="") for i in path] if path else ""
 
-    endpoint = (
-        "/{}".format(cid)
-        if cid
-        else "/by-path/{}".format("/".join(cpath).replace('"', ""))
-    )
+def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
+    url = UrlBuilder.sql_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
+    return _post(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify, json={"sql": query, "context": context})
 
+def job_status(api_parameters: Parameters, job_id, ssl_verify=True):
+    url = UrlBuilder.job_status_url(api_parameters.base_url, job_id, api_parameters.is_cloud, api_parameters.cloud_project_id)
+    return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
+
+def job_cancel(api_parameters: Parameters, job_id, ssl_verify=True):
+    url = UrlBuilder.job_cancel_url(api_parameters.base_url, job_id, api_parameters.is_cloud)
+    return _post(url, api_parameters.authentication.get_headers(), json=None, ssl_verify=ssl_verify)
+
+def job_results(api_parameters: Parameters, job_id, offset=0, limit=100, ssl_verify=True):
+    url = UrlBuilder.job_results_url(api_parameters.base_url, job_id, api_parameters.is_cloud, offset, limit, api_parameters.cloud_project_id)
     return _get(
-        base_url + "/api/v3/catalog{}".format(endpoint),
-        token,
-        idpath,
-        ssl_verify=ssl_verify,
-    )
-
-
-def sql_endpoint(token, base_url, query, context=None, ssl_verify=True):
-    """submit job w/ given sql
-
-    https://docs.dremio.com/rest-api/sql/post-sql.html
-
-    :param token: auth token
-    :param base_url: base Dremio url
-    :param query: sql query
-    :param context: optional dremio context
-    :param ssl_verify: ignore ssl errors if False
-    :return: job id json object
-    """
-    return _post(
-        base_url + "/api/v3/sql",
-        token,
-        ssl_verify=ssl_verify,
-        json={"sql": query, "context": context},
-    )
-
-
-def job_status(token, base_url, job_id, ssl_verify=True):
-    """fetch job status
-
-    https://docs.dremio.com/rest-api/jobs/get-job.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param job_id: job id (as returned by sql)
-    :param ssl_verify: ignore ssl errors if False
-    :return: status object
-    """
-    return _get(
-        base_url + "/api/v3/job/{}".format(job_id), token, ssl_verify=ssl_verify
-    )
-
-
-def job_results(token, base_url, job_id, offset=0, limit=100, ssl_verify=True):
-    """fetch job results
-
-    https://docs.dremio.com/rest-api/jobs/get-job.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param job_id: job id (as returned by sql)
-    :param offset: offset of result set to return
-    :param limit: number of results to return (max 500)
-    :param ssl_verify: ignore ssl errors if False
-    :return: result object
-    """
-    return _get(
-        base_url
-        + "/api/v3/job/{}/results?offset={}&limit={}".format(job_id, offset, limit),
-        token,
+        url,
+        api_parameters.authentication.get_headers(),
         ssl_verify=ssl_verify,
     )
 
@@ -235,9 +177,9 @@ def delete_catalog(token, base_url, cid, tag, ssl_verify=True):
     return _delete(
         base_url + "/api/v3/catalog/{}".format(cid), token, ssl_verify=ssl_verify
     )
-
-    # else:
+    # TODO: else:
     #   return _delete(base_url + "/api/v3/catalog/{}?tag={}".format(cid, tag), token, ssl_verify=ssl_verify)
+
 
 
 def set_catalog(token, base_url, json, ssl_verify=True):
@@ -372,16 +314,3 @@ def set_collaboration_wiki(token, base_url, cid, wiki, ssl_verify=True):
         ssl_verify=ssl_verify,
         json=json,
     )
-
-
-def build_url(**kwargs):
-    """
-    returns required url string
-    :param kwargs: keyword arguments (dictionary)
-    :return:string
-    """
-    query = "&".join("{}={}".format(k, v) for k, v in kwargs.items() if v)
-    if query:
-        qry = "?{}".format(query)
-        return qry
-    return query

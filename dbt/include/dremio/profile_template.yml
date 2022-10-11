@@ -1,0 +1,47 @@
+fixed:
+  type: dremio
+  use_ssl: true
+prompts:
+  _choose_cloud_or_software_with_passowrd_or_software_with_pat:
+    dremio_cloud:
+      cloud_host: 
+        default: api.dremio.cloud
+        hint: api.dremio.cloud or api.eu.dremio.cloud
+      user:
+        hint: "login email address"
+      pat: 
+        hint: 'personal access token'
+        hide_input: true
+      cloud_project_id:
+        hint: project id found on project general information page
+    software_with_username_password:
+      software_host: 
+        hint: 
+      port:
+        default: 9047
+      user:
+        hint: "username"
+      password: 
+        hint: 'password'
+        hide_input: true
+      use_ssl:
+        default: false
+        hint: 'use encrypted connection'
+    software_with_pat:
+      software_host: 
+        hint: 
+      port:
+        default: 9047
+      user:
+        hint: "username"
+      pat:
+        hint: 'personal access token'
+        hide_input: true
+      use_ssl:
+        default: false
+        hint: 'use encrypted connection'
+  threads:
+    hint: '1 or more'
+    type: 'int'
+    default: 1
+
