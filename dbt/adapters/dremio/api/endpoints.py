@@ -94,9 +94,6 @@ def _check_error(r, details=""):
     if not error:
         try:
             data = r.json()
-            # debug
-            _dump_json("_check_error", data)
-            ##
             return data
         except:  # NOQA
             return r.text
@@ -112,11 +109,7 @@ def _check_error(r, details=""):
         raise DremioAlreadyExistsException("Already exists:" + details, error, r)
     raise DremioException("Unknown error", error)
 
-def _dump_json(debug_message: str, json: str):
-    with open("api.endpoints._dump_json.txt", "a") as fp:
-        fp.write(debug_message)
-        jsonlib.dump(json, fp, indent=4)
-        fp.write("\n---------\n")
+
 
 def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
     url = UrlBuilder.sql_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)

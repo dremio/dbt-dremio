@@ -54,14 +54,10 @@ class DremioCredentials(Credentials):
     software_host: Optional[str] = None
     UID: Optional[str] = None
     PWD: Optional[str] = None
-    port: Optional[int] = 9047  # for rest endpoint
+    port: Optional[int] = 9047 # for rest endpoint
     use_ssl: Optional[bool] = True
     pat: Optional[str] = None
     additional_parameters: Optional[str] = None
-    # poc hack
-    token: Optional[str] = None
-    rest_api_port: Optional[int] = 9047
-    #
 
     _ALIASES = {
         "user": "UID",
@@ -157,7 +153,6 @@ class DremioConnectionManager(SQLConnectionManager):
 
     @classmethod
     def open(cls, connection):
-        # breakpoint()
 
         if connection.state == "open":
             logger.debug("Connection is already open, skipping open.")
@@ -261,11 +256,7 @@ class DremioConnectionManager(SQLConnectionManager):
         cursor.close()
         return response, table
 
-    @classmethod
-    def _build_base_url(cls, credentials: DremioCredentials) -> str:
-        return "http://{host}:{port}".format(
-            host=credentials.host, port=credentials.rest_api_port
-        )
+
 
     def drop_catalog(self, database, schema):
         connection = self.get_thread_connection()
@@ -298,11 +289,11 @@ class DremioConnectionManager(SQLConnectionManager):
         folders = schema.split(".")
         path.extend(folders)
 
-        space_json = self._make_new_space_json(database)
-        try:
-            set_catalog(api_parameters, space_json, False)
-        except DremioAlreadyExistsException:
-            logger.debug(f"Database {database} already exists. Creating folders only.")
+        # space_json = self._make_new_space_json(database)
+        # try:
+        #     set_catalog(api_parameters, space_json, False)
+        # except DremioAlreadyExistsException:
+        #     logger.debug(f"Database {database} already exists. Creating folders only.")
 
         temp_path = [database]
         for folder in folders:
@@ -322,6 +313,7 @@ class DremioConnectionManager(SQLConnectionManager):
         python_dict = {"entityType": "folder", "path": path}
         return json.dumps(python_dict)
 
+    @classmethod
     def build_api_parameters(cls, credentials):
         def __build_software_base_url(host, port, use_ssl):
             protocol = "http"

@@ -11,7 +11,6 @@ from typing import Optional
 import dbt.flags
 from dbt.adapters.base.relation import BaseRelation
 
-# from dbt.logger import GLOBAL_LOGGER as logger
 from dbt.events import AdapterLogger
 
 logger = AdapterLogger("dremio")
