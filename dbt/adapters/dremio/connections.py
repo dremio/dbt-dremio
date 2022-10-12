@@ -54,7 +54,7 @@ class DremioCredentials(Credentials):
     software_host: Optional[str] = None
     UID: Optional[str] = None
     PWD: Optional[str] = None
-    port: Optional[int] = 9047 # for rest endpoint
+    port: Optional[int] = 9047  # for rest endpoint
     use_ssl: Optional[bool] = True
     pat: Optional[str] = None
     additional_parameters: Optional[str] = None
@@ -256,8 +256,6 @@ class DremioConnectionManager(SQLConnectionManager):
         cursor.close()
         return response, table
 
-
-
     def drop_catalog(self, database, schema):
         connection = self.get_thread_connection()
         credentials = connection.credentials
@@ -289,12 +287,15 @@ class DremioConnectionManager(SQLConnectionManager):
         folders = schema.split(".")
         path.extend(folders)
 
-        # space_json = self._make_new_space_json(database)
-        # try:
-        #     set_catalog(api_parameters, space_json, False)
-        # except DremioAlreadyExistsException:
-        #     logger.debug(f"Database {database} already exists. Creating folders only.")
-
+        if database == "@" + credentials.UID:
+            logger.debug("Database is default: creating folders only")
+        else:
+            space_json = self._make_new_space_json(database)
+            try:
+                set_catalog(api_parameters, space_json, False)
+            except DremioAlreadyExistsException:
+                logger.debug(f"Database {database} already exists. Creating folders only.")
+        
         temp_path = [database]
         for folder in folders:
             temp_path.append(folder)
