@@ -130,8 +130,8 @@ def job_results(api_parameters: Parameters, job_id, offset=0, limit=100, ssl_ver
         ssl_verify=ssl_verify,
     )
 
-def set_catalog(api_parameters, json, ssl_verify=True):
-    url = UrlBuilder.set_catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
+def create_catalog(api_parameters, json, ssl_verify=True):
+    url = UrlBuilder.catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
     return _post(url, api_parameters.authentication.get_headers(), json=json, ssl_verify=ssl_verify)
 
 def catalog_item(api_parameters, cid=None, path=None, ssl_verify=True):
@@ -141,10 +141,10 @@ def catalog_item(api_parameters, cid=None, path=None, ssl_verify=True):
 
 def delete_catalog(api_parameters, cid, tag, ssl_verify=True):
     if tag is None:
-        url = UrlBuilder.set_catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
+        url = UrlBuilder.catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
         return _delete(url + f"/{cid}", api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
     else:
-        url = UrlBuilder.set_catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
+        url = UrlBuilder.catalog_url(api_parameters.base_url, api_parameters.is_cloud, api_parameters.cloud_project_id)
         return _delete(url + f"/{cid}?tag={tag}", api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
 
 def update_catalog(token, base_url, cid, json, ssl_verify=True):

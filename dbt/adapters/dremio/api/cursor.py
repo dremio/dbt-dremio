@@ -1,4 +1,6 @@
-from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, job_results, job_cancel
+import agate
+
+from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, job_results, job_cancel, create_catalog
 from dbt.adapters.dremio.api.parameters import Parameters
 
 from dbt.events import AdapterLogger
@@ -7,9 +9,17 @@ logger = AdapterLogger("dremio")
 class DremioCursor:
     def __init__(self, api_parameters: Parameters):
         self._parameters = api_parameters
-        self._job_id = None
+        
         self._closed = False
+        self._job_id = None
+        self._rowcount = -1
+        self._job_results = None
+        self._table_results: agate.Table = None
     
+    @property
+    def parameters(self):
+        return self._parameters
+
     @property
     def closed(self):
         return self._closed
@@ -17,14 +27,22 @@ class DremioCursor:
     @closed.setter
     def closed(self, new_closed_value):
         self._closed = new_closed_value
+    
+    @property
+    def rowcount(self):
+        return self._rowcount
+    
+    @property
+    def table(self) -> agate.Table:
+        return self._table_results
 
     def job_results(self):
         if self.closed:
             raise Exception("CursorClosed")
-        if not self.closed:
-            json_payload = job_results(self._parameters, self._job_id, offset=0, limit=100, ssl_verify=True)
+        if self._job_results == None:
+            self._populate_job_results()
 
-        return json_payload
+        return self._job_results
     
     def job_cancel(self):
         #cancels current job
@@ -34,19 +52,40 @@ class DremioCursor:
     def close(self):
         if self.closed:
             raise Exception("CursorClosed")
+        self._initialize()
         self.closed = True
 
     def execute(self, sql, bindings=None):
         if self.closed:
             raise Exception("CursorClosed")
         if bindings is None:
+            self._initialize()
+
             json_payload = sql_endpoint(self._parameters, sql, context=None, ssl_verify=True)
+            
+            ## if "id" in json_payload:
             self._job_id = json_payload["id"]
+            self._populate_rowcount()
+            self._populate_job_results()
+            self._populate_results_table()
+
         else:
             raise Exception("Bindings not currently supported.")
 
-    @property
-    def rowcount(self):
+    def fetchone(self):
+        row = None
+        if self._table_results != None:
+            row = self._table_results.rows.get(0)
+        
+        return row
+
+    def _initialize(self):
+        self._job_id = None
+        self._rowcount = -1
+        self._table_results = None
+        self._job_results = None
+
+    def _populate_rowcount(self):
         if self.closed:
             raise Exception("CursorClosed")
         ## keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
@@ -75,6 +114,14 @@ class DremioCursor:
         else:
             rows = job_status_response["rowCount"]
         
-        return rows
+        self._rowcount = rows
     
+    def _populate_job_results(self):
+        if self._job_results == None:
+            self._job_results = job_results(self._parameters, self._job_id, offset=0, limit=100, ssl_verify=True)
+
+    def _populate_results_table(self):
+        if self._job_results != None:
+            self._table_results = agate.Table.from_object(self._job_results)
+
 

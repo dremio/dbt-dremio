@@ -53,7 +53,7 @@ class UrlBuilder:
         return url_path + "/{}/results?offset={}&limit={}".format(job_id, offset, limit)
 
     @classmethod
-    def set_catalog_url(cls, base_url, is_cloud = False, cloud_project_id = None):
+    def catalog_url(cls, base_url, is_cloud = False, cloud_project_id = None):
         url_path = None
         if is_cloud == True:
             url_path = base_url + UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(cloud_project_id)

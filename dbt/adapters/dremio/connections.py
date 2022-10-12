@@ -27,7 +27,7 @@ from dbt.adapters.dremio.api.endpoints import (
     delete_catalog,
     sql_endpoint,
     job_status,
-    set_catalog,
+    create_catalog,
     catalog_item,
 )
 from dbt.adapters.dremio.api.error import (
@@ -236,12 +236,6 @@ class DremioConnectionManager(SQLConnectionManager):
         message = "OK" if rows == -1 else str(rows)
         return AdapterResponse(_message=message, rows_affected=rows)
 
-    @classmethod
-    def get_result_from_cursor(cls, cursor: DremioCursor) -> agate.Table:
-        json_payload = cursor.job_results()
-        json_rows = json_payload["rows"]
-        return agate.Table.from_object(json_rows)
-
     def execute(
         self, sql: str, auto_begin: bool = False, fetch: bool = False
     ) -> Tuple[AdapterResponse, agate.Table]:
@@ -250,13 +244,11 @@ class DremioConnectionManager(SQLConnectionManager):
         response = self.get_response(cursor)
         fetch = True
         if fetch:
-            table = self.get_result_from_cursor(cursor)
+            table = cursor.table
         else:
             table = dbt.clients.agate_helper.empty_table()
         cursor.close()
         return response, table
-
-
 
     def drop_catalog(self, database, schema):
         connection = self.get_thread_connection()
@@ -279,11 +271,8 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def create_catalog(self, database, schema):
         connection = self.get_thread_connection()
-        credentials = connection.credentials
-        api_parameters = self.build_api_parameters(credentials)
-
-        token = login(api_parameters)
-        connection.credentials.token = token
+        connection = self.open(connection)
+        cursor = connection.handle.cursor()
 
         path = [database]
         folders = schema.split(".")
@@ -291,7 +280,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
         # space_json = self._make_new_space_json(database)
         # try:
-        #     set_catalog(api_parameters, space_json, False)
+        #     create_catalog(api_parameters, space_json, False)
         # except DremioAlreadyExistsException:
         #     logger.debug(f"Database {database} already exists. Creating folders only.")
 
@@ -300,7 +289,8 @@ class DremioConnectionManager(SQLConnectionManager):
             temp_path.append(folder)
             folder_json = self._make_new_folder_json(temp_path)
             try:
-                set_catalog(api_parameters, folder_json, False)
+                ############ HACK ##################
+                create_catalog(cursor.parameters, folder_json, False)
             except DremioAlreadyExistsException:
                 logger.debug(f"Folder {folder} already exists.")
         return
