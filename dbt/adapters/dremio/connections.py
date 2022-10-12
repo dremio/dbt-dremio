@@ -286,7 +286,7 @@ class DremioConnectionManager(SQLConnectionManager):
         path = [database]
         folders = schema.split(".")
         path.extend(folders)
-
+        logger.debug(f"The database value is {database}")
         if database == "@" + credentials.UID:
             logger.debug("Database is default: creating folders only")
         else:
@@ -294,16 +294,18 @@ class DremioConnectionManager(SQLConnectionManager):
             try:
                 set_catalog(api_parameters, space_json, False)
             except DremioAlreadyExistsException:
-                logger.debug(f"Database {database} already exists. Creating folders only.")
-        
-        temp_path = [database]
-        for folder in folders:
-            temp_path.append(folder)
-            folder_json = self._make_new_folder_json(temp_path)
-            try:
-                set_catalog(api_parameters, folder_json, False)
-            except DremioAlreadyExistsException:
-                logger.debug(f"Folder {folder} already exists.")
+                logger.debug(
+                    f"Database {database} already exists. Creating folders only."
+                )
+        if database != credentials.datalake:
+            temp_path = [database]
+            for folder in folders:
+                temp_path.append(folder)
+                folder_json = self._make_new_folder_json(temp_path)
+                try:
+                    set_catalog(api_parameters, folder_json, False)
+                except DremioAlreadyExistsException:
+                    logger.debug(f"Folder {folder} already exists.")
         return
 
     def _make_new_space_json(self, name) -> json:
