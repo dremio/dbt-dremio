@@ -90,7 +90,7 @@ def _raise_for_status(self):
 
 
 def _check_error(r, details=""):
-    error, code, _ = _raise_for_status(r)
+    error, code, reason = _raise_for_status(r)
     if not error:
         try:
             data = r.json()
@@ -108,7 +108,6 @@ def _check_error(r, details=""):
     if code == 409:
         raise DremioAlreadyExistsException("Already exists:" + details, error, r)
     raise DremioException("Unknown error", error)
-
 
 
 def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
