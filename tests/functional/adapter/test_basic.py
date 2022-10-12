@@ -24,6 +24,9 @@ from dbt.tests.adapter.basic.files import (
 from dbt.tests.adapter.basic.test_adapter_methods import models__upstream_sql
 
 from dbt.tests.util import run_dbt, check_result_nodes_by_name
+from dbt.events import AdapterLogger
+
+logger = AdapterLogger("dremio")
 
 schema_base_yml = """
 version: 2
@@ -174,7 +177,20 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
 
 
 class TestSingularTestsDremio(BaseSingularTests):
-    pass
+    def test_singular_tests(self, project):
+        # test command
+        results = run_dbt(["test"], expect_pass=False)
+        assert len(results) == 2
+
+        # We have the right result nodes
+        check_result_nodes_by_name(results, ["passing", "failing"])
+
+        # Check result status
+        for result in results:
+            if result.node.name == "passing":
+                assert result.status == "pass"
+            elif result.node.name == "failing":
+                assert result.status == "fail"
 
 
 class TestSingularTestsEphemeralDremio(BaseSingularTestsEphemeral):

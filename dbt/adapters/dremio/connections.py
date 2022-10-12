@@ -262,13 +262,14 @@ class DremioConnectionManager(SQLConnectionManager):
         path = [database]
         folders = schema.split(".")
         path.extend(folders)
-        try:
-            catalog_info = catalog_item(api_parameters, None, path, False)
-        except DremioNotFoundException:
-            logger.debug("Catalog not found. Returning")
-            return
+        if database != credentials.datalake:
+            try:
+                catalog_info = catalog_item(api_parameters, None, path, False)
+            except DremioNotFoundException:
+                logger.debug("Catalog not found. Returning")
+                return
 
-        delete_catalog(api_parameters, catalog_info["id"], catalog_info["tag"], False)
+            delete_catalog(api_parameters, catalog_info["id"], None, False)
 
     def create_catalog(self, database, schema):
         connection = self.get_thread_connection()
@@ -281,7 +282,7 @@ class DremioConnectionManager(SQLConnectionManager):
         path = [database]
         folders = schema.split(".")
         path.extend(folders)
-        logger.debug(f"The database value is {database}")
+
         if database == "@" + credentials.UID:
             logger.debug("Database is default: creating folders only")
         else:
