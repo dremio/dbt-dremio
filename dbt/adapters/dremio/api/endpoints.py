@@ -51,6 +51,7 @@ def _post(url, request_headers, json=None, details="", ssl_verify=True):
     if isinstance(json, str):
         json = jsonlib.loads(json)
     r = requests.post(url, headers=request_headers, verify=ssl_verify, json=json)
+    logger.debug(f"The response is:{r}")
     return _check_error(r, details)
 
 def _delete(url, request_headers, details="", ssl_verify=True):

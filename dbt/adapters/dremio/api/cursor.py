@@ -63,8 +63,8 @@ class DremioCursor:
 
             json_payload = sql_endpoint(self._parameters, sql, context=None, ssl_verify=True)
             
-            ## if "id" in json_payload:
             self._job_id = json_payload["id"]
+
             self._populate_rowcount()
             self._populate_job_results()
             self._populate_results_table()
@@ -75,9 +75,11 @@ class DremioCursor:
     def fetchone(self):
         row = None
         if self._table_results != None:
-            row = self._table_results.rows.get(0)
-        
+            row = self._table_results.rows[0]
         return row
+
+    def fetchall(self):
+        return self._table_results.rows
 
     def _initialize(self):
         self._job_id = None
@@ -122,6 +124,6 @@ class DremioCursor:
 
     def _populate_results_table(self):
         if self._job_results != None:
-            self._table_results = agate.Table.from_object(self._job_results)
-
+            json_rows = self._job_results["rows"]
+            self._table_results = agate.Table.from_object(json_rows)
 

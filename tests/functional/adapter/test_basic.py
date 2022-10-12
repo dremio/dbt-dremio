@@ -55,6 +55,7 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
             },
             "seeds": {"+twin_strategy": "allow"},
             "name": "base",
+            "vars": {"dremio:reflections": "false"},
         }
 
     @pytest.fixture(scope="class")
