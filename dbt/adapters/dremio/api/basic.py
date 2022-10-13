@@ -24,19 +24,22 @@
 #
 import requests
 
+from dbt.adapters.dremio.api.parameters import Parameters
+from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
+from dbt.adapters.dremio.api.url_builder import UrlBuilder
 
-def login(base_url, username, password, timeout=10, verify=True):
-    """
-    Log into dremio using basic auth
-    :param base_url: Dremio url
-    :param username: username
-    :param password: password
-    :param timeout: optional timeout
-    :param verify: If false ignore ssl errors
-    :return: auth token
-    """
-    url = base_url + "/apiv2/login"
+import json
 
-    r = requests.post(url, json={"userName": username, "password": password}, timeout=timeout, verify=verify)
+def login(api_parameters: Parameters, timeout=10, verify=True):
+
+    if isinstance(api_parameters.authentication, DremioPatAuthentication):
+        return api_parameters
+
+    url = UrlBuilder.login_url(api_parameters.base_url)
+
+    r = requests.post(url, json={"userName": api_parameters.authentication.username, "password": api_parameters.authentication.password}, timeout=timeout, verify=verify)
     r.raise_for_status()
-    return r.json()["token"]
+    
+    api_parameters.authentication.token = r.json()["token"]
+
+    return api_parameters
