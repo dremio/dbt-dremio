@@ -18,6 +18,6 @@ def dbt_profile_target():
         "software_host": os.getenv("DREMIO_HOST"),
         "user": os.getenv("DREMIO_USERNAME"),
         "password": os.getenv("DREMIO_PASSWORD"),
-        "datalake": "rav-test",
+        "datalake": os.getenv("DREMIO_DATALAKE"),
         "use_ssl": False,
     }

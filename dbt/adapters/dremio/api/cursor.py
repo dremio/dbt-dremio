@@ -4,8 +4,7 @@ from dbt.adapters.dremio.api.endpoints import (
     sql_endpoint,
     job_status,
     job_results,
-    job_cancel,
-    create_catalog,
+    job_cancel_api,
 )
 from dbt.adapters.dremio.api.parameters import Parameters
 
@@ -55,7 +54,7 @@ class DremioCursor:
     def job_cancel(self):
         # cancels current job
         logger.debug(f"Cancelling job {self._job_id}")
-        return job_cancel(self._parameters, self._job_id)
+        return job_cancel_api(self._parameters, self._job_id)
 
     def close(self):
         if self.closed:
@@ -89,6 +88,7 @@ class DremioCursor:
         return row
 
     def fetchall(self):
+        logger.debug(f"The fetch result is: {self._table_results.rows}")
         return self._table_results.rows
 
     def _initialize(self):
@@ -140,7 +140,7 @@ class DremioCursor:
 
     def _populate_results_table(self):
         if self._job_results != None:
-            tester = None
+            tester = agate.TypeTester()
             json_rows = self._job_results["rows"]
             self._table_results = json_rows
             for col in self._job_results["schema"]:
@@ -148,9 +148,7 @@ class DremioCursor:
                 data_type_str = col["type"]["name"]
                 if data_type_str == "BIGINT":
                     tester = agate.TypeTester(force={f"{name}": agate.Number()})
-            if tester is not None:
-                self._table_results = agate.Table.from_object(
-                    json_rows, column_types=tester
-                )
-            else:
-                self._table_results = agate.Table.from_object(json_rows)
+
+            self._table_results = agate.Table.from_object(
+                json_rows, column_types=tester
+            )

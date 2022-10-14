@@ -1,6 +1,4 @@
-from sqlite3 import connect
 import agate
-from dbt.adapters.base.meta import available
 from dbt.adapters.sql import SQLAdapter
 from dbt.adapters.dremio import DremioConnectionManager
 from dbt.adapters.dremio.relation import DremioRelation
@@ -8,7 +6,6 @@ from dbt.adapters.dremio.relation import DremioRelation
 
 from typing import List
 from typing import Optional
-import dbt.flags
 from dbt.adapters.base.relation import BaseRelation
 
 from dbt.events import AdapterLogger
@@ -57,7 +54,6 @@ class DremioAdapter(SQLAdapter):
     def drop_schema(self, relation: DremioRelation) -> None:
         database = relation.database
         schema = relation.schema
-        logger.debug('Dropping schema "{}.{}"', database, schema)
         self.connections.drop_catalog(database, schema)
 
     def timestamp_add_sql(

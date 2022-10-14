@@ -139,7 +139,7 @@ def job_status(api_parameters: Parameters, job_id, ssl_verify=True):
     return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
 
 
-def job_cancel(api_parameters: Parameters, job_id, ssl_verify=True):
+def job_cancel_api(api_parameters: Parameters, job_id, ssl_verify=True):
     url = UrlBuilder.job_cancel_url(
         api_parameters.base_url, job_id, api_parameters.is_cloud
     )
@@ -169,7 +169,7 @@ def job_results(
     )
 
 
-def create_catalog(api_parameters, json, ssl_verify=True):
+def create_catalog_api(api_parameters, json, ssl_verify=True):
     url = UrlBuilder.catalog_url(
         api_parameters.base_url,
         api_parameters.is_cloud,
@@ -183,160 +183,39 @@ def create_catalog(api_parameters, json, ssl_verify=True):
     )
 
 
-def catalog_item(api_parameters, cid=None, path=None, ssl_verify=True):
-    url = UrlBuilder.catalog_item_url(
+def get_catalog_item(
+    api_parameters, catalog_id=None, catalog_path=None, ssl_verify=True
+):
+    if catalog_id is None and catalog_path is None:
+        raise TypeError("both id and path can't be None for a catalog_item call")
+
+    # Will use path if both id and path are specified
+    if catalog_path:
+        url = UrlBuilder.catalog_item_by_path_url(
+            api_parameters.base_url,
+            catalog_path,
+            api_parameters.is_cloud,
+            api_parameters.cloud_project_id,
+        )
+    else:
+        url = UrlBuilder.catalog_item_by_id_url(
+            api_parameters.base_url,
+            catalog_id,
+            api_parameters.is_cloud,
+            api_parameters.cloud_project_id,
+        )
+    return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
+
+
+def delete_catalog(api_parameters, cid, ssl_verify=True):
+
+    url = UrlBuilder.catalog_url(
         api_parameters.base_url,
-        cid,
-        path,
         api_parameters.is_cloud,
         api_parameters.cloud_project_id,
     )
-    idpath = (cid if cid else "") + ", " + (".".join(path) if path else "")
-    return _get(
-        url, api_parameters.authentication.get_headers(), idpath, ssl_verify=ssl_verify
-    )
-
-
-def delete_catalog(api_parameters, cid, tag, ssl_verify=True):
-    if tag is None:
-        url = UrlBuilder.catalog_url(
-            api_parameters.base_url,
-            api_parameters.is_cloud,
-            api_parameters.cloud_project_id,
-        )
-        return _delete(
-            url + f"/{cid}",
-            api_parameters.authentication.get_headers(),
-            ssl_verify=ssl_verify,
-        )
-    else:
-        url = UrlBuilder.catalog_url(
-            api_parameters.base_url,
-            api_parameters.is_cloud,
-            api_parameters.cloud_project_id,
-        )
-        return _delete(
-            url + f"/{cid}?tag={tag}",
-            api_parameters.authentication.get_headers(),
-            ssl_verify=ssl_verify,
-        )
-
-
-def update_catalog(token, base_url, cid, json, ssl_verify=True):
-    """update a catalog entity
-
-    https://docs.dremio.com/rest-api/catalog/put-catalog-id.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param cid: id of catalog entity
-    :param json: json document for new catalog entity
-    :param ssl_verify: ignore ssl errors if False
-    :return: updated catalog entity
-    """
-    # return _put(base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify)
-
-
-def promote_catalog(token, base_url, cid, json, ssl_verify=True):
-    """promote a catalog entity (only works on folders and files in sources
-
-    https://docs.dremio.com/rest-api/catalog/post-catalog-id.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param cid: id of catalog entity
-    :param json: json document for new catalog entity
-    :param ssl_verify: ignore ssl errors if False
-    :return: updated catalog entity
-    """
-    return _post(
-        base_url + "/api/v3/catalog/{}".format(cid), token, json, ssl_verify=ssl_verify
-    )
-
-
-def collaboration_tags(token, base_url, cid, ssl_verify=True):
-    """fetch tags for a catalog entry
-
-    https://docs.dremio.com/rest-api/user/get-catalog-collaboration.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param cid: id of a catalog entity
-    :param ssl_verify: ignore ssl errors if False
-    :return: result object
-    """
-    return _get(
-        base_url + "/api/v3/catalog/{}/collaboration/tag".format(cid),
-        token,
+    return _delete(
+        url + f"/{cid}",
+        api_parameters.authentication.get_headers(),
         ssl_verify=ssl_verify,
-    )
-
-
-def collaboration_wiki(token, base_url, cid, ssl_verify=True):
-    """fetch wiki for a catalog entry
-
-    https://docs.dremio.com/rest-api/user/get-catalog-collaboration.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param cid: id of a catalog entity
-    :param ssl_verify: ignore ssl errors if False
-    :return: result object
-    """
-    return _get(
-        base_url + "/api/v3/catalog/{}/collaboration/wiki".format(cid),
-        token,
-        ssl_verify=ssl_verify,
-    )
-
-
-def set_collaboration_tags(token, base_url, cid, tags, ssl_verify=True):
-    """set tags on a given catalog entity
-
-    https://docs.dremio.com/rest-api/catalog/post-catalog-collaboration.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param cid: id of a catalog entity
-    :param tags: list of strings for tags
-    :param ssl_verify: ignore ssl errors if False
-    :return: None
-    """
-    json = {"tags": tags}
-    try:
-        old_tags = collaboration_tags(token, base_url, cid, ssl_verify)
-        json["version"] = old_tags["version"]
-    except:  # NOQA
-        pass
-    return _post(
-        base_url + "/api/v3/catalog/{}/collaboration/tag".format(cid),
-        token,
-        ssl_verify=ssl_verify,
-        json=json,
-    )
-
-
-def set_collaboration_wiki(token, base_url, cid, wiki, ssl_verify=True):
-    """set wiki on a given catalog entity
-
-    https://docs.dremio.com/rest-api/catalog/post-catalog-collaboration.html
-
-    :param token: auth token
-    :param base_url: sql query
-    :param cid: id of a catalog entity
-    :param wiki: text representing markdown for entity
-    :param ssl_verify: ignore ssl errors if False
-    :return: None
-    """
-    json = {"text": wiki}
-    try:
-        old_wiki = collaboration_wiki(token, base_url, cid, ssl_verify)
-        json["version"] = old_wiki["version"]
-    except:  # NOQA
-        pass
-    return _post(
-        base_url + "/api/v3/catalog/{}/collaboration/wiki".format(cid),
-        token,
-        ssl_verify=ssl_verify,
-        json=json,
     )

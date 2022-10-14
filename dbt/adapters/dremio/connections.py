@@ -1,11 +1,7 @@
-from email.mime import base
-from warnings import catch_warnings
 import agate
-from typing import Tuple, Union
-from typing import Optional, Union, Any
+from typing import Tuple, Union, Optional, Any
 from dataclasses import dataclass
 from contextlib import contextmanager
-from textwrap import indent
 
 from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
@@ -25,10 +21,8 @@ from dbt.contracts.connection import AdapterResponse
 from dbt.adapters.dremio.api.basic import login
 from dbt.adapters.dremio.api.endpoints import (
     delete_catalog,
-    sql_endpoint,
-    job_status,
-    create_catalog,
-    catalog_item,
+    create_catalog_api,
+    get_catalog_item,
 )
 from dbt.adapters.dremio.api.error import (
     DremioAlreadyExistsException,
@@ -141,7 +135,6 @@ class DremioConnectionManager(SQLConnectionManager):
             yield
         except Exception as e:
             logger.debug(f"Error running SQL: {sql}")
-            logger.debug("Rolling back transaction.")
             self.release()
             if isinstance(e, dbt.exceptions.RuntimeException):
                 # during a sql query, an internal to dbt exception was raised.
@@ -188,13 +181,12 @@ class DremioConnectionManager(SQLConnectionManager):
         pass
 
     def add_begin_query(self):
-        # return self.add_query('BEGIN TRANSACTION', auto_begin=False)
         pass
 
     def add_commit_query(self):
-        # return self.add_query('COMMIT TRANSACTION', auto_begin=False)
         pass
 
+    # Auto_begin may not be relevant with the rest_api
     def add_query(self, sql, auto_begin=True, bindings=None, abridge_sql_log=False):
 
         connection = self.get_thread_connection()
@@ -212,7 +204,6 @@ class DremioConnectionManager(SQLConnectionManager):
             pre = time.time()
             cursor = connection.handle.cursor()
 
-            # pyodbc does not handle a None type binding!
             if bindings is None:
                 cursor.execute(sql)
             else:
@@ -247,11 +238,12 @@ class DremioConnectionManager(SQLConnectionManager):
             table = cursor.table
         else:
             table = dbt.clients.agate_helper.empty_table()
-        cursor.close()
 
         return response, table
 
     def drop_catalog(self, database, schema):
+        logger.debug('Dropping schema "{}.{}"', database, schema)
+
         connection = self.get_thread_connection()
         credentials = connection.credentials
         api_parameters = self.build_api_parameters(credentials)
@@ -259,17 +251,20 @@ class DremioConnectionManager(SQLConnectionManager):
         token = login(api_parameters)
         connection.credentials.token = token
 
-        path = [database]
-        folders = schema.split(".")
-        path.extend(folders)
+        path_list = self._create_path_list(database, schema)
         if database != credentials.datalake:
             try:
-                catalog_info = catalog_item(api_parameters, None, path, False)
+                catalog_info = get_catalog_item(
+                    api_parameters,
+                    catalog_id=None,
+                    catalog_path=path_list,
+                    ssl_verify=False,
+                )
             except DremioNotFoundException:
                 logger.debug("Catalog not found. Returning")
                 return
 
-            delete_catalog(api_parameters, catalog_info["id"], None, False)
+            delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
 
     def create_catalog(self, database, schema):
         connection = self.get_thread_connection()
@@ -279,29 +274,12 @@ class DremioConnectionManager(SQLConnectionManager):
         token = login(api_parameters)
         connection.credentials.token = token
 
-        path = [database]
-        folders = schema.split(".")
-        path.extend(folders)
-
         if database == "@" + credentials.UID:
             logger.debug("Database is default: creating folders only")
         else:
-            space_json = self._make_new_space_json(database)
-            try:
-                create_catalog(api_parameters, space_json, False)
-            except DremioAlreadyExistsException:
-                logger.debug(
-                    f"Database {database} already exists. Creating folders only."
-                )
+            self._create_space(database, api_parameters)
         if database != credentials.datalake:
-            temp_path = [database]
-            for folder in folders:
-                temp_path.append(folder)
-                folder_json = self._make_new_folder_json(temp_path)
-                try:
-                    create_catalog(api_parameters, folder_json, False)
-                except DremioAlreadyExistsException:
-                    logger.debug(f"Folder {folder} already exists.")
+            self._create_folders(database, schema, api_parameters)
         return
 
     def _make_new_space_json(self, name) -> json:
@@ -311,6 +289,29 @@ class DremioConnectionManager(SQLConnectionManager):
     def _make_new_folder_json(self, path) -> json:
         python_dict = {"entityType": "folder", "path": path}
         return json.dumps(python_dict)
+
+    def _create_space(self, database, api_parameters):
+        space_json = self._make_new_space_json(database)
+        try:
+            create_catalog_api(api_parameters, space_json, False)
+        except DremioAlreadyExistsException:
+            logger.debug(f"Database {database} already exists. Creating folders only.")
+
+    def _create_folders(self, database, schema, api_parameters):
+        temp_path_list = [database]
+        for folder in schema.split("."):
+            temp_path_list.append(folder)
+            folder_json = self._make_new_folder_json(temp_path_list)
+            try:
+                create_catalog_api(api_parameters, folder_json, False)
+            except DremioAlreadyExistsException:
+                logger.debug(f"Folder {folder} already exists.")
+
+    def _create_path_list(self, database, schema):
+        path = [database]
+        folders = schema.split(".")
+        path.extend(folders)
+        return path
 
     @classmethod
     def build_api_parameters(cls, credentials):
