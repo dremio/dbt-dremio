@@ -21,12 +21,17 @@ setup(
     version=package_version,
     description=description,
     long_description=description,
+    license="Apache Software License",
     author="Dremio",
     url="https://github.com/dremio/dbt-dremio",
     packages=find_namespace_packages(include=["dbt", "dbt.*"]),
     include_package_data=True,
     install_requires=[
         'dbt-core==1.1.2',
-        'pyodbc>=4.0.27',
-    ]
+    ],
+    classifiers=[
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: Microsoft :: Windows",
+        "Programming Language :: Python :: 3.10",
+    ],
 )
