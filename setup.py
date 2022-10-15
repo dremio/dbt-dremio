@@ -30,7 +30,7 @@ setup(
         'dbt-core==1.1.2',
     ],
     classifiers=[
-        "License :: OSI Approved :: Apache Software License",
+        "License :: OSI Approved :: Apache Software License 2.0",
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python :: 3.10",
     ],
