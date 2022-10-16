@@ -1,1 +1,1 @@
-version = "1.1.0b_odbc"
+version = "1.1.0b"
