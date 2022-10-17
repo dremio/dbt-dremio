@@ -244,12 +244,10 @@ class DremioConnectionManager(SQLConnectionManager):
     def drop_catalog(self, database, schema):
         logger.debug('Dropping schema "{}.{}"', database, schema)
 
-        connection = self.get_thread_connection()
+        connection_param = self.get_thread_connection()
+        connection = self.open(connection_param)
         credentials = connection.credentials
-        api_parameters = self.build_api_parameters(credentials)
-
-        token = login(api_parameters)
-        connection.credentials.token = token
+        api_parameters = connection.handle._parameters
 
         path_list = self._create_path_list(database, schema)
         if database != credentials.datalake:
@@ -267,12 +265,10 @@ class DremioConnectionManager(SQLConnectionManager):
             delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
 
     def create_catalog(self, database, schema):
-        connection = self.get_thread_connection()
+        connection_param = self.get_thread_connection()
+        connection = self.open(connection_param)
         credentials = connection.credentials
-        api_parameters = self.build_api_parameters(credentials)
-
-        token = login(api_parameters)
-        connection.credentials.token = token
+        api_parameters = connection.handle._parameters
 
         if database == "@" + credentials.UID:
             logger.debug("Database is default: creating folders only")
