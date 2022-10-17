@@ -1,3 +1,17 @@
+/*Copyright (C) 2022 Dremio Corporation 
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.*/
+
 {% macro dremio__handle_existing_table(full_refresh, old_relation) %}
     {{ log("Dropping relation " ~ old_relation ~ " because it is of type " ~ old_relation.type) }}
     {{ exceptions.raise_not_implemented('Inside a dremio home space, a model cannot change from table to view materialization; please drop the table in the UI') }}
