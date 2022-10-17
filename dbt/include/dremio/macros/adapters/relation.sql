@@ -13,6 +13,7 @@ limitations under the License.*/
     {% set tmp_identifier = base_relation.identifier ~ suffix %}
     {% set tmp_relation = base_relation.incorporate(
                                 path={"identifier": tmp_identifier}) -%}
+    {{ adapter.drop_relation(tmp_relation) }}
     {% do return(tmp_relation) %}
 {% endmacro %}
 

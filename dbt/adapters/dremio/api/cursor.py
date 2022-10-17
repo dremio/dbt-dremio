@@ -9,55 +9,107 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License.
 
-from dbt.adapters.dremio.api.endpoints import sql_endpoint, job_status, job_results, job_cancel
+
+import agate
+
+from dbt.adapters.dremio.api.endpoints import (
+    sql_endpoint,
+    job_status,
+    job_results,
+    job_cancel_api,
+)
 from dbt.adapters.dremio.api.parameters import Parameters
 
 from dbt.events import AdapterLogger
+
 logger = AdapterLogger("dremio")
+
 
 class DremioCursor:
     def __init__(self, api_parameters: Parameters):
         self._parameters = api_parameters
-        self._job_id = None
+
         self._closed = False
-    
+        self._job_id = None
+        self._rowcount = -1
+        self._job_results = None
+        self._table_results: agate.Table = None
+
+    @property
+    def parameters(self):
+        return self._parameters
+
     @property
     def closed(self):
         return self._closed
-    
+
     @closed.setter
     def closed(self, new_closed_value):
         self._closed = new_closed_value
 
+    @property
+    def rowcount(self):
+        return self._rowcount
+
+    @property
+    def table(self) -> agate.Table:
+        return self._table_results
+
     def job_results(self):
         if self.closed:
             raise Exception("CursorClosed")
-        if not self.closed:
-            json_payload = job_results(self._parameters, self._job_id, offset=0, limit=100, ssl_verify=True)
+        if self._job_results == None:
+            self._populate_job_results()
 
-        return json_payload
-    
+        return self._job_results
+
     def job_cancel(self):
-        #cancels current job
+        # cancels current job
         logger.debug(f"Cancelling job {self._job_id}")
-        return job_cancel(self._parameters, self._job_id)
+        return job_cancel_api(self._parameters, self._job_id)
 
     def close(self):
         if self.closed:
             raise Exception("CursorClosed")
+        self._initialize()
         self.closed = True
 
     def execute(self, sql, bindings=None):
         if self.closed:
             raise Exception("CursorClosed")
         if bindings is None:
-            json_payload = sql_endpoint(self._parameters, sql, context=None, ssl_verify=True)
+            self._initialize()
+
+            json_payload = sql_endpoint(
+                self._parameters, sql, context=None, ssl_verify=True
+            )
+
             self._job_id = json_payload["id"]
+
+            self._populate_rowcount()
+            self._populate_job_results()
+            self._populate_results_table()
+
         else:
             raise Exception("Bindings not currently supported.")
 
-    @property
-    def rowcount(self):
+    def fetchone(self):
+        row = None
+        if self._table_results != None:
+            row = self._table_results.rows[0]
+        return row
+
+    def fetchall(self):
+        logger.debug(f"The fetch result is: {self._table_results.rows}")
+        return self._table_results.rows
+
+    def _initialize(self):
+        self._job_id = None
+        self._rowcount = -1
+        self._table_results = None
+        self._job_results = None
+
+    def _populate_rowcount(self):
         if self.closed:
             raise Exception("CursorClosed")
         ## keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
@@ -71,21 +123,44 @@ class DremioCursor:
         while True:
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
-            if job_status_state == "COMPLETED" or job_status_state == "CANCELLED" or job_status_state == "FAILED":
+            if (
+                job_status_state == "COMPLETED"
+                or job_status_state == "CANCELLED"
+                or job_status_state == "FAILED"
+            ):
                 break
             last_job_state = job_status_state
             job_status_response = job_status(self._parameters, job_id, ssl_verify=True)
             job_status_state = job_status_response["jobState"]
 
-        #this is done as job status does not return a rowCount if there are no rows affected (even in completed job_state)
-        #pyodbc Cursor documentation states "[rowCount] is -1 if no SQL has been executed or if the number of rows is unknown.
+        # this is done as job status does not return a rowCount if there are no rows affected (even in completed job_state)
+        # pyodbc Cursor documentation states "[rowCount] is -1 if no SQL has been executed or if the number of rows is unknown.
         # Note that it is not uncommon for databases to report -1 immediately after a SQL select statement for performance reasons."
         if "rowCount" not in job_status_response:
             rows = -1
             logger.debug("rowCount does not exist in job_status payload")
         else:
             rows = job_status_response["rowCount"]
-        
-        return rows
-    
 
+        self._rowcount = rows
+
+    def _populate_job_results(self):
+        if self._job_results == None:
+            self._job_results = job_results(
+                self._parameters, self._job_id, offset=0, limit=100, ssl_verify=True
+            )
+
+    def _populate_results_table(self):
+        if self._job_results != None:
+            tester = agate.TypeTester()
+            json_rows = self._job_results["rows"]
+            self._table_results = json_rows
+            for col in self._job_results["schema"]:
+                name = col["name"]
+                data_type_str = col["type"]["name"]
+                if data_type_str == "BIGINT":
+                    tester = agate.TypeTester(force={f"{name}": agate.Number()})
+
+            self._table_results = agate.Table.from_object(
+                json_rows, column_types=tester
+            )

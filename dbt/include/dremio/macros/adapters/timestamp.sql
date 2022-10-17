@@ -9,11 +9,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and 
 limitations under the License.*/
 
-{% macro dremio__create_schema(relation) -%}
-  {{ log('create_schema macro (' + relation.render() + ') not implemented yet for adapter ' + adapter.type(), info=True) }}
-{% endmacro %}
-
-{% macro dremio__drop_schema(relation) -%}
-{{ exceptions.raise_not_implemented(
-  'drop_schema macro not implemented for adapter '+adapter.type()) }}
-{% endmacro %}
+{% macro current_timestamp() -%}
+  (SELECT CURRENT_TIMESTAMP())
+{%- endmacro %}

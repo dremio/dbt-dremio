@@ -13,21 +13,16 @@
 # limitations under the License.
 
 class DremioException(Exception):
-    """
-    base dremio exception
-    """
-"""
-{
-  "errorMessage": "brief error message",
-  "moreInfo": "detailed error message"
-}
-"""
+    def __init__(self, msg, original_exception, response=None):
+        message = f"{msg}: ({original_exception})"
+        if response != None:
+            message += f": ({response.text})"
+        
+        self.message = message
+        self.original_exception = original_exception
+        self.response = response
 
-def __init__(self, msg, original_exception, response=None):
-    super(DremioException, self).__init__(msg + (": %s" % original_exception))
-    self.original_exception = original_exception
-    self.response = response
-
+        super(DremioException, self).__init__(self.message)
 
 class DremioUnauthorizedException(DremioException):
     pass
