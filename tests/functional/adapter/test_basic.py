@@ -1,4 +1,5 @@
 import pytest
+import time
 from tests.functional.adapter.utils.test_utils import (
     relation_from_name,
     check_relations_equal,
@@ -38,6 +39,12 @@ sources:
       - name: seed
         identifier: "{{ var('seed_name', 'base') }}"
 """
+
+# Login endpoint is being hit too many times
+@pytest.fixture(autouse=True)
+def throttle_login_connections():
+    yield
+    time.sleep(1)
 
 
 class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
@@ -323,6 +330,7 @@ class TestGenericTestsDremio(BaseGenericTests):
         if profiles_config_update:
             profile.update(profiles_config_update)
         return profile
+
 
 @pytest.mark.skip(reason="https://github.com/dremio/dbt-dremio/issues/20")
 class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):

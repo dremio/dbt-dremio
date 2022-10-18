@@ -4,7 +4,9 @@ from typing import List
 from contextlib import contextmanager
 
 from dbt.events import AdapterLogger
+
 logger = AdapterLogger("dremio")
+
 
 class TestProcessingException(Exception):
     pass
@@ -77,8 +79,7 @@ def check_relation_types(adapter, relation_to_type):
 
         with get_connection(adapter):
             for schema in schemas:
-                found_relations.extend(
-                    adapter.list_relations_without_caching(schema))
+                found_relations.extend(adapter.list_relations_without_caching(schema))
 
     for key, value in relation_to_type.items():
         for relation in found_relations:
