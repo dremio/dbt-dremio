@@ -1,15 +1,15 @@
-# Copyright (C) 2022 Dremio Corporation 
+# Copyright (C) 2022 Dremio Corporation
 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-# http://www.apache.org/licenses/LICENSE-2.0 
+# http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
 # limitations under the License.
 
 import agate
@@ -258,12 +258,10 @@ class DremioConnectionManager(SQLConnectionManager):
     def drop_catalog(self, database, schema):
         logger.debug('Dropping schema "{}.{}"', database, schema)
 
-        connection = self.get_thread_connection()
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
         credentials = connection.credentials
-        api_parameters = self.build_api_parameters(credentials)
-
-        token = login(api_parameters)
-        connection.credentials.token = token
+        api_parameters = connection.handle.get_parameters()
 
         path_list = self._create_path_list(database, schema)
         if database != credentials.datalake:
@@ -281,12 +279,10 @@ class DremioConnectionManager(SQLConnectionManager):
             delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
 
     def create_catalog(self, database, schema):
-        connection = self.get_thread_connection()
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
         credentials = connection.credentials
-        api_parameters = self.build_api_parameters(credentials)
-
-        token = login(api_parameters)
-        connection.credentials.token = token
+        api_parameters = connection.handle.get_parameters()
 
         if database == "@" + credentials.UID:
             logger.debug("Database is default: creating folders only")
