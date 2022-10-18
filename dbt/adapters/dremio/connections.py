@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Union, Optional, Any
+from typing import Tuple, Optional
 from dataclasses import dataclass
 from contextlib import contextmanager
 

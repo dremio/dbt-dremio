@@ -14,11 +14,9 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License.
 
-from asyncio.log import logger
 import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
-from urllib.parse import quote
 
 from dbt.adapters.dremio.api.authentication import Parameters
 from dbt.adapters.dremio.api.url_builder import UrlBuilder
