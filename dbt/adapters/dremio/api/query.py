@@ -1,17 +1,17 @@
-# Copyright (C) 2022 Dremio Corporation 
+# Copyright (C) 2022 Dremio Corporation
 
 # Copyright (c) 2019 Ryan Murray.
 
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-# http://www.apache.org/licenses/LICENSE-2.0 
+# http://www.apache.org/licenses/LICENSE-2.0
 
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
 # limitations under the License.
 
 import time
@@ -39,7 +39,7 @@ _done_job_states = {"COMPLETED", "CANCELED", "FAILED"}
 
 
 def run(token, base_url, query, context=None, sleep_time=10, ssl_verify=True):
-    """ Run a single sql query
+    """Run a single sql query
 
     This runs a single sql query against the rest api and returns a json document of the results
 
@@ -78,7 +78,7 @@ def run(token, base_url, query, context=None, sleep_time=10, ssl_verify=True):
 
 
 def run_async(token, base_url, query, context=None, sleep_time=10, ssl_verify=True):
-    """ Run a single sql query asynchronously
+    """Run a single sql query asynchronously
 
     This executes a single sql query against the rest api asynchronously and returns a future for the result
 

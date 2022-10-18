@@ -331,6 +331,7 @@ class TestGenericTestsDremio(BaseGenericTests):
             profile.update(profiles_config_update)
         return profile
 
+
 @pytest.mark.skip(reason="https://github.com/dremio/dbt-dremio/issues/20")
 class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):
     @pytest.fixture(scope="class")
