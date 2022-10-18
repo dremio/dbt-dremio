@@ -40,9 +40,9 @@ sources:
         identifier: "{{ var('seed_name', 'base') }}"
 """
 
-
+# Login endpoint is being hit too many times
 @pytest.fixture(autouse=True)
-def slow_down_tests():
+def throttle_login_connections():
     yield
     time.sleep(1)
 
