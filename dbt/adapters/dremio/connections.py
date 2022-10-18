@@ -258,8 +258,8 @@ class DremioConnectionManager(SQLConnectionManager):
     def drop_catalog(self, database, schema):
         logger.debug('Dropping schema "{}.{}"', database, schema)
 
-        connection = self.get_thread_connection()
-        connection = self.open(connection)
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
 
@@ -279,8 +279,8 @@ class DremioConnectionManager(SQLConnectionManager):
             delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
 
     def create_catalog(self, database, schema):
-        connection = self.get_thread_connection()
-        connection = self.open(connection)
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
 
