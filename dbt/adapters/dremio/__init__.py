@@ -9,4 +9,5 @@ from dbt.include import dremio
 Plugin = AdapterPlugin(
     adapter=DremioAdapter,
     credentials=DremioCredentials,
-    include_path=dremio.PACKAGE_PATH)
+    include_path=dremio.PACKAGE_PATH,
+)
