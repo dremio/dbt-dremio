@@ -18,7 +18,7 @@ import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
 
-from dbt.adapters.dremio.api.authentication import Parameters
+from dbt.adapters.dremio.api.authentication import DremioPatAuthentication, Parameters
 from dbt.adapters.dremio.api.url_builder import UrlBuilder
 
 from dbt.events import AdapterLogger
@@ -104,6 +104,19 @@ def _check_error(r, details=""):
         raise DremioAlreadyExistsException("Already exists:" + details, error, r)
     raise DremioException("Unknown error", error)
 
+def login(api_parameters: Parameters, timeout=10, verify=True):
+
+    if isinstance(api_parameters.authentication, DremioPatAuthentication):
+        return api_parameters
+
+    url = UrlBuilder.login_url(api_parameters.base_url)
+
+    r = requests.post(url, json={"userName": api_parameters.authentication.username, "password": api_parameters.authentication.password}, timeout=timeout, verify=verify)
+    r.raise_for_status()
+    
+    api_parameters.authentication.token = r.json()["token"]
+
+    return api_parameters
 
 def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
     url = UrlBuilder.sql_url(

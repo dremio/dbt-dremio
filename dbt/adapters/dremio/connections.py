@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
-from dbt.adapters.dremio.api.authentication import DremioAuthentication, Parameters, login
+from dbt.adapters.dremio.api.authentication import DremioAuthentication, Parameters
 
 import time
 import json
@@ -40,8 +40,6 @@ from dbt.adapters.dremio.api.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
 )
-
-# from dbt.logger import GLOBAL_LOGGER as logger
 
 from dbt.events import AdapterLogger
 
