@@ -20,7 +20,6 @@ from dbt.adapters.dremio.api.parameters import Parameters
 from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
 from dbt.adapters.dremio.api.url_builder import UrlBuilder
 
-import json
 
 def login(api_parameters: Parameters, timeout=10, verify=True):
 
@@ -31,7 +30,8 @@ def login(api_parameters: Parameters, timeout=10, verify=True):
 
     r = requests.post(url, json={"userName": api_parameters.authentication.username, "password": api_parameters.authentication.password}, timeout=timeout, verify=verify)
     r.raise_for_status()
-    
+
     api_parameters.authentication.token = r.json()["token"]
 
     return api_parameters
+
