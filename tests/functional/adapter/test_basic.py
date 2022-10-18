@@ -1,4 +1,5 @@
 import pytest
+import time
 from tests.functional.adapter.utils.test_utils import (
     relation_from_name,
     check_relations_equal,
@@ -38,6 +39,12 @@ sources:
       - name: seed
         identifier: "{{ var('seed_name', 'base') }}"
 """
+
+
+@pytest.fixture(autouse=True)
+def slow_down_tests():
+    yield
+    time.sleep(1)
 
 
 class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
