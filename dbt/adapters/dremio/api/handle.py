@@ -13,9 +13,7 @@
 # limitations under the License.
 
 from dbt.adapters.dremio.api.cursor import DremioCursor
-from dbt.adapters.dremio.api.parameters import Parameters
-
-from dbt.adapters.dremio.api.basic import login
+from dbt.adapters.dremio.api.authentication import Parameters, login
 
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")

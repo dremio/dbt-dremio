@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and 
 # limitations under the License.
 
+import requests
+
 from dataclasses import dataclass
 from typing import Optional
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from xmlrpc.client import boolean
+
+from dbt.adapters.dremio.api.url_builder import UrlBuilder
 
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
@@ -55,4 +60,23 @@ class DremioPatAuthentication(DremioAuthentication):
         authorization_field = 'Bearer {authorization_token}'.format(authorization_token=self.pat)
         return self.build_headers(authorization_field)
 
+@dataclass
+class Parameters:
+    base_url: str
+    authentication: DremioAuthentication    
+    is_cloud: boolean = True
+    cloud_project_id: Optional[str] = None
 
+def login(api_parameters: Parameters, timeout=10, verify=True):
+
+    if isinstance(api_parameters.authentication, DremioPatAuthentication):
+        return api_parameters
+
+    url = UrlBuilder.login_url(api_parameters.base_url)
+
+    r = requests.post(url, json={"userName": api_parameters.authentication.username, "password": api_parameters.authentication.password}, timeout=timeout, verify=verify)
+    r.raise_for_status()
+    
+    api_parameters.authentication.token = r.json()["token"]
+
+    return api_parameters

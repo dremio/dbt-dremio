@@ -20,8 +20,7 @@ from contextlib import contextmanager
 from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
-from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.authentication import DremioAuthentication
+from dbt.adapters.dremio.api.authentication import DremioAuthentication, Parameters, login
 
 import time
 import json
@@ -32,7 +31,6 @@ from dbt.adapters.sql import SQLConnectionManager
 from dbt.adapters.dremio.relation import DremioRelation
 from dbt.contracts.connection import AdapterResponse
 
-from dbt.adapters.dremio.api.basic import login
 from dbt.adapters.dremio.api.endpoints import (
     delete_catalog,
     create_catalog_api,

@@ -1,5 +1,5 @@
 # __init__.py
-from .basic import login
+from .authentication import login
 from .endpoints import (
     delete_catalog,
     sql_endpoint,
