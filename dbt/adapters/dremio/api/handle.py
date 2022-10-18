@@ -20,11 +20,15 @@ from dbt.adapters.dremio.api.basic import login
 from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
+
 class DremioHandle:
     def __init__(self, parameters: Parameters):
         self._parameters = parameters
         self._cursor = None
         self.closed = False
+
+    def get_parameters(self):
+        return self._parameters
 
     def cursor(self):
         if self.closed:
