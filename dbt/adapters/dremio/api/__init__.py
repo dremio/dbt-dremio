@@ -1,5 +1,5 @@
 # __init__.py
-from .endpoints import (
+from .rest.endpoints import (
     delete_catalog,
     sql_endpoint,
     job_status,

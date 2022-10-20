@@ -31,12 +31,12 @@ from dbt.adapters.sql import SQLConnectionManager
 from dbt.adapters.dremio.relation import DremioRelation
 from dbt.contracts.connection import AdapterResponse
 
-from dbt.adapters.dremio.api.endpoints import (
+from dbt.adapters.dremio.api.rest.endpoints import (
     delete_catalog,
     create_catalog_api,
     get_catalog_item,
 )
-from dbt.adapters.dremio.api.error import (
+from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
 )
