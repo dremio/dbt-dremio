@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dbt.adapters.dremio.api.error import DremioException
+from dbt.adapters.dremio.api.rest.error import DremioException
 from urllib.parse import quote
 
 

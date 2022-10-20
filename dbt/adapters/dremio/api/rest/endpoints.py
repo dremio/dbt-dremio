@@ -14,14 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asyncio.log import logger
 import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
-from urllib.parse import quote
 
-from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.url_builder import UrlBuilder
+from dbt.adapters.dremio.api.authentication import DremioPatAuthentication, Parameters
+from dbt.adapters.dremio.api.rest.url_builder import UrlBuilder
 
 from dbt.events import AdapterLogger
 
@@ -105,6 +103,29 @@ def _check_error(r, details=""):
     if code == 409:
         raise DremioAlreadyExistsException("Already exists:" + details, error, r)
     raise DremioException("Unknown error", error)
+
+
+def login(api_parameters: Parameters, timeout=10, verify=True):
+
+    if isinstance(api_parameters.authentication, DremioPatAuthentication):
+        return api_parameters
+
+    url = UrlBuilder.login_url(api_parameters.base_url)
+
+    r = requests.post(
+        url,
+        json={
+            "userName": api_parameters.authentication.username,
+            "password": api_parameters.authentication.password,
+        },
+        timeout=timeout,
+        verify=verify,
+    )
+    r.raise_for_status()
+
+    api_parameters.authentication.token = r.json()["token"]
+
+    return api_parameters
 
 
 def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
