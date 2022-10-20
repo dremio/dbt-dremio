@@ -13,15 +13,14 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Union, Optional, Any
+from typing import Tuple, Optional
 from dataclasses import dataclass
 from contextlib import contextmanager
 
 from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
-from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.authentication import DremioAuthentication
+from dbt.adapters.dremio.api.authentication import DremioAuthentication, Parameters
 
 import time
 import json
@@ -32,18 +31,15 @@ from dbt.adapters.sql import SQLConnectionManager
 from dbt.adapters.dremio.relation import DremioRelation
 from dbt.contracts.connection import AdapterResponse
 
-from dbt.adapters.dremio.api.basic import login
-from dbt.adapters.dremio.api.endpoints import (
+from dbt.adapters.dremio.api.rest.endpoints import (
     delete_catalog,
     create_catalog_api,
     get_catalog_item,
 )
-from dbt.adapters.dremio.api.error import (
+from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
 )
-
-# from dbt.logger import GLOBAL_LOGGER as logger
 
 from dbt.events import AdapterLogger
 

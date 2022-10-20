@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from dataclasses import dataclass
 from typing import Optional
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from xmlrpc.client import boolean
 
 from dbt.events import AdapterLogger
 
@@ -67,3 +69,11 @@ class DremioPatAuthentication(DremioAuthentication):
             authorization_token=self.pat
         )
         return self.build_headers(authorization_field)
+
+@dataclass
+class Parameters:
+    base_url: str
+    authentication: DremioAuthentication    
+    is_cloud: boolean = True
+    cloud_project_id: Optional[str] = None
+

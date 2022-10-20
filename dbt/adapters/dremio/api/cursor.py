@@ -15,13 +15,13 @@
 
 import agate
 
-from dbt.adapters.dremio.api.endpoints import (
+from dbt.adapters.dremio.api.rest.endpoints import (
     sql_endpoint,
     job_status,
     job_results,
     job_cancel_api,
 )
-from dbt.adapters.dremio.api.parameters import Parameters
+from dbt.adapters.dremio.api.authentication import Parameters
 
 from dbt.events import AdapterLogger
 

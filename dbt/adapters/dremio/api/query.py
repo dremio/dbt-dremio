@@ -17,10 +17,10 @@
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
-from .error import DremioException
-from .endpoints import sql_endpoint
-from .endpoints import job_results
-from .endpoints import job_status
+from .rest.error import DremioException
+from .rest.endpoints import sql_endpoint
+from .rest.endpoints import job_results
+from .rest.endpoints import job_status
 
 
 executor = ThreadPoolExecutor(max_workers=8)
