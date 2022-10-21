@@ -31,8 +31,6 @@ $project:
   target: dev
 EOF
 } && \
-echo 'vars:' >> ./$project/dbt_project.yml && \
-echo '  dremio:reflections_enabled: false' >> ./$project/dbt_project.yml && \
 create_model && \
 cd $project/ && \
 dbt debug && \
@@ -60,8 +58,6 @@ $project:
   target: dev
 EOF
 } && \
-echo 'vars:' >> ./$project/dbt_project.yml && \
-echo '  dremio:reflections_enabled: false' >> ./$project/dbt_project.yml && \
 create_model && \
 cd $project/ && \
 dbt debug && \
@@ -89,8 +85,6 @@ $project:
   target: dev
 EOF
 } && \
-echo 'vars:' >> ./$project/dbt_project.yml && \
-echo '  dremio:reflections_enabled: false' >> ./$project/dbt_project.yml && \
 create_model && \
 cd $project/ && \
 dbt debug && \
