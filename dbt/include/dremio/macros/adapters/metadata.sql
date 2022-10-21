@@ -25,7 +25,7 @@ limitations under the License.*/
 
     with cte as (
 
-    {%- if var('dremio:reflections_enabled', false) %}
+    {%- if var('dremio:reflections_enabled', default=false) %}
 
       select
         case when position('.' in table_schema) > 0
@@ -140,7 +140,7 @@ limitations under the License.*/
         + (('.' + schema) if schema != 'no_schema' else '') -%}
   {% call statement('list_relations_without_caching', fetch_result=True) -%}
 
-    {%- if var('dremio:reflections_enabled', false) -%}
+    {%- if var('dremio:reflections_enabled', default=false) -%}
 
       with cte1 as (
         select
