@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% materialization reflection, adapter='dremio' %}
-  {%- if not  var('dremio:reflections_enabled', true)  -%}
+  {%- if not  var('dremio:reflections_enabled', default=false)  -%}
     {% do exceptions.raise_compiler_error("reflections are disabled, set 'dremio:reflections_enabled' variable to true to enable them") %}
   {%- endif -%}
 
