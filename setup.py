@@ -27,7 +27,7 @@ setup(
     packages=find_namespace_packages(include=["dbt", "dbt.*"]),
     include_package_data=True,
     install_requires=[
-        "dbt-core==1.1.2",
+        "dbt-core==1.2.0",
     ],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",

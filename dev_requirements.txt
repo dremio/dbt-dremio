@@ -1,5 +1,5 @@
-dbt-core==1.1.2
-dbt-tests-adapter==1.1.2
+dbt-core==1.2.0
+dbt-tests-adapter==1.2.0
 black==22.3.0
 bumpversion
 flake8
