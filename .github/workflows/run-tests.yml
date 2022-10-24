@@ -1,0 +1,92 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DREMIO_SOFTWARE_HOST: ${{ secrets.SOFTWARE_HOST }}
+  DREMIO_CLOUD_HOST: ${{ secrets.CLOUD_HOST }}
+  DREMIO_PORT: ${{ secrets.DREMIO_PORT }}
+  DREMIO_USER: ${{ secrets.DREMIO_USER }}
+  DREMIO_PW: ${{ secrets.DREMIO_PASSWORD }}
+  DREMIO_PAT: ${{ secrets.DREMIO_PAT }}
+  DREMIO_CLOUD_USER: ${{ secrets.DREMIO_CLOUD_USER }}
+  DREMIO_CLOUD_PROJECT: ${{ secrets.DREMIO_CLOUD_PROJECT }}
+  DREMIO_DATALAKE: ${{ secrets.DREMIO_DATALAKE}}
+
+jobs:
+  run-functional-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the project
+        uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.0
+      - name: Install requirements
+        run: pip install -r dev_requirements.txt
+      - name: Set env variables
+        run: |
+          echo "DREMIO_HOST=$DREMIO_SOFTWARE_HOST" >> $GITHUB_ENV
+          echo "DREMIO_USERNAME=$DREMIO_USER" >> $GITHUB_ENV
+          echo "DREMIO_PASSWORD=$DREMIO_PW" >> $GITHUB_ENV
+          echo "DREMIO_DATALAKE=$DREMIO_DATALAKE" >> $GITHUB_ENV
+      - name: Run pytest
+        run: pytest ./tests/functional/adapter/test_basic.py
+
+  run-softwareUP-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the project
+        uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.0
+      - name: Install requirements
+        run: pip install -r dev_requirements.txt
+      - name: Install current dbt-dremio
+        run: pip install -e .
+      - name: Give permission
+        run: chmod +x ./.github/scripts/smoke-test.sh
+      - name: Run softwareUP test 
+        run: ./.github/scripts/smoke-test.sh softwareUP "$DREMIO_USER" "$DREMIO_PW" "$DREMIO_SOFTWARE_HOST" "$DREMIO_PORT"
+
+  run-softwarePAT-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the project
+        uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.0
+      - name: Install requirements
+        run: pip install -r dev_requirements.txt
+      - name: Install current dbt-dremio
+        run: pip install -e .
+      - name: Give permission
+        run: chmod +x ./.github/scripts/smoke-test.sh
+      - name: Run softwarePAT test 
+        run: .github/scripts/smoke-test.sh softwarePAT "$DREMIO_USER" "$DREMIO_PAT" "$DREMIO_SOFTWARE_HOST" "$DREMIO_PORT"
+
+  run-cloud-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the project
+        uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.0
+      - name: Install requirements
+        run: pip install -r dev_requirements.txt
+      - name: Install current dbt-dremio
+        run: pip install -e .
+      - name: Give permission
+        run: chmod +x ./.github/scripts/smoke-test.sh
+      - name: Run cloud test 
+        run: ./.github/scripts/smoke-test.sh cloud "$DREMIO_CLOUD_USER" "$DREMIO_PAT" "$DREMIO_CLOUD_HOST" "$DREMIO_CLOUD_PROJECT" true     
