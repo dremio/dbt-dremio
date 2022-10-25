@@ -39,6 +39,7 @@ from dbt.adapters.dremio.api.rest.endpoints import (
 from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
+    DremioException,
 )
 
 from dbt.events import AdapterLogger
@@ -138,6 +139,9 @@ class DremioCredentials(Credentials):
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
+    DEFAULT_RETRIES = 1
+
+    retries = DEFAULT_RETRIES
 
     @contextmanager
     def exception_handler(self, sql):
@@ -164,18 +168,32 @@ class DremioConnectionManager(SQLConnectionManager):
         credentials = connection.credentials
         api_parameters = DremioConnectionManager.build_api_parameters(credentials)
 
-        try:
-            handle = DremioHandle(api_parameters)
-            _ = handle.cursor()
-            connection.state = "open"
-            connection.handle = handle
-            logger.debug(f"Connected to db: {credentials.database}")
-        except Exception as e:
-            logger.debug(f"Could not connect to db: {e}")
-            connection.handle = None
-            connection.state = "fail"
-            raise dbt.exceptions.FailedToConnectException(str(e))
-        return connection
+        def connect():
+            try:
+                handle = DremioHandle(api_parameters)
+                _ = handle.cursor()
+                connection.state = "open"
+                connection.handle = handle
+                logger.debug(f"Connected to db: {credentials.database}")
+            except Exception as e:
+                logger.debug(f"Could not connect to db: {e}")
+                connection.handle = None
+                connection.state = "fail"
+                raise dbt.exceptions.FailedToConnectException(str(e))
+            return handle
+
+        retryable_exceptions = [
+            # list of retryable_exceptions underlying driver might expose
+            DremioException,
+        ]
+
+        return cls.retry_connection(
+            connection,
+            connect=connect,
+            logger=logger,
+            retry_limit=cls.retries,
+            retryable_exceptions=retryable_exceptions,
+        )
 
     @classmethod
     def is_cancelable(cls) -> bool:
