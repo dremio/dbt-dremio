@@ -32,6 +32,11 @@ from .error import (
     DremioPermissionException,
     DremioUnauthorizedException,
     DremioAlreadyExistsException,
+    DremioRequestTimeoutException,
+    DremioTooManyRequestsException,
+    DremioInternalServerException,
+    DremioServiceUnavailableException,
+    DremioGatewayTimeoutExcpetion,
 )
 
 
@@ -100,8 +105,22 @@ def _check_error(r, details=""):
         raise DremioPermissionException("No permission:" + details, error, r)
     if code == 404:
         raise DremioNotFoundException("Not found:" + details, error, r)
+    if code == 408:
+        raise DremioRequestTimeoutException("Request timeout:" + details, error, r)
     if code == 409:
         raise DremioAlreadyExistsException("Already exists:" + details, error, r)
+    if code == 429:
+        raise DremioTooManyRequestsException("Too many requests:" + details, error, r)
+    if code == 500:
+        raise DremioInternalServerException(
+            "Internal server error:" + details, error, r
+        )
+    if code == 503:
+        raise DremioServiceUnavailableException(
+            "Too many requests:" + details, error, r
+        )
+    if code == 504:
+        raise DremioGatewayTimeoutExcpetion("Too many requests:" + details, error, r)
     raise DremioException("Unknown error", error)
 
 

@@ -39,7 +39,11 @@ from dbt.adapters.dremio.api.rest.endpoints import (
 from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
-    DremioException,
+    DremioRequestTimeoutException,
+    DremioTooManyRequestsException,
+    DremioInternalServerException,
+    DremioServiceUnavailableException,
+    DremioGatewayTimeoutExcpetion,
 )
 
 from dbt.events import AdapterLogger
@@ -139,7 +143,7 @@ class DremioCredentials(Credentials):
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
-    DEFAULT_RETRIES = 1
+    DEFAULT_RETRIES = 4
 
     retries = DEFAULT_RETRIES
 
@@ -184,12 +188,16 @@ class DremioConnectionManager(SQLConnectionManager):
 
         retryable_exceptions = [
             # list of retryable_exceptions underlying driver might expose
-            DremioException,
+            DremioRequestTimeoutException,
+            DremioTooManyRequestsException,
+            DremioInternalServerException,
+            DremioServiceUnavailableException,
+            DremioGatewayTimeoutExcpetion,
         ]
 
         return cls.retry_connection(
             connection,
-            connect=connect,
+            connect=connect(),
             logger=logger,
             retry_limit=cls.retries,
             retryable_exceptions=retryable_exceptions,
