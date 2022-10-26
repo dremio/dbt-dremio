@@ -44,6 +44,7 @@ from dbt.adapters.dremio.api.rest.error import (
     DremioInternalServerException,
     DremioServiceUnavailableException,
     DremioGatewayTimeoutExcpetion,
+    DremioUnauthorizedException,
 )
 
 from dbt.events import AdapterLogger
@@ -143,7 +144,7 @@ class DremioCredentials(Credentials):
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
-    DEFAULT_RETRIES = 4
+    DEFAULT_RETRIES = 1
 
     retries = DEFAULT_RETRIES
 
@@ -193,13 +194,20 @@ class DremioConnectionManager(SQLConnectionManager):
             DremioInternalServerException,
             DremioServiceUnavailableException,
             DremioGatewayTimeoutExcpetion,
+            DremioUnauthorizedException,
         ]
+
+        def exponential_backoff_retry_timeout(retries: int) -> int:
+            BASE = 2  # multiplicative factor
+            time_delay = pow(BASE, retries)
+            return time_delay
 
         return cls.retry_connection(
             connection,
-            connect=connect(),
+            connect=connect,
             logger=logger,
             retry_limit=cls.retries,
+            retry_timeout=exponential_backoff_retry_timeout,
             retryable_exceptions=retryable_exceptions,
         )
 
