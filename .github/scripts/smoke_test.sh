@@ -15,21 +15,26 @@
 << comment
 Intent:
 
-Run all three tests (softwareUP, softwarePAT, and cloud) before
-submitting a pull request. This is a smoke test to ensure the 
-adapter works as expected after your changes. 
+  The original intent of this script was to run automatic tests 
+  in Github when a PR is created. Currently, we do not have access
+  to a public facing Dremio cluster, so this script will have to 
+  run manually in the meantime 
+  (https://github.com/dremio/dbt-dremio/issues/39)
 
-How to Run
+  Run all three tests (softwareUP, softwarePAT, and cloud) before
+  submitting a pull request. This is a smoke test to ensure the 
+  adapter works as expected after your changes. 
 
-Software User/Password Test:
-./smoke_test.sh softwareUP USER PASSWORD HOST PORT [SSL Boolean]
+How to Run:
 
-Software PAT Test:
-./smoke_test.sh softwarePAT USER PAT HOST PORT [SSL Boolean]
+  Software User/Password Test:
+    ./smoke_test.sh softwareUP USER PASSWORD HOST PORT [SSL Boolean]
 
-Cloud Test:
-./smoke_test.sh cloud USER PAT HOST CLOUD_PROJECT true
+  Software PAT Test:
+    ./smoke_test.sh softwarePAT USER PAT HOST PORT [SSL Boolean]
 
+  Cloud Test:
+    ./smoke_test.sh cloud USER PAT HOST CLOUD_PROJECT true
 comment
 
 #! /bin/bash
