@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dbt.adapters.dremio.api.rest.error import DremioException
+from dbt.adapters.dremio.api.parameters import (
+    Parameters,
+    CloudParameters,
+)
 from urllib.parse import quote
 
 
@@ -31,92 +34,90 @@ class UrlBuilder:
     CLOUD_CATALOG_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/catalog"
 
     @classmethod
-    def login_url(cls, base_url):
-        return base_url + UrlBuilder.SOFTWARE_LOGIN_ENDPOINT
+    def login_url(cls, parameters: Parameters):
+        return parameters.base_url + UrlBuilder.SOFTWARE_LOGIN_ENDPOINT
 
     @classmethod
-    def sql_url(cls, base_url, is_cloud=False, cloud_project_id=None):
-        if is_cloud:
-            return base_url + UrlBuilder.CLOUD_SQL_ENDPOINT.format(cloud_project_id)
-        return base_url + UrlBuilder.SOFTWARE_SQL_ENDPOINT
+    def sql_url(cls, parameters: Parameters):
+        if type(parameters) is CloudParameters:
+            return parameters.base_url + UrlBuilder.CLOUD_SQL_ENDPOINT.format(
+                parameters.cloud_project_id
+            )
+        return parameters.base_url + UrlBuilder.SOFTWARE_SQL_ENDPOINT
 
     @classmethod
-    def job_status_url(cls, base_url, job_id, is_cloud=False, cloud_project_id=None):
-        if is_cloud:
+    def job_status_url(cls, parameters: Parameters, job_id):
+        if type(parameters) is CloudParameters:
             return (
-                base_url
-                + UrlBuilder.CLOUD_JOB_ENDPOINT.format(cloud_project_id)
+                parameters.base_url
+                + UrlBuilder.CLOUD_JOB_ENDPOINT.format(parameters.cloud_project_id)
                 + "/"
                 + job_id
             )
-        return base_url + UrlBuilder.SOFTWARE_JOB_ENDPOINT + "/" + job_id
+        return parameters.base_url + UrlBuilder.SOFTWARE_JOB_ENDPOINT + "/" + job_id
 
     @classmethod
-    def job_cancel_url(cls, base_url, job_id, is_cloud=False, offset=0, limit=100):
-        url_path = None
-        if is_cloud:
-            url_path = base_url + UrlBuilder.CLOUD_JOB_ENDPOINT
+    def job_cancel_url(cls, parameters: Parameters, job_id, offset=0, limit=100):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_JOB_ENDPOINT
         else:
-            url_path = base_url + UrlBuilder.SOFTWARE_JOB_ENDPOINT
+            url_path += UrlBuilder.SOFTWARE_JOB_ENDPOINT
 
         return url_path + "/{}/cancel".format(job_id)
 
     @classmethod
     def job_results_url(
         cls,
-        base_url,
+        parameters: Parameters,
         job_id,
-        is_cloud=False,
         offset=0,
         limit=100,
-        cloud_project_id=None,
     ):
-        url_path = None
-        if is_cloud:
-            url_path = base_url + UrlBuilder.CLOUD_JOB_ENDPOINT.format(cloud_project_id)
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_JOB_ENDPOINT.format(
+                parameters.cloud_project_id
+            )
         else:
-            url_path = base_url + UrlBuilder.SOFTWARE_JOB_ENDPOINT
+            url_path += UrlBuilder.SOFTWARE_JOB_ENDPOINT
 
         return url_path + "/{}/results?offset={}&limit={}".format(job_id, offset, limit)
 
     @classmethod
-    def catalog_url(cls, base_url, is_cloud=False, cloud_project_id=None):
-        url_path = None
-        if is_cloud:
-            url_path = base_url + UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
-                cloud_project_id
+    def catalog_url(cls, parameters: Parameters):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
+                parameters.cloud_project_id
             )
         else:
-            url_path = base_url + UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
+            url_path += UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
 
         return url_path
 
     @classmethod
-    def catalog_item_by_id_url(
-        cls, base_url, catalog_id, is_cloud=False, cloud_project_id=None
-    ):
-        url_path = None
-        if is_cloud:
-            url_path = base_url + UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
-                cloud_project_id
+    def catalog_item_by_id_url(cls, parameters: Parameters, catalog_id):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
+                parameters.cloud_project_id
             )
         else:
-            url_path = base_url + UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
+            url_path += UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
 
         endpoint = "/{}".format(catalog_id)
         return url_path + endpoint
 
     @classmethod
-    def catalog_item_by_path_url(
-        cls, base_url, path_list, is_cloud=False, cloud_project_id=None
-    ):
-        url_path = None
-        if is_cloud:
-            url_path = base_url + UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
-                cloud_project_id
+    def catalog_item_by_path_url(cls, parameters: Parameters, path_list):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
+                parameters.cloud_project_id
             )
         else:
-            url_path = base_url + UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
+            url_path += UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
 
         # Escapes special characters
         quoted_path_list = [quote(i, safe="") for i in path_list]
