@@ -2,93 +2,93 @@
 
 # create test model
 create_model() {
-touch ./$project/models/select_model.sql
-{ cat > ./$project/models/select_model.sql << EOF
-SELECT *
-FROM Samples."samples.dremio.com"."zips.json" LIMIT 5
+  touch ./$project/models/select_model.sql
+  { cat > ./$project/models/select_model.sql << EOF
+  SELECT *
+  FROM Samples."samples.dremio.com"."zips.json" LIMIT 5
 EOF
 }
 }
 
 # software user/pw test
 test_softwareUP() {
-cd ../../.. && \
-if [ -d "./$project" ]; then
-    rm -r $project
-fi
-dbt init -s $project && \
-{ cat > $profiles_path << EOF
-$project:
-  outputs:
-    dev:
-      password: $test_password
-      port: 9047
-      software_host: $test_host
-      threads: 1
-      type: dremio
-      use_ssl: $test_ssl
-      user: $test_user
-  target: dev
+  cd ../../.. && \
+  if [ -d "./$project" ]; then
+      rm -r $project
+  fi
+  dbt init -s $project && \
+  { cat > $profiles_path << EOF
+  $project:
+    outputs:
+      dev:
+        password: $test_password
+        port: 9047
+        software_host: $test_host
+        threads: 1
+        type: dremio
+        use_ssl: $test_ssl
+        user: $test_user
+    target: dev
 EOF
-} && \
-create_model && \
-cd $project/ && \
-dbt debug && \
-dbt run
+  } && \
+  create_model && \
+  cd $project/ && \
+  dbt debug && \
+  dbt run
 }
 
 # software user/pat test
 test_softwarePAT() {
-cd ../../.. && \
-if [ -d "./$project" ]; then
-    rm -r $project
-fi
-dbt init -s $project && \
-{ cat > $profiles_path << EOF
-$project:
-  outputs:
-    dev:
-      pat: $test_token
-      port: 9047
-      software_host: $test_host
-      threads: 1
-      type: dremio
-      use_ssl: $test_ssl
-      user: $test_user
-  target: dev
+  cd ../../.. && \
+  if [ -d "./$project" ]; then
+      rm -r $project
+  fi
+  dbt init -s $project && \
+  { cat > $profiles_path << EOF
+  $project:
+    outputs:
+      dev:
+        pat: $test_token
+        port: 9047
+        software_host: $test_host
+        threads: 1
+        type: dremio
+        use_ssl: $test_ssl
+        user: $test_user
+    target: dev
 EOF
-} && \
-create_model && \
-cd $project/ && \
-dbt debug && \
-dbt run
+  } && \
+  create_model && \
+  cd $project/ && \
+  dbt debug && \
+  dbt run
 }
 
 #Cloud test
 test_cloud() {
-cd ../../.. && \
-if [ -d "./$project" ]; then
-    rm -r $project
-fi
-dbt init -s $project && \
-{ cat > $profiles_path << EOF
-$project:
-  outputs:
-    dev:
-      cloud_host: $test_host
-      cloud_project_id: $test_cloud_project
-      pat: $test_token
-      threads: 1
-      type: dremio
-      use_ssl: true
-      user: $test_user
-  target: dev
+  cd ../../.. && \
+  if [ -d "./$project" ]; then
+      rm -r $project
+  fi
+  dbt init -s $project && \
+  { cat > $profiles_path << EOF
+  $project:
+    outputs:
+      dev:
+        cloud_host: $test_host
+        cloud_project_id: $test_cloud_project
+        pat: $test_token
+        threads: 1
+        type: dremio
+        use_ssl: true
+        user: $test_user
+    target: dev
 EOF
-} && \
-create_model && \
-cd $project/ && \
-dbt debug && \
-dbt run 
+  } && \
+  create_model && \
+  cd $project/ && \
+  dbt debug && \
+  dbt run 
 }
 
 # Main
