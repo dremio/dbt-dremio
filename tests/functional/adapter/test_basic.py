@@ -25,11 +25,6 @@ from dbt.tests.adapter.basic.test_docs_generate import (
     models__readme_md,
     models__schema_yml,
     models__model_sql,
-    ref_models__docs_md,
-    ref_models__ephemeral_copy_sql,
-    ref_models__schema_yml,
-    ref_models__view_summary_sql,
-    ref_sources__schema_yml,
 )
 from dbt.tests.adapter.basic.files import (
     base_view_sql,
