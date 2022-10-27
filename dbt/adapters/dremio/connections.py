@@ -44,7 +44,6 @@ from dbt.adapters.dremio.api.rest.error import (
     DremioInternalServerException,
     DremioServiceUnavailableException,
     DremioGatewayTimeoutExcpetion,
-    DremioUnauthorizedException,
 )
 
 from dbt.events import AdapterLogger
@@ -174,17 +173,11 @@ class DremioConnectionManager(SQLConnectionManager):
         api_parameters = DremioConnectionManager.build_api_parameters(credentials)
 
         def connect():
-            try:
-                handle = DremioHandle(api_parameters)
-                _ = handle.cursor()
-                connection.state = "open"
-                connection.handle = handle
-                logger.debug(f"Connected to db: {credentials.database}")
-            except Exception as e:
-                logger.debug(f"Could not connect to db: {e}")
-                connection.handle = None
-                connection.state = "fail"
-                raise dbt.exceptions.FailedToConnectException(str(e))
+            handle = DremioHandle(api_parameters)
+            _ = handle.cursor()
+            connection.state = "open"
+            connection.handle = handle
+            logger.debug(f"Connected to db: {credentials.database}")
             return handle
 
         retryable_exceptions = [
@@ -194,7 +187,6 @@ class DremioConnectionManager(SQLConnectionManager):
             DremioInternalServerException,
             DremioServiceUnavailableException,
             DremioGatewayTimeoutExcpetion,
-            DremioUnauthorizedException,
         ]
 
         def exponential_backoff_retry_timeout(retries: int) -> int:
