@@ -4,6 +4,8 @@ from tests.functional.adapter.utils.test_utils import (
     relation_from_name,
     check_relations_equal,
     check_relation_types,
+    base_expected_catalog,
+    expected_references_catalog,
 )
 from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
 from dbt.tests.adapter.basic.test_singular_tests import BaseSingularTests
@@ -17,6 +19,18 @@ from dbt.tests.adapter.basic.test_generic_tests import BaseGenericTests
 from dbt.tests.adapter.basic.test_snapshot_check_cols import BaseSnapshotCheckCols
 from dbt.tests.adapter.basic.test_snapshot_timestamp import BaseSnapshotTimestamp
 from dbt.tests.adapter.basic.test_adapter_methods import BaseAdapterMethod
+from dbt.tests.adapter.basic.test_docs_generate import (
+    BaseDocsGenerate,
+    BaseDocsGenReferences,
+    models__readme_md,
+    models__schema_yml,
+    models__model_sql,
+    ref_models__docs_md,
+    ref_models__ephemeral_copy_sql,
+    ref_models__schema_yml,
+    ref_models__view_summary_sql,
+    ref_sources__schema_yml,
+)
 from dbt.tests.adapter.basic.files import (
     base_view_sql,
     base_table_sql,
@@ -24,8 +38,12 @@ from dbt.tests.adapter.basic.files import (
 )
 from dbt.tests.adapter.basic.test_adapter_methods import models__upstream_sql
 
-from dbt.tests.util import run_dbt, check_result_nodes_by_name
+from dbt.tests.util import (
+    run_dbt,
+    check_result_nodes_by_name,
+)
 from dbt.events import AdapterLogger
+from dbt.tests.adapter.basic.expected_catalog import no_stats
 
 logger = AdapterLogger("dremio")
 
@@ -413,7 +431,7 @@ class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
         }
 
 
-models__model_sql = """
+models__my_model_sql = """
 
 {% set upstream = ref('upstream_view') %}
 
@@ -459,7 +477,7 @@ class TestBaseAdapterMethodDremio(BaseAdapterMethod):
         return {
             "upstream_view.sql": models__upstream_sql,
             "expected_view.sql": models__expected_sql,
-            "model_view.sql": models__model_sql,
+            "model_view.sql": models__my_model_sql,
         }
 
     @pytest.fixture(scope="class")
@@ -495,3 +513,157 @@ class TestBaseAdapterMethodDremio(BaseAdapterMethod):
     @pytest.fixture(scope="class")
     def equal_tables(self):
         return ["model_view", "expected_view"]
+
+
+# required to explicitly use alternate_schema
+# otherwise will use unique_schema under profiles fixture
+models__second_model_sql = """
+{{
+    config(
+        materialized='view',
+        schema=var('alternate_schema')
+    )
+}}
+
+select * from {{ ref('seed') }}
+"""
+
+
+class TestBaseDocsGenerateDremio(BaseDocsGenerate):
+    # Override this fixture to add our version of second_model
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {
+            "schema.yml": models__schema_yml,
+            "second_model.sql": models__second_model_sql,
+            "readme.md": models__readme_md,
+            "model.sql": models__model_sql,
+        }
+
+    # Override this fixture to prepend our schema with rav-test
+    # This ensures the schema works with our datalake
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    # Override this fixture to prevent (twin_strategy) creating a view for seeds
+    @pytest.fixture(scope="class")
+    def project_config_update(self, unique_schema):
+        alternate_schema = unique_schema + "_test"
+        return {
+            "asset-paths": ["assets", "invalid-asset-paths"],
+            "vars": {
+                "test_schema": unique_schema,
+                "alternate_schema": alternate_schema,
+            },
+            "seeds": {
+                "quote_columns": True,
+                "+twin_strategy": "prevent",
+            },
+        }
+
+    # Override this fixture to set root_path=schema
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(
+        self, unique_schema, dbt_profile_target, profiles_config_update
+    ):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
+
+    # Override this fixture to change expected types to Dremio types
+    @pytest.fixture(scope="class")
+    def expected_catalog(self, project):
+        return base_expected_catalog(
+            project,
+            role=None,
+            id_type="bigint",
+            text_type="character varying",
+            time_type="timestamp",
+            view_type="view",
+            table_type="table",
+            model_stats=no_stats(),
+        )
+
+
+class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"rav-test.{prefix}_{test_file}"
+        return unique_schema
+
+    # Override this fixture to prevent (twin_strategy) creating a view for seeds
+    @pytest.fixture(scope="class")
+    def project_config_update(self, unique_schema):
+        alternate_schema = unique_schema + "_test"
+        return {
+            "asset-paths": ["assets", "invalid-asset-paths"],
+            "vars": {
+                "test_schema": unique_schema,
+                "alternate_schema": alternate_schema,
+            },
+            "seeds": {
+                "quote_columns": True,
+                "+twin_strategy": "clone",
+            },
+            "models": {
+                "+twin_strategy": "prevent",
+            },
+        }
+
+    # Override this fixture to set root_path=schema
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(
+        self, unique_schema, dbt_profile_target, profiles_config_update
+    ):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
+
+    # Override this fixture to change expected types to Dremio types
+    @pytest.fixture(scope="class")
+    def expected_catalog(self, project):
+        return expected_references_catalog(
+            project,
+            role=None,
+            id_type="bigint",
+            text_type="character varying",
+            time_type="timestamp",
+            view_type="view",
+            table_type="table",
+            model_stats=no_stats(),
+            bigint_type="bigint",
+        )
