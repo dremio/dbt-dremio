@@ -32,7 +32,7 @@ class UrlBuilder:
 
     @classmethod
     def login_url(cls, base_url):
-        return base_url + UrlBuilder.SOFTWARE_LOGIN_ENDPOINT
+        return base_url + cls.SOFTWARE_LOGIN_ENDPOINT
 
     @classmethod
     def sql_url(cls, base_url, is_cloud=False, cloud_project_id=None):
