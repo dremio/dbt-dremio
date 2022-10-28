@@ -57,7 +57,7 @@ class UrlBuilder:
         return parameters.base_url + UrlBuilder.SOFTWARE_JOB_ENDPOINT + "/" + job_id
 
     @classmethod
-    def job_cancel_url(cls, parameters: Parameters, job_id, offset=0, limit=100):
+    def job_cancel_url(cls, parameters: Parameters, job_id):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
             url_path += UrlBuilder.CLOUD_JOB_ENDPOINT
@@ -85,7 +85,7 @@ class UrlBuilder:
         return url_path + "/{}/results?offset={}&limit={}".format(job_id, offset, limit)
 
     @classmethod
-    def catalog_url(cls, parameters: Parameters):
+    def catalog_url(cls, parameters: Parameters, cid):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
             url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
@@ -94,6 +94,7 @@ class UrlBuilder:
         else:
             url_path += UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
 
+        url_path += f"/{cid}"
         return url_path
 
     @classmethod

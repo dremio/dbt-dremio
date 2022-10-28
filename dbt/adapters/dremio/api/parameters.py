@@ -40,16 +40,10 @@ class ParametersBuilder:
     authentication: Optional[DremioCredentials] = None
 
     @classmethod
-    def __buildDremioAuthentication(self, credentials: DremioCredentials):
-        return DremioAuthentication.build(
-            credentials.UID, credentials.PWD, credentials.pat
-        )
-
-    @classmethod
     def build(cls, credentials: DremioCredentials):
         if credentials.cloud_host != None and credentials.cloud_project_id != None:
             return CloudParametersBuilder(
-                cls.__buildDremioAuthentication(credentials=credentials),
+                cls._buildDremioAuthentication(credentials=credentials),
                 credentials.cloud_host,
                 credentials.cloud_project_id,
             )
@@ -59,7 +53,7 @@ class ParametersBuilder:
             and credentials.use_ssl != None
         ):
             return SoftwareParametersBuilder(
-                cls.__buildDremioAuthentication(credentials=credentials),
+                cls._buildDremioAuthentication(credentials=credentials),
                 credentials.software_host,
                 credentials.port,
                 credentials.use_ssl,
@@ -73,6 +67,12 @@ class ParametersBuilder:
     @abstractmethod
     def getParameters(self) -> Parameters:
         pass
+
+    @classmethod
+    def _buildDremioAuthentication(self, credentials: DremioCredentials):
+        return DremioAuthentication.build(
+            credentials.UID, credentials.PWD, credentials.pat
+        )
 
 
 @dataclass
