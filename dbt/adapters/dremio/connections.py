@@ -72,7 +72,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
         credentials = connection.credentials
         parameters_builder = ParametersBuilder.build(credentials)
-        api_parameters = parameters_builder.getParameters()
+        api_parameters = parameters_builder.get_parameters()
 
         try:
             handle = DremioHandle(api_parameters)

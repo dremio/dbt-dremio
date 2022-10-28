@@ -43,7 +43,7 @@ class ParametersBuilder:
     def build(cls, credentials: DremioCredentials):
         if credentials.cloud_host != None and credentials.cloud_project_id != None:
             return CloudParametersBuilder(
-                cls._buildDremioAuthentication(credentials=credentials),
+                cls._build_dremio_authentication(credentials=credentials),
                 credentials.cloud_host,
                 credentials.cloud_project_id,
             )
@@ -53,7 +53,7 @@ class ParametersBuilder:
             and credentials.use_ssl != None
         ):
             return SoftwareParametersBuilder(
-                cls._buildDremioAuthentication(credentials=credentials),
+                cls._build_dremio_authentication(credentials=credentials),
                 credentials.software_host,
                 credentials.port,
                 credentials.use_ssl,
@@ -61,15 +61,15 @@ class ParametersBuilder:
         raise ValueError("Credentials match neither Cloud nor Software")
 
     @abstractmethod
-    def buildBaseUrl(self):
+    def build_base_url(self):
         pass
 
     @abstractmethod
-    def getParameters(self) -> Parameters:
+    def get_parameters(self) -> Parameters:
         pass
 
     @classmethod
-    def _buildDremioAuthentication(self, credentials: DremioCredentials):
+    def _build_dremio_authentication(self, credentials: DremioCredentials):
         return DremioAuthentication.build(
             credentials.UID, credentials.PWD, credentials.pat
         )
@@ -80,14 +80,14 @@ class CloudParametersBuilder(ParametersBuilder):
     cloud_host: str = None
     cloud_project_id: str = None
 
-    def buildBaseUrl(self):
+    def build_base_url(self):
         protocol = "https"
         base_url = f"{protocol}://{self.cloud_host}"
         return base_url
 
-    def getParameters(self) -> Parameters:
+    def get_parameters(self) -> Parameters:
         return CloudParameters(
-            base_url=self.buildBaseUrl(),
+            base_url=self.build_base_url(),
             authentication=self.authentication,
             cloud_project_id=self.cloud_project_id,
         )
@@ -99,14 +99,14 @@ class SoftwareParametersBuilder(ParametersBuilder):
     port: str = None
     use_ssl: bool = None
 
-    def buildBaseUrl(self):
+    def build_base_url(self):
         protocol = "http"
         if self.use_ssl:
             protocol = "https"
         base_url = f"{protocol}://{self.software_host}:{self.port}"
         return base_url
 
-    def getParameters(self) -> Parameters:
+    def get_parameters(self) -> Parameters:
         return SoftwareParameters(
-            base_url=self.buildBaseUrl(), authentication=self.authentication
+            base_url=self.build_base_url(), authentication=self.authentication
         )
