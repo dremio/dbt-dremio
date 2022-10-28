@@ -1,13 +1,12 @@
 dbt-core==1.2.2
 dbt-tests-adapter==1.2.2
-typed-ast==1.5.4
 black==22.3.0
 bumpversion
 flake8
 flaky
 freezegun==0.3.12
 ipdb
-#mypy==0.782
+mypy==0.782
 pip-tools
 pre-commit
 pytest

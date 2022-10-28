@@ -652,7 +652,8 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
         unique_schema = f"rav-test.{prefix}_{test_file}"
         return unique_schema
 
-    # Override this fixture to prevent (twin_strategy) creating a view for seeds
+    # Override this fixture to allow (twin_strategy) to create a view for seeds
+    # The creation of some models looks for the seed under the database/schema
     @pytest.fixture(scope="class")
     def project_config_update(self, unique_schema):
         alternate_schema = unique_schema + "_test"
