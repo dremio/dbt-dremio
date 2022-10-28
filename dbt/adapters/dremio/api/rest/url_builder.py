@@ -15,6 +15,7 @@
 from dbt.adapters.dremio.api.parameters import (
     Parameters,
     CloudParameters,
+    SoftwareParameters,
 )
 from urllib.parse import quote
 
@@ -33,9 +34,15 @@ class UrlBuilder:
     SOFTWARE_CATALOG_ENDPOINT = "/api/v3/catalog"
     CLOUD_CATALOG_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/catalog"
 
+    # https://docs.dremio.com/software/rest-api/jobs/get-job/
+    OFFSET_DEFAULT = 0
+    LIMIT_DEFAULT = 100
+
+    # login_url only takes SoftwareParameters because Cloud uses pat.
+    # There is no need to login to retrieve a token when Cloud only uses pat.
     @classmethod
-    def login_url(cls, parameters: Parameters):
-        return parameters.base_url + UrlBuilder.SOFTWARE_LOGIN_ENDPOINT
+    def login_url(cls, software_parameters: SoftwareParameters):
+        return software_parameters.base_url + UrlBuilder.SOFTWARE_LOGIN_ENDPOINT
 
     @classmethod
     def sql_url(cls, parameters: Parameters):
@@ -71,8 +78,8 @@ class UrlBuilder:
         cls,
         parameters: Parameters,
         job_id,
-        offset=0,
-        limit=100,
+        offset=OFFSET_DEFAULT,
+        limit=LIMIT_DEFAULT,
     ):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
