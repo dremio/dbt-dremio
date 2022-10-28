@@ -34,7 +34,7 @@ How to Run:
     ./smoke_test.sh softwarePAT USER PAT HOST PORT [SSL Boolean]
 
   Cloud Test:
-    ./smoke_test.sh cloud USER PAT HOST CLOUD_PROJECT true
+    ./smoke_test.sh cloud USER PAT HOST CLOUD_PROJECT
 comment
 
 #! /bin/bash
