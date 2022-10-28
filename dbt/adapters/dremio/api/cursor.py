@@ -15,7 +15,7 @@
 
 import agate
 
-from dbt.adapters.dremio.api.endpoints import (
+from dbt.adapters.dremio.api.rest.endpoints import (
     sql_endpoint,
     job_status,
     job_results,

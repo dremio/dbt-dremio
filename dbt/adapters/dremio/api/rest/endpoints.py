@@ -14,14 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asyncio.log import logger
 import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
-from urllib.parse import quote
 
+from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
 from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.url_builder import UrlBuilder
+from dbt.adapters.dremio.api.rest.url_builder import UrlBuilder
 
 from dbt.events import AdapterLogger
 
@@ -107,12 +106,31 @@ def _check_error(r, details=""):
     raise DremioException("Unknown error", error)
 
 
-def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
-    url = UrlBuilder.sql_url(
-        api_parameters.base_url,
-        api_parameters.is_cloud,
-        api_parameters.cloud_project_id,
+def login(api_parameters: Parameters, timeout=10, verify=True):
+
+    if isinstance(api_parameters.authentication, DremioPatAuthentication):
+        return api_parameters
+
+    url = UrlBuilder.login_url(api_parameters)
+
+    r = requests.post(
+        url,
+        json={
+            "userName": api_parameters.authentication.username,
+            "password": api_parameters.authentication.password,
+        },
+        timeout=timeout,
+        verify=verify,
     )
+    r.raise_for_status()
+
+    api_parameters.authentication.token = r.json()["token"]
+
+    return api_parameters
+
+
+def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
+    url = UrlBuilder.sql_url(api_parameters)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
@@ -122,19 +140,12 @@ def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=Tru
 
 
 def job_status(api_parameters: Parameters, job_id, ssl_verify=True):
-    url = UrlBuilder.job_status_url(
-        api_parameters.base_url,
-        job_id,
-        api_parameters.is_cloud,
-        api_parameters.cloud_project_id,
-    )
+    url = UrlBuilder.job_status_url(api_parameters, job_id)
     return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
 
 
 def job_cancel_api(api_parameters: Parameters, job_id, ssl_verify=True):
-    url = UrlBuilder.job_cancel_url(
-        api_parameters.base_url, job_id, api_parameters.is_cloud
-    )
+    url = UrlBuilder.job_cancel_url(api_parameters, job_id)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
@@ -147,12 +158,10 @@ def job_results(
     api_parameters: Parameters, job_id, offset=0, limit=100, ssl_verify=True
 ):
     url = UrlBuilder.job_results_url(
-        api_parameters.base_url,
+        api_parameters,
         job_id,
-        api_parameters.is_cloud,
         offset,
         limit,
-        api_parameters.cloud_project_id,
     )
     return _get(
         url,
@@ -162,11 +171,7 @@ def job_results(
 
 
 def create_catalog_api(api_parameters, json, ssl_verify=True):
-    url = UrlBuilder.catalog_url(
-        api_parameters.base_url,
-        api_parameters.is_cloud,
-        api_parameters.cloud_project_id,
-    )
+    url = UrlBuilder.catalog_url(api_parameters)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
@@ -184,30 +189,22 @@ def get_catalog_item(
     # Will use path if both id and path are specified
     if catalog_path:
         url = UrlBuilder.catalog_item_by_path_url(
-            api_parameters.base_url,
+            api_parameters,
             catalog_path,
-            api_parameters.is_cloud,
-            api_parameters.cloud_project_id,
         )
     else:
         url = UrlBuilder.catalog_item_by_id_url(
-            api_parameters.base_url,
+            api_parameters,
             catalog_id,
-            api_parameters.is_cloud,
-            api_parameters.cloud_project_id,
         )
     return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
 
 
 def delete_catalog(api_parameters, cid, ssl_verify=True):
 
-    url = UrlBuilder.catalog_url(
-        api_parameters.base_url,
-        api_parameters.is_cloud,
-        api_parameters.cloud_project_id,
-    )
+    url = UrlBuilder.catalog_url(api_parameters, cid)
     return _delete(
-        url + f"/{cid}",
+        url,
         api_parameters.authentication.get_headers(),
         ssl_verify=ssl_verify,
     )
