@@ -430,7 +430,7 @@ class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
         }
 
 
-models__my_model_sql = """
+models__model_sql = """
 
 {% set upstream = ref('upstream_view') %}
 
@@ -476,7 +476,7 @@ class TestBaseAdapterMethodDremio(BaseAdapterMethod):
         return {
             "upstream_view.sql": models__upstream_sql,
             "expected_view.sql": models__expected_sql,
-            "model_view.sql": models__my_model_sql,
+            "model_view.sql": models__model_sql,
         }
 
     @pytest.fixture(scope="class")
