@@ -39,6 +39,18 @@ class DremioRelation(BaseRelation):
     format: Optional[str] = None
     format_clause: Optional[str] = None
 
+    def quoted_by_component(self, identifier, componentName):
+        if componentName == ComponentName.Schema:
+            return ".".join(self.quoted(folder) for folder in identifier.split("."))
+        else:
+            return self.quoted(identifier)
+
+    def render(self) -> str:
+        rendered = super().render()
+        if self.format is not None and self.format_clause is not None:
+            rendered = "".join(("table( ", rendered, " ( ", self.format_clause, " ) )"))
+        return rendered
+
     def __post_init__(self):
         if self.path.schema is None:
             self.path.schema = DremioRelation.no_schema
@@ -60,15 +72,3 @@ class DremioRelation(BaseRelation):
                 ):  # or key == ComponentName.Schema):
                     path_part = self.quoted_by_component(path_part, key)
             yield key, path_part
-
-    def quoted_by_component(self, identifier, componentName):
-        if componentName == ComponentName.Schema:
-            return ".".join(self.quoted(folder) for folder in identifier.split("."))
-        else:
-            return self.quoted(identifier)
-
-    def render(self) -> str:
-        rendered = super().render()
-        if self.format is not None and self.format_clause is not None:
-            rendered = "".join(("table( ", rendered, " ( ", self.format_clause, " ) )"))
-        return rendered
