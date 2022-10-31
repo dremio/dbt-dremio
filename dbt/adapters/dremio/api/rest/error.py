@@ -64,5 +64,5 @@ class DremioServiceUnavailableException(DremioException):
     pass
 
 
-class DremioGatewayTimeoutExcpetion(DremioException):
+class DremioGatewayTimeoutException(DremioException):
     pass

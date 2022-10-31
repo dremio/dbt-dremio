@@ -36,7 +36,7 @@ from .error import (
     DremioTooManyRequestsException,
     DremioInternalServerException,
     DremioServiceUnavailableException,
-    DremioGatewayTimeoutExcpetion,
+    DremioGatewayTimeoutException,
 )
 
 
@@ -45,10 +45,14 @@ def _get(url, request_headers, details="", ssl_verify=True):
     return _check_error(r, details)
 
 
-def _post(url, request_headers, json=None, details="", ssl_verify=True):
+def _post(
+    url, request_headers=None, json=None, details="", ssl_verify=True, timeout=None
+):
     if isinstance(json, str):
         json = jsonlib.loads(json)
-    r = requests.post(url, headers=request_headers, verify=ssl_verify, json=json)
+    r = requests.post(
+        url, headers=request_headers, timeout=timeout, verify=ssl_verify, json=json
+    )
     return _check_error(r, details)
 
 
@@ -120,7 +124,7 @@ def _check_error(r, details=""):
             "Too many requests:" + details, error, r
         )
     if code == 504:
-        raise DremioGatewayTimeoutExcpetion("Too many requests:" + details, error, r)
+        raise DremioGatewayTimeoutException("Too many requests:" + details, error, r)
     raise DremioException("Unknown error", error)
 
 
@@ -131,18 +135,27 @@ def login(api_parameters: Parameters, timeout=10, verify=True):
 
     url = UrlBuilder.login_url(api_parameters.base_url)
 
-    r = requests.post(
+    # r = requests.post(
+    #    url,
+    #    json={
+    #        "userName": api_parameters.authentication.username,
+    #        "password": api_parameters.authentication.password,
+    #    },
+    #    timeout=timeout,
+    #    verify=verify,
+    # )
+    # r.raise_for_status()
+    r = _post(
         url,
         json={
             "userName": api_parameters.authentication.username,
             "password": api_parameters.authentication.password,
         },
         timeout=timeout,
-        verify=verify,
+        ssl_verify=verify,
     )
-    r.raise_for_status()
 
-    api_parameters.authentication.token = r.json()["token"]
+    api_parameters.authentication.token = r["token"]
 
     return api_parameters
 
