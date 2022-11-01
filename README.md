@@ -10,14 +10,14 @@ The `dbt-dremio` package contains all of the code enabling dbt to work with Drem
 
 The dbt-dremio package supports both Dremio Cloud and Dremio Software (versions 22.0 and later).
 
-Installing the dbt-dremio package will install or update dbt-core to version 1.1.2.
+Installing the dbt-dremio package will install or update dbt-core to version 1.3.0.
 
 > Prior to version 1.1.0b, dbt-dremio was created and maintained by [Fabrice Etanchaud](https://github.com/fabrice-etanchaud) on [their GitHub repo](https://github.com/fabrice-etanchaud/dbt-dremio). Code for using Dremio REST APIs was originally authored by [Ryan Murray](https://github.com/rymurr). Contributors in this repo are credited for laying the groundwork and maintaining the adapter till version 1.0.6.5. The dbt-dremio adapter is maintained and distributed by Dremio starting with version 1.1.0b.
 
 ## Getting started
 
 - [Install dbt](https://docs.getdbt.com/docs/installation)
-   - Note that dbt-dremio requires dbt-core 1.1.2.
+   - Note that dbt-dremio requires dbt-core 1.3.0.
 - Read the [introduction](https://docs.getdbt.com/docs/introduction/) and [viewpoint](https://docs.getdbt.com/docs/about/viewpoint/)
 
 ## Join the dbt Community
