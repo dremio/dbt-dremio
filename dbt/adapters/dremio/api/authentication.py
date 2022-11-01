@@ -69,11 +69,3 @@ class DremioPatAuthentication(DremioAuthentication):
             authorization_token=self.pat
         )
         return self.build_headers(authorization_field)
-
-@dataclass
-class Parameters:
-    base_url: str
-    authentication: DremioAuthentication    
-    is_cloud: boolean = True
-    cloud_project_id: Optional[str] = None
-
