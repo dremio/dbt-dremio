@@ -143,9 +143,9 @@ class DremioCredentials(Credentials):
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
-    DEFAULT_RETRIES = 1
+    DEFAULT_CONNECTION_RETRIES = 1
 
-    retries = DEFAULT_RETRIES
+    retries = DEFAULT_CONNECTION_RETRIES
 
     @contextmanager
     def exception_handler(self, sql):

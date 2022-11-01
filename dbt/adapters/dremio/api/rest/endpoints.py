@@ -41,8 +41,8 @@ from .error import (
 
 
 def _get(url, request_headers, details="", ssl_verify=True):
-    r = requests.get(url, headers=request_headers, verify=ssl_verify)
-    return _check_error(r, details)
+    response = requests.get(url, headers=request_headers, verify=ssl_verify)
+    return _check_error(response, details)
 
 
 def _post(
@@ -50,15 +50,15 @@ def _post(
 ):
     if isinstance(json, str):
         json = jsonlib.loads(json)
-    r = requests.post(
+    response = requests.post(
         url, headers=request_headers, timeout=timeout, verify=ssl_verify, json=json
     )
-    return _check_error(r, details)
+    return _check_error(response, details)
 
 
 def _delete(url, request_headers, details="", ssl_verify=True):
-    r = requests.delete(url, headers=request_headers, verify=ssl_verify)
-    return _check_error(r, details)
+    response = requests.delete(url, headers=request_headers, verify=ssl_verify)
+    return _check_error(response, details)
 
 
 def _raise_for_status(self):
@@ -93,38 +93,44 @@ def _raise_for_status(self):
         return None, self.status_code, reason
 
 
-def _check_error(r, details=""):
-    error, code, reason = _raise_for_status(r)
+def _check_error(response, details=""):
+    error, code, reason = _raise_for_status(response)
     if not error:
         try:
-            data = r.json()
+            data = response.json()
             return data
         except:  # NOQA
-            return r.text
+            return response.text
     if code == 400:
-        raise DremioBadRequestException("Bad request:" + details, error, r)
+        raise DremioBadRequestException("Bad request:" + details, error, response)
     if code == 401:
-        raise DremioUnauthorizedException("Unauthorized:" + details, error, r)
+        raise DremioUnauthorizedException("Unauthorized:" + details, error, response)
     if code == 403:
-        raise DremioPermissionException("No permission:" + details, error, r)
+        raise DremioPermissionException("No permission:" + details, error, response)
     if code == 404:
-        raise DremioNotFoundException("Not found:" + details, error, r)
+        raise DremioNotFoundException("Not found:" + details, error, response)
     if code == 408:
-        raise DremioRequestTimeoutException("Request timeout:" + details, error, r)
+        raise DremioRequestTimeoutException(
+            "Request timeout:" + details, error, response
+        )
     if code == 409:
-        raise DremioAlreadyExistsException("Already exists:" + details, error, r)
+        raise DremioAlreadyExistsException("Already exists:" + details, error, response)
     if code == 429:
-        raise DremioTooManyRequestsException("Too many requests:" + details, error, r)
+        raise DremioTooManyRequestsException(
+            "Too many requests:" + details, error, response
+        )
     if code == 500:
         raise DremioInternalServerException(
-            "Internal server error:" + details, error, r
+            "Internal server error:" + details, error, response
         )
     if code == 503:
         raise DremioServiceUnavailableException(
-            "Too many requests:" + details, error, r
+            "Service unavailable:" + details, error, response
         )
     if code == 504:
-        raise DremioGatewayTimeoutException("Too many requests:" + details, error, r)
+        raise DremioGatewayTimeoutException(
+            "Gateway Timeout:" + details, error, response
+        )
     raise DremioException("Unknown error", error)
 
 
@@ -134,18 +140,7 @@ def login(api_parameters: Parameters, timeout=10, verify=True):
         return api_parameters
 
     url = UrlBuilder.login_url(api_parameters.base_url)
-
-    # r = requests.post(
-    #    url,
-    #    json={
-    #        "userName": api_parameters.authentication.username,
-    #        "password": api_parameters.authentication.password,
-    #    },
-    #    timeout=timeout,
-    #    verify=verify,
-    # )
-    # r.raise_for_status()
-    r = _post(
+    response = _post(
         url,
         json={
             "userName": api_parameters.authentication.username,
@@ -155,7 +150,7 @@ def login(api_parameters: Parameters, timeout=10, verify=True):
         ssl_verify=verify,
     )
 
-    api_parameters.authentication.token = r["token"]
+    api_parameters.authentication.token = response["token"]
 
     return api_parameters
 

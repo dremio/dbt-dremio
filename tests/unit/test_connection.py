@@ -6,11 +6,11 @@ from requests.exceptions import HTTPError
 from dbt.exceptions import FailedToConnectException
 
 
-class TestRetryConnections:
+class TestRetryConnection:
     @patch("dbt.adapters.dremio.api.rest.endpoints._post")
     @patch("dbt.contracts.connection.Connection")
     # When you nest patch decorators the mocks are passed in to the decorated function in bottom up order.
-    def test_run_connection_retry_test(
+    def test_connection_retry(
         self,
         mocked_Connection,
         mocked_post,
@@ -24,4 +24,7 @@ class TestRetryConnections:
             DremioConnectionManager.open(connection=mocked_Connection)
 
         # Post will be called once and then DEFAULT_TRIES more times.
-        assert mocked_post.call_count == DremioConnectionManager.DEFAULT_RETRIES + 1
+        assert (
+            mocked_post.call_count
+            == DremioConnectionManager.DEFAULT_CONNECTION_RETRIES + 1
+        )
