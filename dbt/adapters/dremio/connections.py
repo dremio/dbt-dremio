@@ -38,6 +38,11 @@ from dbt.adapters.dremio.api.rest.endpoints import (
 from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
+    DremioRequestTimeoutException,
+    DremioTooManyRequestsException,
+    DremioInternalServerException,
+    DremioServiceUnavailableException,
+    DremioGatewayTimeoutException,
 )
 
 from dbt.events import AdapterLogger
@@ -47,6 +52,9 @@ logger = AdapterLogger("dremio")
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
+    DEFAULT_CONNECTION_RETRIES = 1
+
+    retries = DEFAULT_CONNECTION_RETRIES
 
     @contextmanager
     def exception_handler(self, sql):
@@ -74,18 +82,36 @@ class DremioConnectionManager(SQLConnectionManager):
         parameters_builder = ParametersBuilder.build(credentials)
         api_parameters = parameters_builder.get_parameters()
 
-        try:
+        def connect():
             handle = DremioHandle(api_parameters)
             _ = handle.cursor()
             connection.state = "open"
             connection.handle = handle
             logger.debug(f"Connected to db: {credentials.database}")
-        except Exception as e:
-            logger.debug(f"Could not connect to db: {e}")
-            connection.handle = None
-            connection.state = "fail"
-            raise dbt.exceptions.FailedToConnectException(str(e))
-        return connection
+            return handle
+
+        retryable_exceptions = [
+            # list of retryable_exceptions underlying driver might expose
+            DremioRequestTimeoutException,
+            DremioTooManyRequestsException,
+            DremioInternalServerException,
+            DremioServiceUnavailableException,
+            DremioGatewayTimeoutException,
+        ]
+
+        def exponential_backoff_retry_timeout(retries: int) -> int:
+            BASE = 2  # multiplicative factor
+            time_delay = pow(BASE, retries)
+            return time_delay
+
+        return cls.retry_connection(
+            connection,
+            connect=connect,
+            logger=logger,
+            retry_limit=cls.retries,
+            retry_timeout=exponential_backoff_retry_timeout,
+            retryable_exceptions=retryable_exceptions,
+        )
 
     @classmethod
     def is_cancelable(cls) -> bool:

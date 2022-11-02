@@ -46,3 +46,23 @@ class DremioBadRequestException(DremioException):
 
 class DremioAlreadyExistsException(DremioException):
     pass
+
+
+class DremioRequestTimeoutException(DremioException):
+    pass
+
+
+class DremioTooManyRequestsException(DremioException):
+    pass
+
+
+class DremioInternalServerException(DremioException):
+    pass
+
+
+class DremioServiceUnavailableException(DremioException):
+    pass
+
+
+class DremioGatewayTimeoutException(DremioException):
+    pass
