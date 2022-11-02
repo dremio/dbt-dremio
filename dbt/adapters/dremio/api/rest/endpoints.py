@@ -201,8 +201,7 @@ def get_catalog_item(
 
 
 def delete_catalog(api_parameters, cid, ssl_verify=True):
-
-    url = UrlBuilder.catalog_url(api_parameters, cid)
+    url = UrlBuilder.delete_catalog_url(api_parameters, cid)
     return _delete(
         url,
         api_parameters.authentication.get_headers(),
