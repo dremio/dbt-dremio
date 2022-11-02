@@ -14,13 +14,14 @@ from dbt.tests.util import (
     run_dbt,
     check_result_nodes_by_name,
 )
+from tests.functional.adapter.utils.test_utils import DATALAKE
 
-
+# Unable to insert variable into docstring, so "rav-test" is hardcoded
 schema_base_yml = """
 version: 2
 sources:
   - name: raw
-    database: "rav-test"
+    database: "rav-test" 
     schema: "{{ target.schema }}"
     tables:
       - name: seed
@@ -54,7 +55,7 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         test_file = request.module.__name__
         # We only want the last part of the name
         test_file = test_file.split(".")[-1]
-        unique_schema = f"rav-test.{prefix}_{test_file}"
+        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
         return unique_schema
 
     @pytest.fixture(scope="class")

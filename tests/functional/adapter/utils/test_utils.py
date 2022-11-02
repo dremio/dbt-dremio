@@ -8,6 +8,8 @@ from dbt.events import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
+DATALAKE = "rav-test"
+
 
 class TestProcessingException(Exception):
     pass
@@ -105,9 +107,6 @@ def check_relations_equal(adapter, relation_names: List, compare_snapshot_cols=F
     return check_relations_equal_with_relations(
         adapter, relations, compare_snapshot_cols=compare_snapshot_cols
     )
-
-
-DATALAKE = "rav-test"
 
 
 def base_expected_catalog(

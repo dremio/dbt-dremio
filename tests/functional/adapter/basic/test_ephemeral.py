@@ -1,5 +1,6 @@
 import pytest
 from dbt.tests.adapter.basic.test_ephemeral import BaseEphemeral
+from tests.functional.adapter.utils.test_utils import DATALAKE
 
 
 class TestEphemeralDremio(BaseEphemeral):
@@ -8,7 +9,7 @@ class TestEphemeralDremio(BaseEphemeral):
         test_file = request.module.__name__
         # We only want the last part of the name
         test_file = test_file.split(".")[-1]
-        unique_schema = f"rav-test.{prefix}_{test_file}"
+        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
         return unique_schema
 
     @pytest.fixture(scope="class")

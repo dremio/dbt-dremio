@@ -3,8 +3,8 @@ import os
 from tests.functional.adapter.utils.test_utils import (
     base_expected_catalog,
     expected_references_catalog,
+    DATALAKE,
 )
-
 from dbt.tests.adapter.basic.test_docs_generate import (
     BaseDocsGenerate,
     BaseDocsGenReferences,
@@ -15,7 +15,6 @@ from dbt.tests.adapter.basic.test_docs_generate import (
     run_and_generate,
     get_artifact,
 )
-
 from dbt.tests.adapter.basic.expected_catalog import no_stats
 
 # required to explicitly use alternate_schema
@@ -67,13 +66,13 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
             "model.sql": models__model_sql,
         }
 
-    # Override this fixture to prepend our schema with rav-test
+    # Override this fixture to prepend our schema with DATALAKE
     # This ensures the schema works with our datalake
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
         test_file = test_file.split(".")[-1]
-        unique_schema = f"rav-test.{prefix}_{test_file}"
+        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
         return unique_schema
 
     # Override this fixture to prevent (twin_strategy) creating a view for seeds
@@ -153,7 +152,7 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
         test_file = test_file.split(".")[-1]
-        unique_schema = f"rav-test.{prefix}_{test_file}"
+        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
         return unique_schema
 
     # Override this fixture to allow (twin_strategy) to create a view for seeds
