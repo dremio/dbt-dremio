@@ -28,7 +28,6 @@ Intent:
 Preconditions:
   Dremio Sample Source added and available.
      - Add Data Source | Object Source | Sample Source
-  Existing 
 
 How to Run:
 
