@@ -16,7 +16,7 @@ fixed:
   type: dremio
   use_ssl: true
 prompts:
-  _choose_cloud_or_software_with_passowrd_or_software_with_pat:
+  _choose_cloud_or_software_with_password_or_software_with_pat:
     dremio_cloud:
       cloud_host: 
         default: api.dremio.cloud
@@ -33,7 +33,7 @@ prompts:
         hint: 
       port:
         default: 9047
-      user:
+      username:
         hint: "username"
       password: 
         hint: 'password'
@@ -54,6 +54,18 @@ prompts:
       use_ssl:
         default: false
         hint: 'use encrypted connection'
+  object_storage_source:
+    default: '$scratch'
+    hint: 'object storage source for seeds, tables, etc. [dbt alias: datalake]'
+  object_storage_path:
+    default: 'no_schema'
+    hint: 'object storage path [dbt alias: schema]'
+  dremio_space:
+    default: '@user'
+    hint: 'space for creating views [dbt alias: database]'
+  dremio_space_folder:
+    default: 'no_schema'
+    hint: 'dremio space folder [dbt alias: root_path]'
   threads:
     hint: '1 or more'
     type: 'int'
