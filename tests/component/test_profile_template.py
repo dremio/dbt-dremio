@@ -18,25 +18,24 @@ import os
 from dbt.config.profile import read_profile
 from dbt.adapters.dremio.credentials import DremioCredentials
 
-""" Prior to running these tests, create three dbt projects: 
-
-    1. `dbt init test_cloud_options`
-        - accept all default options
-        - provide any value for mandatory options
-
-    2. `dbt init test_sw_up_options`
-        - accept all default options
-        - provide any value for mandatory options
-
-    3. `dbt init test_sw_pat_options`
-        - accept all default options
-        - provide any value for mandatory options
-
-    These tests assumes there exists a $HOME/.dbt/profiles.yml
-    file containing these three dbt projects.
-"""
-
-
+# Tests require manual setup before executing.
+#
+#     Prior to running these tests, create three dbt projects:
+#
+#     1. `dbt init test_cloud_options`
+#         - accept all default options
+#         - provide any value for mandatory options
+#
+#     2. `dbt init test_sw_up_options`
+#         - accept all default options
+#         - provide any value for mandatory options
+#
+#     3. `dbt init test_sw_pat_options`
+#         - accept all default options
+#         - provide any value for mandatory options
+#
+#     These tests assumes there exists a $HOME/.dbt/profiles.yml
+#     file containing these three dbt projects.
 class TestProfileTemplate:
     # non-OS specific
     PROFILE_DIRECTORY = os.path.expanduser("~") + "/.dbt/"
@@ -91,7 +90,6 @@ class TestProfileTemplate:
         "object_storage_path": "root_path",
         "dremio_space": "database",
         "dremio_space_folder": "schema",
-        "folder": "schema",
     }
 
     def test_cloud_options(self) -> None:

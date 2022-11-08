@@ -24,31 +24,25 @@ class DremioCredentials(Credentials):
     UID: Optional[str] = None
     PWD: Optional[str] = None
     pat: Optional[str] = None
-    object_storage_source: Optional[str] = None
     datalake: Optional[str] = None
-    object_storage_path: Optional[str] = None
     root_path: Optional[str] = None
-    dremio_space: Optional[str] = None
     database: Optional[str] = None
-    dremio_space_folder: Optional[str] = None
     schema: Optional[str] = None
     cloud_project_id: Optional[str] = None
     cloud_host: Optional[str] = None
     software_host: Optional[str] = None
     port: Optional[int] = 9047  # for rest endpoint
     use_ssl: Optional[bool] = True
-    additional_parameters: Optional[str] = None
 
     _ALIASES = {
         # Only terms on right-side will be used going forward.
-        "username": "UID",
-        "user": "UID",  # backwards compatibility with existing profiles
+        "username": "UID",  # backwards compatibility with existing profiles
+        "user": "UID",
         "password": "PWD",
         "object_storage_source": "datalake",
         "object_storage_path": "root_path",
         "dremio_space": "database",
         "dremio_space_folder": "schema",
-        "folder": "schema",  # backwards compatibility with existing profiles
     }
 
     _DEFAULT_OBJECT_STORAGE_SOURCE = "$scratch"
@@ -59,8 +53,8 @@ class DremioCredentials(Credentials):
         return "dremio"
 
     @property
-    def unique_field(self):
-        return self.host
+    def aliases(self):
+        return self._ALIASES
 
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
@@ -69,20 +63,22 @@ class DremioCredentials(Credentials):
             "cloud_project_id",
             "software_host",
             "port",
-            "username",
-            "UID",
-            "additional_parameters",  # TODO: investigate
-            "environment",
             "use_ssl",
-            "object_storage_source",
-            "space_root_folder",
+            "environment",
+            # These are aliased...
+            "UID",
             "root_path",
             "datalake",
-            "dremio_space",
             "database",
-            "space_root_folder",
             "schema",
-            "folder",
+            # ...by these. Output these to ensure they match
+            # what they alias.
+            "user",  # -> UID
+            "username",  # -> UID
+            "object_storage_source",  # -> datalake
+            "object_storage_path",  # -> root_path
+            "dremio_space",  # -> database
+            "dremio_space_folder",  # -> schema
         )
 
     @classmethod
@@ -107,7 +103,7 @@ class DremioCredentials(Credentials):
             data["pat"] = None
 
         if "environment" not in data:
-            data["environment"]
+            data["environment"] = None
 
         return data
 
