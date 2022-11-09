@@ -123,6 +123,7 @@ class DremioAdapter(SQLAdapter):
         """
         grants_dict: Dict[str, List[str]] = {}
         for row in grants_table:
+            # Just needed to change these two values to match Dremio cols
             grantee = row["grantee_id"]
             privilege = row["privilege"]
             if privilege in grants_dict.keys():

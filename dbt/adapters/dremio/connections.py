@@ -195,24 +195,20 @@ class DremioConnectionManager(SQLConnectionManager):
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
 
+        path_list = self._create_path_list(database, schema)
         if database != credentials.datalake:
-            path_list = self._create_path_list(database, schema)
-        else:
-            path_list = self._create_path_list(
-                credentials.datalake, credentials.root_path
-            )
-        try:
-            catalog_info = get_catalog_item(
-                api_parameters,
-                catalog_id=None,
-                catalog_path=path_list,
-                ssl_verify=False,
-            )
-        except DremioNotFoundException:
-            logger.debug("Catalog not found. Returning")
-            return
+            try:
+                catalog_info = get_catalog_item(
+                    api_parameters,
+                    catalog_id=None,
+                    catalog_path=path_list,
+                    ssl_verify=False,
+                )
+            except DremioNotFoundException:
+                logger.debug("Catalog not found. Returning")
+                return
 
-        delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
+            delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
 
     def create_catalog(self, database, schema):
         thread_connection = self.get_thread_connection()
