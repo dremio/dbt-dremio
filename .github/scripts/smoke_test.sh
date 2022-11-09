@@ -150,6 +150,7 @@ if [ -f $profiles_path ]; then
     mv $profiles_path $temp_path
 fi
 
+
 if [ $test_type == softwareUP ]; then 
     test_user=$2
     test_password=$3
