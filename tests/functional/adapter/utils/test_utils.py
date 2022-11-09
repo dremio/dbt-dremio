@@ -1,3 +1,17 @@
+# Copyright (C) 2022 Dremio Corporation
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from operator import contains
 from dbt.tests.util import check_relations_equal_with_relations
 from typing import List
@@ -8,7 +22,9 @@ from dbt.events import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
-DATALAKE = "rav-test"
+# Ensure we do not include dashes in our source
+# https://github.com/dremio/dbt-dremio/issues/68
+DATALAKE = "dbt_test_source"
 
 
 class TestProcessingException(Exception):
@@ -35,12 +51,15 @@ def relation_from_name(adapter, name: str, materialization=""):
         # if the relation is a view then use database
         if materialization == "view" or "view" in name:
             relation_parts.insert(0, credentials.database)
+            relation_type = "view"
         else:
             relation_parts.insert(0, credentials.datalake)
+            relation_type = "table"
     kwargs = {
         "database": relation_parts[0],
         "schema": relation_parts[1],
         "identifier": relation_parts[2],
+        "type": relation_type,
     }
 
     relation = cls.create(

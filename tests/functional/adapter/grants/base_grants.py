@@ -13,18 +13,31 @@
 # limitations under the License.
 
 import pytest
-from dbt.tests.adapter.basic.test_generic_tests import BaseGenericTests
+
+from dbt.tests.adapter.grants.base_grants import BaseGrants
 from tests.functional.adapter.utils.test_utils import DATALAKE
 
 
-class TestGenericTestsDremio(BaseGenericTests):
+class BaseGrantsDremio(BaseGrants):
+    # This is overridden to change insert privilege to alter
+    def privilege_grantee_name_overrides(self):
+        return {
+            "select": "select",
+            "insert": "alter",
+            "fake_privilege": "fake_privilege",
+            "invalid_user": "invalid_user",
+        }
+
+    # This is overridden to make sure tables aren't cloned as views
     @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        # We only want the last part of the name
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
-        return unique_schema
+    def project_config_update(self):
+        return {
+            "models": {
+                "+twin_strategy": "prevent",
+            },
+            "seeds": {"+twin_strategy": "prevent"},
+            "vars": {"dremio:reflections": "false"},
+        }
 
     @pytest.fixture(scope="class")
     def dbt_profile_data(
@@ -41,7 +54,7 @@ class TestGenericTestsDremio(BaseGenericTests):
         }
         target = dbt_profile_target
         target["schema"] = unique_schema
-        target["root_path"] = unique_schema
+        target["root_path"] = f"{DATALAKE}.{unique_schema}"
         profile["test"]["outputs"]["default"] = target
 
         if profiles_config_update:
