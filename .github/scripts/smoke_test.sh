@@ -143,7 +143,7 @@ EOF
 # Main
 test_type=$1
 test_ssl="${6:-false}"
-profiles_path=~/.dbt/profiles.yml 
+profiles_path=~/.dbt/profiles.yml
 
 if [ $test_type == softwareUP ]; then 
     test_user=$2

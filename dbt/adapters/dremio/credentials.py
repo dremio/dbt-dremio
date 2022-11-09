@@ -20,60 +20,65 @@ from dbt.adapters.dremio.relation import DremioRelation
 
 @dataclass
 class DremioCredentials(Credentials):
-    environment: Optional[str]
-    database: Optional[str]
-    schema: Optional[str]
-    datalake: Optional[str]
-    root_path: Optional[str]
+    environment: Optional[str] = None
+    UID: Optional[str] = None
+    PWD: Optional[str] = None
+    pat: Optional[str] = None
+    datalake: Optional[str] = None
+    root_path: Optional[str] = None
+    database: Optional[str] = None
+    schema: Optional[str] = None
     cloud_project_id: Optional[str] = None
     cloud_host: Optional[str] = None
     software_host: Optional[str] = None
-    UID: Optional[str] = None
-    PWD: Optional[str] = None
     port: Optional[int] = 9047  # for rest endpoint
     use_ssl: Optional[bool] = True
-    pat: Optional[str] = None
-    additional_parameters: Optional[str] = None
 
     _ALIASES = {
+        # Only terms on right-side will be used going forward.
+        "username": "UID",  # backwards compatibility with existing profiles
         "user": "UID",
-        "username": "UID",
-        "pass": "PWD",
         "password": "PWD",
-        "server": "host",
-        "track": "environment",
-        "space": "database",
-        "folder": "schema",
-        "materialization_database": "datalake",
-        "materialization_schema": "root_path",
+        "object_storage_source": "datalake",
+        "object_storage_path": "root_path",
+        "dremio_space": "database",
+        "dremio_space_folder": "schema",
     }
+
+    _DEFAULT_OBJECT_STORAGE_SOURCE = "$scratch"
+    _SPACE_NAME_PLACEHOLDER = "@user"
 
     @property
     def type(self):
         return "dremio"
 
     @property
-    def unique_field(self):
-        return self.host
+    def aliases(self):
+        return self._ALIASES
 
     def _connection_keys(self):
         # return an iterator of keys to pretty-print in 'dbt debug'
-        # raise NotImplementedError
-
         return (
-            "driver",
             "cloud_host",
             "cloud_project_id",
             "software_host",
             "port",
+            "use_ssl",
+            "environment",
+            # These are aliased...
             "UID",
+            "root_path",
+            "datalake",
             "database",
             "schema",
-            "additional_parameters",
-            "datalake",
-            "root_path",
-            "environment",
-            "use_ssl",
+            # ...by these. Output these to ensure they match
+            # what they alias.
+            "user",  # -> UID
+            "username",  # -> UID
+            "object_storage_source",  # -> datalake
+            "object_storage_path",  # -> root_path
+            "dremio_space",  # -> database
+            "dremio_space_folder",  # -> schema
         )
 
     @classmethod
@@ -83,26 +88,31 @@ class DremioCredentials(Credentials):
             data["cloud_host"] = None
         if "software_host" not in data:
             data["software_host"] = None
+
         if "database" not in data:
             data["database"] = None
         if "schema" not in data:
             data["schema"] = None
+
         if "datalake" not in data:
             data["datalake"] = None
         if "root_path" not in data:
             data["root_path"] = None
-        if "environment" not in data:
-            data["environment"] = None
+
         if "pat" not in data:
             data["pat"] = None
+
+        if "environment" not in data:
+            data["environment"] = None
+
         return data
 
     def __post_init__(self):
-        if self.database is None:
-            self.database = "@" + self.UID
-        if self.schema is None:
-            self.schema = DremioRelation.no_schema
         if self.datalake is None:
-            self.datalake = "$scratch"
+            self.datalake = self._DEFAULT_OBJECT_STORAGE_SOURCE
         if self.root_path is None:
             self.root_path = DremioRelation.no_schema
+        if self.database is None or self.database == self._SPACE_NAME_PLACEHOLDER:
+            self.database = f"@{self.UID}"
+        if self.schema is None:
+            self.schema = DremioRelation.no_schema
