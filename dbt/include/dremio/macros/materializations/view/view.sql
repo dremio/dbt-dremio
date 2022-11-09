@@ -22,6 +22,8 @@ limitations under the License.*/
   {%- set target_relation = api.Relation.create(
       identifier=identifier, schema=schema, database=database, type='view') -%}
 
+  {% set grant_config = config.get('grants') %}
+
   {{ run_hooks(pre_hooks) }}
 
   -- If there's a table with the same name and we weren't told to full refresh,
@@ -39,6 +41,8 @@ limitations under the License.*/
   {{ apply_twin_strategy(target_relation) }}
 
   {{ enable_default_reflection() }}
+
+  {% do apply_grants(target_relation, grant_config, should_revoke=should_revoke) %}
 
   {{ run_hooks(post_hooks) }}
 
