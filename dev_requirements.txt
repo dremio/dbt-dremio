@@ -18,3 +18,7 @@ pytz
 tox>=3.13
 twine
 wheel
+agate==1.6.3
+requests==2.28.1
+setuptools==63.2.0
+third-party-license-file-generator
