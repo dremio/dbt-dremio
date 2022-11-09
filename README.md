@@ -28,7 +28,7 @@ Installing the dbt-dremio package will install or update dbt-core to version 1.3
 ## Reporting bugs and contributing code
 ---
 - Open bugs and feature requests can be found at [dbt-dremio's GitHub issues](https://github.com/dremio/dbt-dremio/issues).
-- Want to report a bug or request a feature? Let us know by on [Slack]([Slack](http://community.getdbt.com/)), or opening [an issue](https://github.com/dremio/dbt-dremio/issues/new)
+- Want to report a bug or request a feature? Let us know by on [Slack](https://getdbt.slack.com/archives/C049G61TKBK), or opening [an issue](https://github.com/dremio/dbt-dremio/issues/new)
 - Want to help us build dbt-dremio? Check out the [Contributing Guide](https://github.com/dremio/dbt-dremio/blob/main/CONTRIBUTING.md).
 
 ## Code of Conduct
