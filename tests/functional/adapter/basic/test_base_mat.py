@@ -1,5 +1,20 @@
 import pytest
 from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
+
+# Copyright (C) 2022 Dremio Corporation
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from tests.functional.adapter.utils.test_utils import (
     relation_from_name,
     check_relations_equal,
@@ -16,12 +31,12 @@ from dbt.tests.util import (
 )
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
-# Unable to insert variable into docstring, so "rav-test" is hardcoded
+# Unable to insert variable into docstring, so "dbt_test_source" is hardcoded
 schema_base_yml = """
 version: 2
 sources:
   - name: raw
-    database: "rav-test" 
+    database: "dbt_test_source" 
     schema: "{{ target.schema }}"
     tables:
       - name: seed

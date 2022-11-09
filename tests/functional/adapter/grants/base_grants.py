@@ -13,23 +13,32 @@
 # limitations under the License.
 
 import pytest
-from dbt.tests.adapter.basic.test_snapshot_check_cols import BaseSnapshotCheckCols
-from dbt.tests.adapter.basic.test_snapshot_timestamp import BaseSnapshotTimestamp
+
+from dbt.tests.adapter.grants.base_grants import BaseGrants
 from tests.functional.adapter.utils.test_utils import DATALAKE
-from tests.fixtures.profiles import unique_schema
 
 
-@pytest.mark.skip(reason="https://github.com/dremio/dbt-dremio/issues/20")
-class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):
+class BaseGrantsDremio(BaseGrants):
+    # This is overridden to change insert privilege to alter
+    def privilege_grantee_name_overrides(self):
+        return {
+            "select": "select",
+            "insert": "alter",
+            "fake_privilege": "fake_privilege",
+            "invalid_user": "invalid_user",
+        }
+
+    # This is overridden to make sure tables aren't cloned as views
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
+            "models": {
+                "+twin_strategy": "prevent",
+            },
             "seeds": {"+twin_strategy": "prevent"},
-            "name": "snapshot_strategy_check_cols",
+            "vars": {"dremio:reflections": "false"},
         }
 
-
-class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
     @pytest.fixture(scope="class")
     def dbt_profile_data(
         self, unique_schema, dbt_profile_target, profiles_config_update
@@ -45,17 +54,9 @@ class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
         }
         target = dbt_profile_target
         target["schema"] = unique_schema
-        target["root_path"] = unique_schema
-        target["database"] = target["datalake"]
+        target["root_path"] = f"{DATALAKE}.{unique_schema}"
         profile["test"]["outputs"]["default"] = target
 
         if profiles_config_update:
             profile.update(profiles_config_update)
         return profile
-
-    @pytest.fixture(scope="class")
-    def project_config_update(self):
-        return {
-            "seeds": {"+twin_strategy": "prevent"},
-            "name": "snapshot_strategy_timestamp",
-        }
