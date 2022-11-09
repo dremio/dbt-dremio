@@ -8,7 +8,7 @@ from dbt.events import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
-DATALAKE = "rav-test"
+DATALAKE = "dbt_test_source"
 
 
 class TestProcessingException(Exception):
