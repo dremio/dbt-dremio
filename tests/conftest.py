@@ -20,4 +20,5 @@ def dbt_profile_target():
         "password": os.getenv("DREMIO_PASSWORD"),
         "datalake": os.getenv("DREMIO_DATALAKE"),
         "use_ssl": False,
+        "database": os.getenv("DREMIO_DATABASE"),
     }

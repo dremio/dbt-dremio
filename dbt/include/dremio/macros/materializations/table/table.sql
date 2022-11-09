@@ -21,6 +21,7 @@ limitations under the License.*/
                                                 schema=schema,
                                                 database=database,
                                                 type='table') -%}
+  {% set grant_config = config.get('grants') %}
   {{ run_hooks(pre_hooks) }}
 
   -- setup: if the target relation already exists, drop it
@@ -40,6 +41,8 @@ limitations under the License.*/
   {{ apply_twin_strategy(target_relation) }}
 
   {% do persist_docs(target_relation, model) %}
+
+  {% do apply_grants(target_relation, grant_config, should_revoke=should_revoke) %}
 
   {{ run_hooks(post_hooks) }}
 

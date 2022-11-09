@@ -143,7 +143,12 @@ EOF
 # Main
 test_type=$1
 test_ssl="${6:-false}"
-profiles_path=~/.dbt/profiles.yml 
+profiles_path=~/.dbt/profiles.yml
+temp_path=~/.dbt/temp_profiles.yml
+
+if [ -f $profiles_path ]; then
+    mv $profiles_path $temp_path
+fi
 
 if [ $test_type == softwareUP ]; then 
     test_user=$2
@@ -171,5 +176,9 @@ elif [ $test_type == cloud ]; then
 
     project=cloud_proj
     test_cloud
+fi
+
+if [ -f $temp_path ]; then
+  mv $temp_path $profiles_path
 fi
 

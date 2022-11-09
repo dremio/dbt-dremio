@@ -16,12 +16,12 @@ from dbt.tests.util import (
 )
 from tests.functional.adapter.utils.test_utils import DATALAKE
 
-# Unable to insert variable into docstring, so "rav-test" is hardcoded
+# Unable to insert variable into docstring, so "dbt_test_source" is hardcoded
 schema_base_yml = """
 version: 2
 sources:
   - name: raw
-    database: "rav-test" 
+    database: "dbt_test_source" 
     schema: "{{ target.schema }}"
     tables:
       - name: seed
