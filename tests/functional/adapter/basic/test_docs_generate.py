@@ -1,8 +1,23 @@
+# Copyright (C) 2022 Dremio Corporation
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import pytest
 import os
 from tests.functional.adapter.utils.test_utils import (
     base_expected_catalog,
     expected_references_catalog,
+    DATALAKE,
 )
 from dbt.tests.adapter.basic.test_docs_generate import (
     BaseDocsGenerate,
@@ -15,7 +30,6 @@ from dbt.tests.adapter.basic.test_docs_generate import (
     get_artifact,
 )
 from dbt.tests.adapter.basic.expected_catalog import no_stats
-from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 # required to explicitly use alternate_schema
 # otherwise will use unique_schema under profiles fixture
@@ -26,7 +40,6 @@ models__second_model_sql = """
         schema=var('alternate_schema')
     )
 }}
-
 select * from {{ ref('seed') }}
 """
 
@@ -66,6 +79,15 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
             "model.sql": models__model_sql,
         }
 
+    # Override this fixture to prepend our schema with DATALAKE
+    # This ensures the schema works with our datalake
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
+        return unique_schema
+
     # Override this fixture to prevent (twin_strategy) creating a view for seeds
     @pytest.fixture(scope="class")
     def project_config_update(self, unique_schema):
@@ -81,6 +103,29 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
                 "+twin_strategy": "prevent",
             },
         }
+
+    # Override this fixture to set root_path=schema
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(
+        self, unique_schema, dbt_profile_target, profiles_config_update
+    ):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
     # Override this fixture to change expected types to Dremio types
     @pytest.fixture(scope="class")
@@ -116,6 +161,12 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
 
 
 class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
+        return unique_schema
 
     # Override this fixture to allow (twin_strategy) to create a view for seeds
     # The creation of some models looks for the seed under the database/schema
@@ -132,6 +183,29 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
                 "quote_columns": True,
             },
         }
+
+    # Override this fixture to set root_path=schema
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(
+        self, unique_schema, dbt_profile_target, profiles_config_update
+    ):
+        profile = {
+            "config": {"send_anonymous_usage_stats": False},
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
     # Override this fixture to change expected types to Dremio types
     @pytest.fixture(scope="class")
