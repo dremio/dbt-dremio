@@ -40,7 +40,6 @@ models__second_model_sql = """
         schema=var('alternate_schema')
     )
 }}
-
 select * from {{ ref('seed') }}
 """
 
