@@ -216,7 +216,7 @@ class DremioConnectionManager(SQLConnectionManager):
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
 
-        if database == "@" + credentials.UID:
+        if database == ("@" + credentials.UID):
             logger.debug("Database is default: creating folders only")
         else:
             self._create_space(database, api_parameters)

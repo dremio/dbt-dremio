@@ -4,7 +4,7 @@
 
 dbt is the T in ELT. Organize, cleanse, denormalize, filter, rename, and pre-aggregate the raw data in your warehouse so that it's ready for analysis.
 
-## dbt-dremio preview version 1.1.0b ##
+## dbt-dremio version 1.3.0b beta ##
 
 The `dbt-dremio` package contains all of the code enabling dbt to work with Dremio. For more information on using dbt with Dremio, consult [the docs](https://docs.getdbt.com/reference/warehouse-profiles/dremio-profile).
 
