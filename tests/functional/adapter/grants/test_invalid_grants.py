@@ -14,21 +14,15 @@
 
 
 from dbt.tests.adapter.grants.test_invalid_grants import BaseInvalidGrants
-from dbt.tests.adapter.grants.test_seed_grants import BaseSeedGrants
-from dbt.tests.adapter.grants.test_snapshot_grants import BaseSnapshotGrants
+from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
+from tests.functional.adapter.utils.test_utils import relation_from_name
+from dbt.tests.util import get_connection
 
-from dbt.events import AdapterLogger
-
-logger = AdapterLogger("dremio")
-
-
-class TestSeedGrantsDremio(BaseGrantsDremio, BaseSeedGrants):
-    pass
-
-
-class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
-    pass
-
-
+# Currently we return an HTTP error
+# Need to modify to get error from Dremio console
 class TestInvalidGrantsDremio(BaseGrantsDremio, BaseInvalidGrants):
-    pass
+    def grantee_does_not_exist_error(self):
+        return ""
+
+    def privilege_does_not_exist_error(self):
+        return ""

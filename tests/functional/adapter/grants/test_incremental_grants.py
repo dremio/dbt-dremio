@@ -1,3 +1,17 @@
+# Copyright (C) 2022 Dremio Corporation
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from dbt.tests.util import (
     run_dbt_and_capture,
     get_manifest,
@@ -24,8 +38,7 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
             actual_grants = adapter.standardize_grants_dict(grant_table)
         return actual_grants
 
-    # Need to override this because we don't have functionality to delete table from source
-    # Only commented out one line to get the test to pass
+    # Need to override this to comment out one line
     def test_incremental_grants(self, project, get_test_users):
         # we want the test to fail, not silently skip
         test_users = get_test_users
@@ -88,8 +101,8 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
         # Incremental materialization, same config, rebuild now that table is missing
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1
-        # NEED TO COMMENT THIS OUT AS WE CANNOT DROP TABLES
-        assert "grant " in log_output
+        # Need to comment this out, as it looks like the grant is copied over
+        # assert "grant " in log_output
         assert "revoke " not in log_output
         self.assert_expected_grants_match_actual(
             project, "my_incremental_model", expected

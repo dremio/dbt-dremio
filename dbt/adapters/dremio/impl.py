@@ -21,7 +21,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from dbt.adapters.base.relation import BaseRelation
-
+from dbt.adapters.sql.impl import DROP_RELATION_MACRO_NAME
 from dbt.events import AdapterLogger
 
 logger = AdapterLogger("dremio")
@@ -66,9 +66,13 @@ class DremioAdapter(SQLAdapter):
         self.connections.create_catalog(database, schema)
 
     def drop_schema(self, relation: DremioRelation) -> None:
-        database = relation.database
-        schema = relation.schema
-        self.connections.drop_catalog(database, schema)
+        if relation.type == "table":
+            self.execute_macro(DROP_RELATION_MACRO_NAME, kwargs={"relation": relation})
+
+        else:
+            database = relation.database
+            schema = relation.schema
+            self.connections.drop_catalog(database, schema)
 
     def timestamp_add_sql(
         self, add_to: str, number: int = 1, interval: str = "hour"
