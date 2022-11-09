@@ -20,6 +20,8 @@ from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.functional.adapter.utils.test_utils import relation_from_name, DATALAKE
 from dbt.tests.util import get_connection
 
+# Override this model to use strategy timestamp and to cast as VARCHAR
+# we use timestamp for now, as 'check' is not supported
 my_snapshot_sql = """
 {% snapshot my_snapshot %}
     {{ config(
@@ -32,6 +34,7 @@ my_snapshot_sql = """
 
 
 class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
+    # Override this to use our modified snapshot model
     @pytest.fixture(scope="class")
     def snapshots(self):
         return {
@@ -39,6 +42,8 @@ class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
             "schema.yml": self.interpolate_name_overrides(snapshot_schema_yml),
         }
 
+    # Need to set target_database=datalake, and target_schema=root_path
+    # These are necessary and defined in the model config
     @pytest.fixture(scope="class")
     def dbt_profile_data(
         self, unique_schema, dbt_profile_target, profiles_config_update

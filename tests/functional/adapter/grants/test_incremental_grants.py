@@ -28,6 +28,7 @@ from dbt.tests.adapter.grants.test_incremental_grants import (
 
 
 class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
+    # Define this here to use our modified version of relation_from_name
     def get_grants_on_relation(self, project, relation_name):
         relation = relation_from_name(project.adapter, relation_name)
         adapter = project.adapter
@@ -38,7 +39,7 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
             actual_grants = adapter.standardize_grants_dict(grant_table)
         return actual_grants
 
-    # Need to override this to comment out one line
+    # Need to override this to comment out one line (Line: 106)
     def test_incremental_grants(self, project, get_test_users):
         # we want the test to fail, not silently skip
         test_users = get_test_users

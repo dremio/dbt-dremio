@@ -19,10 +19,10 @@ from tests.functional.adapter.utils.test_utils import relation_from_name
 from dbt.tests.util import get_connection
 
 # Currently we return an HTTP error
-# Need to modify to get error from Dremio console
+# TODO: modify error handling to get message from Dremio console
 class TestInvalidGrantsDremio(BaseGrantsDremio, BaseInvalidGrants):
     def grantee_does_not_exist_error(self):
-        return ""
+        return "Can not fetch details for a job that is in [FAILED] state"
 
     def privilege_does_not_exist_error(self):
-        return ""
+        return "Can not fetch details for a job that is in [FAILED] state"
