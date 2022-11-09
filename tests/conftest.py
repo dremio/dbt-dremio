@@ -20,5 +20,6 @@ def dbt_profile_target():
         "password": os.getenv("DREMIO_PASSWORD"),
         "datalake": os.getenv("DREMIO_DATALAKE"),
         "use_ssl": False,
+        # Need to include a specific space for grants tests
         "database": os.getenv("DREMIO_DATABASE"),
     }

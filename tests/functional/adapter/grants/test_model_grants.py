@@ -56,6 +56,7 @@ class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
 
 class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
     # Need to override this to make sure it uses our modified version of relation_from_name
+    # This isn't needed for views, as dbt-core's version defaults to database/schema path
     def get_grants_on_relation(self, project, relation_name):
         relation = relation_from_name(project.adapter, relation_name)
         adapter = project.adapter

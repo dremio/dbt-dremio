@@ -22,6 +22,8 @@ from dbt.events import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
+# Ensure we do not include dashes in our source
+# https://github.com/dremio/dbt-dremio/issues/68
 DATALAKE = "dbt_test_source"
 
 
