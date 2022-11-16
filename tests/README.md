@@ -52,9 +52,9 @@ If you notice there are specific tests that are failing, you can test them indiv
 -   `-r`
     -   Displays a short test summary info which is useful for large test suites.
 -   `-v`
-    _ Increases verbosity level and shows more information
-    _ For even more verbosity, try `-vv` or `-vvv`
-    _`--pdb`
-    _ Starts PDB - Python’s inbuilt debugger
-    _`-x`
-    _ Stops the test run after the first failure
+    -   Increases verbosity level and shows more information
+    -   For even more verbosity, try `-vv` or `-vvv`
+-   `--pdb`
+    -   Starts PDB - Python’s inbuilt debugger
+-   `-x`
+    -   Stops the test run after the first failure
