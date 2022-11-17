@@ -20,7 +20,7 @@ from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.functional.adapter.utils.test_utils import relation_from_name, DATALAKE
 from dbt.tests.util import get_connection
 
-# Override this model to use strategy timestamp and to cast as VARCHAR
+# Override this model to use strategy timestamp
 # we use timestamp for now, as 'check' is not supported
 my_snapshot_sql = """
 {% snapshot my_snapshot %}
@@ -28,7 +28,7 @@ my_snapshot_sql = """
         updated_at='id', unique_key='id', strategy='timestamp',
         target_database=database, target_schema=schema
     ) }}
-    select 1 as id, cast('blue' as VARCHAR) as color
+    select 1 as id, cast('blue' as {{ type_string() }}) as color
 {% endsnapshot %}
 """.strip()
 
