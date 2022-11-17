@@ -6,6 +6,7 @@ Tests are written using [pytest](https://docs.pytest.org/), with some mocking be
 
 To run our tests, a test environment must be set up.
 
+1. Install dev requirements using `pip install -r dev_requirements.txt` from the dbt-dremio directory.
 1. First, create a tests/.env file with the following content. Note you will have to fill in the Dremio hostname, username and password.
     ```
     DREMIO_HOST=
@@ -18,7 +19,8 @@ To run our tests, a test environment must be set up.
     DBT_TEST_USER_3=dbt_test_user_3
     ```
 1. Create the three users listed above (dbt_test_user_1, dbt_test_user_2, dbt_test_user_3) in the Dremio instance.
-1. Create the source to be tested with and name it dbt_test_source.
+1. Create an object storage source in Dremio called `dbt_test_source`.
+    1. An example would be a [gcs object storage source](https://docs.dremio.com/software/data-sources/gcs/).
 1. One of the tests - test_profile_template.py requires creation of three dbt projects in an arbitrary location.
     1. `dbt init test_cloud_options`
         1. Accept all default options
