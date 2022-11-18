@@ -14,22 +14,21 @@
 
 import agate
 from typing import Tuple, Optional
-from dataclasses import dataclass
 from contextlib import contextmanager
 
 from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
-from dbt.adapters.dremio.api.authentication import DremioAuthentication, Parameters
+from dbt.adapters.dremio.api.parameters import ParametersBuilder
 
 import time
 import json
 
 import dbt.exceptions
-from dbt.adapters.base import Credentials
 from dbt.adapters.sql import SQLConnectionManager
-from dbt.adapters.dremio.relation import DremioRelation
 from dbt.contracts.connection import AdapterResponse
+
+from dbt.adapters.dremio.credentials import DremioCredentials
 
 from dbt.adapters.dremio.api.rest.endpoints import (
     delete_catalog,
@@ -39,6 +38,11 @@ from dbt.adapters.dremio.api.rest.endpoints import (
 from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
+    DremioRequestTimeoutException,
+    DremioTooManyRequestsException,
+    DremioInternalServerException,
+    DremioServiceUnavailableException,
+    DremioGatewayTimeoutException,
 )
 
 from dbt.events import AdapterLogger
@@ -46,98 +50,11 @@ from dbt.events import AdapterLogger
 logger = AdapterLogger("dremio")
 
 
-@dataclass
-class DremioCredentials(Credentials):
-    environment: Optional[str]
-    database: Optional[str]
-    schema: Optional[str]
-    datalake: Optional[str]
-    root_path: Optional[str]
-    cloud_project_id: Optional[str] = None
-    cloud_host: Optional[str] = None
-    software_host: Optional[str] = None
-    UID: Optional[str] = None
-    PWD: Optional[str] = None
-    port: Optional[int] = 9047  # for rest endpoint
-    use_ssl: Optional[bool] = True
-    pat: Optional[str] = None
-    additional_parameters: Optional[str] = None
-
-    _ALIASES = {
-        "user": "UID",
-        "username": "UID",
-        "pass": "PWD",
-        "password": "PWD",
-        "server": "host",
-        "track": "environment",
-        "space": "database",
-        "folder": "schema",
-        "materialization_database": "datalake",
-        "materialization_schema": "root_path",
-    }
-
-    @property
-    def type(self):
-        return "dremio"
-
-    @property
-    def unique_field(self):
-        return self.host
-
-    def _connection_keys(self):
-        # return an iterator of keys to pretty-print in 'dbt debug'
-        # raise NotImplementedError
-
-        return (
-            "driver",
-            "cloud_host",
-            "cloud_project_id",
-            "software_host",
-            "port",
-            "UID",
-            "database",
-            "schema",
-            "additional_parameters",
-            "datalake",
-            "root_path",
-            "environment",
-            "use_ssl",
-        )
-
-    @classmethod
-    def __pre_deserialize__(cls, data):
-        data = super().__pre_deserialize__(data)
-        if "cloud_host" not in data:
-            data["cloud_host"] = None
-        if "software_host" not in data:
-            data["software_host"] = None
-        if "database" not in data:
-            data["database"] = None
-        if "schema" not in data:
-            data["schema"] = None
-        if "datalake" not in data:
-            data["datalake"] = None
-        if "root_path" not in data:
-            data["root_path"] = None
-        if "environment" not in data:
-            data["environment"] = None
-        if "pat" not in data:
-            data["pat"] = None
-        return data
-
-    def __post_init__(self):
-        if self.database is None:
-            self.database = "@" + self.UID
-        if self.schema is None:
-            self.schema = DremioRelation.no_schema
-        if self.datalake is None:
-            self.datalake = "$scratch"
-        if self.root_path is None:
-            self.root_path = DremioRelation.no_schema
-
-
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
+    DEFAULT_CONNECTION_RETRIES = 1
+
+    retries = DEFAULT_CONNECTION_RETRIES
 
     @contextmanager
     def exception_handler(self, sql):
@@ -162,20 +79,39 @@ class DremioConnectionManager(SQLConnectionManager):
             return connection
 
         credentials = connection.credentials
-        api_parameters = DremioConnectionManager.build_api_parameters(credentials)
+        parameters_builder = ParametersBuilder.build(credentials)
+        api_parameters = parameters_builder.get_parameters()
 
-        try:
+        def connect():
             handle = DremioHandle(api_parameters)
             _ = handle.cursor()
             connection.state = "open"
             connection.handle = handle
             logger.debug(f"Connected to db: {credentials.database}")
-        except Exception as e:
-            logger.debug(f"Could not connect to db: {e}")
-            connection.handle = None
-            connection.state = "fail"
-            raise dbt.exceptions.FailedToConnectException(str(e))
-        return connection
+            return handle
+
+        retryable_exceptions = [
+            # list of retryable_exceptions underlying driver might expose
+            DremioRequestTimeoutException,
+            DremioTooManyRequestsException,
+            DremioInternalServerException,
+            DremioServiceUnavailableException,
+            DremioGatewayTimeoutException,
+        ]
+
+        def exponential_backoff_retry_timeout(retries: int) -> int:
+            BASE = 2  # multiplicative factor
+            time_delay = pow(BASE, retries)
+            return time_delay
+
+        return cls.retry_connection(
+            connection,
+            connect=connect,
+            logger=logger,
+            retry_limit=cls.retries,
+            retry_timeout=exponential_backoff_retry_timeout,
+            retryable_exceptions=retryable_exceptions,
+        )
 
     @classmethod
     def is_cancelable(cls) -> bool:
@@ -280,7 +216,7 @@ class DremioConnectionManager(SQLConnectionManager):
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
 
-        if database == "@" + credentials.UID:
+        if database == ("@" + credentials.UID):
             logger.debug("Database is default: creating folders only")
         else:
             self._create_space(database, api_parameters)
@@ -318,45 +254,3 @@ class DremioConnectionManager(SQLConnectionManager):
         folders = schema.split(".")
         path.extend(folders)
         return path
-
-    @classmethod
-    def build_api_parameters(cls, credentials):
-        def __build_software_base_url(host, port, use_ssl):
-            protocol = "http"
-            if use_ssl:
-                protocol = "https"
-            return f"{protocol}://{host}:{port}"
-
-        def __build_cloud_base_url(host):
-            protocol = "https"
-            return f"{protocol}://{host}"
-
-        api_parameters = None
-        dremio_authentication = DremioAuthentication.build(
-            credentials.UID, credentials.PWD, credentials.pat
-        )
-
-        if credentials.cloud_host != None:
-            api_parameters = Parameters(
-                __build_cloud_base_url(credentials.cloud_host),
-                dremio_authentication,
-                is_cloud=True,
-                cloud_project_id=credentials.cloud_project_id,
-            )
-        elif credentials.software_host != None:
-            api_parameters = Parameters(
-                __build_software_base_url(
-                    credentials.software_host, credentials.port, credentials.use_ssl
-                ),
-                dremio_authentication,
-                is_cloud=False,
-                cloud_project_id=None,
-            )
-        else:
-            raise dbt.exceptions.DbtProfileError(
-                dbt.exceptions.DbtConfigError(
-                    "A cloud_host or software_host must be set in project profile."
-                )
-            )
-
-        return api_parameters

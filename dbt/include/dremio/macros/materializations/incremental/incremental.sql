@@ -37,6 +37,7 @@ limitations under the License.*/
   {%- set raw_on_schema_change = config.get('on_schema_change', validator=validation.any[basestring]) or 'ignore' -%}
   {%- set on_schema_change = incremental_validate_on_schema_change(raw_on_schema_change) -%}
   {%- set full_refresh_mode = (should_full_refresh()) -%}
+  {% set grant_config = config.get('grants') %}
 
   {{ run_hooks(pre_hooks) }}
 
@@ -67,6 +68,8 @@ limitations under the License.*/
   {{ apply_twin_strategy(target_relation) }}
 
   {% do persist_docs(target_relation, model) %}
+  
+  {% do apply_grants(target_relation, grant_config, should_revoke=should_revoke) %}
 
   {{ run_hooks(post_hooks) }}
 
