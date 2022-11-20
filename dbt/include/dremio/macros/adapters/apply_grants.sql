@@ -22,18 +22,25 @@ limitations under the License.*/
     {%- else -%}
         {%- set relation_without_double_quotes = relation.database ~ '.' ~ relation.schema ~ '.' ~ relation.identifier-%}
     {%- endif %}
-
+    
+    {%- if target.cloud_host and not target.software_host -%}
+        {%- set privileges_table = 'sys.project.privileges' -%}
+    {%- elif target.software_host and not target.cloud_host -%}
+        {%- set privileges_table = 'sys.privileges' -%}
+    {%- else -%}
+        {%- set privileges_table = 'sys.privileges' -%}
+    {%- endif %}
     SELECT privilege, grantee_id
-        FROM sys.privileges 
-        WHERE privileges.object_id='{{ relation_without_double_quotes }}'
+        FROM {{privileges_table}}
+        WHERE object_id='{{ relation_without_double_quotes }}'
 {% endmacro %}
 
 {%- macro dremio__get_grant_sql(relation, privilege, grantees) -%}
-    grant {{ privilege }} on {{relation.type}} {{ relation }} to user {{ grantees | join(', ') }}
+    grant {{ privilege }} on {{relation.type}} {{ relation }} to user {{adapter.quote(grantees[0])}}
 {%- endmacro -%}
 
 {%- macro default__get_revoke_sql(relation, privilege, grantees) -%}
-    revoke {{ privilege }} on {{ relation.type }} {{ relation }} from user {{ grantees | join(', ') }}
+    revoke {{ privilege }} on {{ relation.type }} {{ relation }} from user {{adapter.quote(grantees[0])}}
 {%- endmacro -%}
 
 {% macro dremio__call_dcl_statements(dcl_statement_list) %}

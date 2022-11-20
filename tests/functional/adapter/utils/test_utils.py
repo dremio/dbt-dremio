@@ -24,7 +24,8 @@ logger = AdapterLogger("dremio")
 
 # Ensure we do not include dashes in our source
 # https://github.com/dremio/dbt-dremio/issues/68
-DATALAKE = "dbt_test_source"
+DATALAKE = "dbtdremios3"
+SOURCE = "dbt_test_source"
 
 
 class TestProcessingException(Exception):
@@ -46,7 +47,10 @@ def relation_from_name(adapter, name: str, materialization=""):
     # only identifier was supplied.
     relation_parts = name.split(".")
     if len(relation_parts) == 1:
-        relation_parts.insert(0, credentials.schema)
+        if materialization == "view" or "view" in name:
+            relation_parts.insert(0, credentials.schema)
+        else:
+            relation_parts.insert(0, credentials.root_path)
     if len(relation_parts) == 2:
         # if the relation is a view then use database
         if materialization == "view" or "view" in name:
@@ -220,7 +224,7 @@ def base_expected_catalog(
                 "unique_id": "seed.test.seed",
                 "metadata": {
                     "schema": my_schema_name,
-                    "database": DATALAKE,
+                    "database": SOURCE,
                     "name": case("seed"),
                     "type": table_type,
                     "comment": None,
@@ -235,7 +239,7 @@ def base_expected_catalog(
                 "unique_id": "source.test.my_source.my_table",
                 "metadata": {
                     "schema": my_schema_name,
-                    "database": DATALAKE,
+                    "database": SOURCE,
                     "name": case("seed"),
                     "type": table_type,
                     "comment": None,
@@ -332,7 +336,7 @@ def expected_references_catalog(
                 "unique_id": "seed.test.seed",
                 "metadata": {
                     "schema": my_schema_name,
-                    "database": DATALAKE,
+                    "database": SOURCE,
                     "name": case("seed"),
                     "type": table_type,
                     "comment": None,
@@ -345,7 +349,7 @@ def expected_references_catalog(
                 "unique_id": "model.test.ephemeral_summary",
                 "metadata": {
                     "schema": my_schema_name,
-                    "database": DATALAKE,
+                    "database": SOURCE,
                     "name": case("ephemeral_summary"),
                     "type": table_type,
                     "comment": None,
