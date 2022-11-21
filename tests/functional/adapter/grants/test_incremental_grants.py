@@ -20,7 +20,7 @@ from dbt.tests.util import (
     run_dbt,
 )
 from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
-from tests.functional.adapter.utils.test_utils import relation_from_name
+from tests.utils.util import relation_from_name
 from dbt.tests.adapter.grants.test_incremental_grants import (
     BaseIncrementalGrants,
     user2_incremental_model_schema_yml,

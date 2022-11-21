@@ -24,7 +24,7 @@ logger = AdapterLogger("dremio")
 
 # Ensure we do not include dashes in our source
 # https://github.com/dremio/dbt-dremio/issues/68
-DATALAKE = "dbtdremios3"
+BUCKET = "dbtdremios3"
 SOURCE = "dbt_test_source"
 
 

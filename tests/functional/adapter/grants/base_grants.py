@@ -15,7 +15,7 @@
 import pytest
 
 from dbt.tests.adapter.grants.base_grants import BaseGrants
-from tests.functional.adapter.utils.test_utils import DATALAKE
+from tests.utils.util import BUCKET
 
 
 class BaseGrantsDremio(BaseGrants):
@@ -54,7 +54,7 @@ class BaseGrantsDremio(BaseGrants):
         }
         target = dbt_profile_target
         target["schema"] = unique_schema
-        target["root_path"] = f"{DATALAKE}.{unique_schema}"
+        target["root_path"] = f"{BUCKET}.{unique_schema}"
         profile["test"]["outputs"]["default"] = target
 
         if profiles_config_update:

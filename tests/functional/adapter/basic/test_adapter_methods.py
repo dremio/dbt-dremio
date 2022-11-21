@@ -50,15 +50,6 @@ select 2 as id
 
 class TestBaseAdapterMethodDremio(BaseAdapterMethod):
     @pytest.fixture(scope="class")
-    def project_config_update(self):
-        return {
-            "models": {
-                "+twin_strategy": "clone",
-            },
-            "name": "adapter_methods",
-        }
-
-    @pytest.fixture(scope="class")
     def models(self):
         return {
             "upstream_view.sql": models__upstream_sql,
