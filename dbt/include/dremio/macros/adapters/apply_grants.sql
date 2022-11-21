@@ -28,7 +28,7 @@ limitations under the License.*/
     {%- elif target.software_host and not target.cloud_host -%}
         {%- set privileges_table = 'sys.privileges' -%}
     {%- else -%}
-        {%- set privileges_table = 'sys.privileges' -%}
+         {% do exceptions.raise_compiler_error("Invalid profile configuration: please only specify one of cloud_host or software_host in profiles.yml") %}
     {%- endif %}
     SELECT privilege, grantee_id
         FROM {{privileges_table}}
