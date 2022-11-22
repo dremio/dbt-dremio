@@ -17,7 +17,11 @@ from dbt.tests.adapter.grants.test_snapshot_grants import (
     snapshot_schema_yml,
 )
 from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
-from tests.functional.adapter.utils.test_utils import relation_from_name, DATALAKE
+from tests.utils.util import (
+    relation_from_name,
+    BUCKET,
+    SOURCE,
+)
 from dbt.tests.util import get_connection
 
 # Override this model to use strategy timestamp
@@ -58,9 +62,9 @@ class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
             },
         }
         target = dbt_profile_target
-        target["schema"] = f"{DATALAKE}.{unique_schema}"
-        target["root_path"] = f"{DATALAKE}.{unique_schema}"
-        target["database"] = DATALAKE
+        target["schema"] = f"{BUCKET}.{unique_schema}"
+        target["root_path"] = f"{BUCKET}.{unique_schema}"
+        target["database"] = SOURCE
         profile["test"]["outputs"]["default"] = target
 
         if profiles_config_update:

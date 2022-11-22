@@ -10,7 +10,7 @@
 # limitations under the License.
 
 import pytest
-from tests.functional.adapter.utils.test_utils import DATALAKE
+from tests.utils.util import BUCKET
 
 # This ensures the schema works with our datalake
 @pytest.fixture(scope="class")
@@ -36,7 +36,7 @@ def dbt_profile_data(unique_schema, dbt_profile_target, profiles_config_update):
     }
     target = dbt_profile_target
     target["schema"] = unique_schema
-    target["root_path"] = f"{DATALAKE}.{unique_schema}"
+    target["root_path"] = f"{BUCKET}.{unique_schema}"
     profile["test"]["outputs"]["default"] = target
 
     if profiles_config_update:

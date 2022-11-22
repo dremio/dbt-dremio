@@ -15,7 +15,7 @@
 import pytest
 from dbt.tests.adapter.basic.test_snapshot_check_cols import BaseSnapshotCheckCols
 from dbt.tests.adapter.basic.test_snapshot_timestamp import BaseSnapshotTimestamp
-from tests.functional.adapter.utils.test_utils import DATALAKE
+from tests.utils.util import BUCKET
 
 
 @pytest.mark.skip(reason="https://github.com/dremio/dbt-dremio/issues/20")
@@ -25,7 +25,7 @@ class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):
         test_file = request.module.__name__
         # We only want the last part of the name
         test_file = test_file.split(".")[-1]
-        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
 
     @pytest.fixture(scope="class")
@@ -65,7 +65,7 @@ class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
         test_file = request.module.__name__
         # We only want the last part of the name
         test_file = test_file.split(".")[-1]
-        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
 
     @pytest.fixture(scope="class")

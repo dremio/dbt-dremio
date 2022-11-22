@@ -14,10 +14,10 @@
 
 import pytest
 import os
-from tests.functional.adapter.utils.test_utils import (
+from tests.utils.util import (
     base_expected_catalog,
     expected_references_catalog,
-    DATALAKE,
+    BUCKET,
 )
 from dbt.tests.adapter.basic.test_docs_generate import (
     BaseDocsGenerate,
@@ -79,13 +79,13 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
             "model.sql": models__model_sql,
         }
 
-    # Override this fixture to prepend our schema with DATALAKE
+    # Override this fixture to prepend our schema with BUCKET
     # This ensures the schema works with our datalake
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
         test_file = test_file.split(".")[-1]
-        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
 
     # Override this fixture to prevent (twin_strategy) creating a view for seeds
@@ -165,7 +165,7 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
         test_file = test_file.split(".")[-1]
-        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
 
     # Override this fixture to allow (twin_strategy) to create a view for seeds

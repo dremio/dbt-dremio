@@ -15,7 +15,7 @@ from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tests.functional.adapter.utils.test_utils import (
+from tests.utils.util import (
     relation_from_name,
     check_relations_equal,
     check_relation_types,
@@ -29,7 +29,7 @@ from dbt.tests.util import (
     run_dbt,
     check_result_nodes_by_name,
 )
-from tests.functional.adapter.utils.test_utils import DATALAKE
+from tests.utils.util import BUCKET
 
 # Unable to insert variable into docstring, so "dbt_test_source" is hardcoded
 schema_base_yml = """
@@ -70,7 +70,7 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         test_file = request.module.__name__
         # We only want the last part of the name
         test_file = test_file.split(".")[-1]
-        unique_schema = f"{DATALAKE}.{prefix}_{test_file}"
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
 
     @pytest.fixture(scope="class")
