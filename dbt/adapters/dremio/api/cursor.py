@@ -150,7 +150,7 @@ class DremioCursor:
     def _populate_job_results(self):
         if self._job_results == None:
             self._job_results = job_results(
-                self._parameters, self._job_id, offset=0, limit=100, ssl_verify=True
+                self._parameters, self._job_id, offset=0, limit=500, ssl_verify=True
             )
 
     def _populate_results_table(self):
