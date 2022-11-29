@@ -42,9 +42,9 @@ class ParametersBuilder:
     @classmethod
     def build(cls, credentials: DremioCredentials):
         if (
-            credentials.cloud_host != None
-            and credentials.software_host == None
-            and credentials.cloud_project_id != None
+            credentials.cloud_host is not None
+            and credentials.software_host is None
+            and credentials.cloud_project_id is not None
         ):
             return CloudParametersBuilder(
                 cls._build_dremio_authentication(credentials=credentials),
@@ -52,10 +52,10 @@ class ParametersBuilder:
                 credentials.cloud_project_id,
             )
         elif (
-            credentials.software_host != None
-            and credentials.cloud_host == None
-            and credentials.port != None
-            and credentials.use_ssl != None
+            credentials.software_host is not None
+            and credentials.cloud_host is None
+            and credentials.port is not None
+            and credentials.use_ssl is not None
         ):
             return SoftwareParametersBuilder(
                 cls._build_dremio_authentication(credentials=credentials),
@@ -75,7 +75,9 @@ class ParametersBuilder:
 
     @classmethod
     def _build_dremio_authentication(self, credentials: DremioCredentials):
-        return DremioAuthentication.build(credentials.UID, credentials.PWD, credentials.pat)
+        return DremioAuthentication.build(
+            credentials.UID, credentials.PWD, credentials.pat
+        )
 
 
 @dataclass

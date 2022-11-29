@@ -61,7 +61,7 @@ class DremioCursor:
     def job_results(self):
         if self.closed:
             raise Exception("CursorClosed")
-        if self._job_results == None:
+        if self._job_results is None:
             self._populate_job_results()
 
         return self._job_results
@@ -83,7 +83,9 @@ class DremioCursor:
         if bindings is None:
             self._initialize()
 
-            json_payload = sql_endpoint(self._parameters, sql, context=None, ssl_verify=True)
+            json_payload = sql_endpoint(
+                self._parameters, sql, context=None, ssl_verify=True
+            )
 
             self._job_id = json_payload["id"]
 
@@ -96,7 +98,7 @@ class DremioCursor:
 
     def fetchone(self):
         row = None
-        if self._table_results != None:
+        if self._table_results is not None:
             row = self._table_results.rows[0]
         return row
 
@@ -113,8 +115,8 @@ class DremioCursor:
     def _populate_rowcount(self):
         if self.closed:
             raise Exception("CursorClosed")
-        ## keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
-        ## map job results to AdapterResponse
+        # keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
+        # map job results to AdapterResponse
         job_id = self._job_id
 
         last_job_state = ""
@@ -146,13 +148,17 @@ class DremioCursor:
         self._rowcount = rows
 
     def _populate_job_results(self):
-        if self._job_results == None:
+        if self._job_results is None:
             self._job_results = job_results(
-                self._parameters, self._job_id, offset=0, limit=500, ssl_verify=True
+                self._parameters,
+                self._job_id,
+                offset=0,
+                limit=500,
+                ssl_verify=True,
             )
 
     def _populate_results_table(self):
-        if self._job_results != None:
+        if self._job_results is not None:
             tester = agate.TypeTester()
             json_rows = self._job_results["rows"]
             self._table_results = json_rows
@@ -162,4 +168,6 @@ class DremioCursor:
                 if data_type_str == "BIGINT":
                     tester = agate.TypeTester(force={f"{name}": agate.Number()})
 
-            self._table_results = agate.Table.from_object(json_rows, column_types=tester)
+            self._table_results = agate.Table.from_object(
+                json_rows, column_types=tester
+            )

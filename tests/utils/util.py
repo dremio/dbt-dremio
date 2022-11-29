@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from operator import contains
 from dbt.tests.util import check_relations_equal_with_relations
 from typing import List
 from contextlib import contextmanager

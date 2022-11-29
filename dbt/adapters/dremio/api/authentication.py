@@ -16,7 +16,6 @@
 from dataclasses import dataclass
 from typing import Optional
 from abc import abstractmethod
-from xmlrpc.client import boolean
 
 from dbt.events import AdapterLogger
 
@@ -29,7 +28,7 @@ class DremioAuthentication:
 
     @classmethod
     def build(cls, username: None, password: None, pat: None):
-        if password != None:
+        if password is not None:
             return DremioPasswordAuthentication(username, password, token=None)
         return DremioPatAuthentication(username, pat)
 
@@ -54,7 +53,9 @@ class DremioPasswordAuthentication(DremioAuthentication):
     token: Optional[str] = None
 
     def get_headers(self):
-        authorization_field = "_dremio{authorization_token}".format(authorization_token=self.token)
+        authorization_field = "_dremio{authorization_token}".format(
+            authorization_token=self.token
+        )
         return self.build_headers(authorization_field)
 
 
@@ -63,5 +64,7 @@ class DremioPatAuthentication(DremioAuthentication):
     pat: Optional[str] = None
 
     def get_headers(self):
-        authorization_field = "Bearer {authorization_token}".format(authorization_token=self.pat)
+        authorization_field = "Bearer {authorization_token}".format(
+            authorization_token=self.pat
+        )
         return self.build_headers(authorization_field)

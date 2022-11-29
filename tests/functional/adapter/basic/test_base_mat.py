@@ -74,7 +74,9 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         return unique_schema
 
     @pytest.fixture(scope="class")
-    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
+    def dbt_profile_data(
+        self, unique_schema, dbt_profile_target, profiles_config_update
+    ):
         profile = {
             "config": {"send_anonymous_usage_stats": False},
             "test": {
@@ -119,11 +121,15 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
 
         # base table rowcount
         relation = relation_from_name(project.adapter, "base")
-        result = project.run_sql(f"select count(*) as num_rows from {relation}", fetch="one")
+        result = project.run_sql(
+            f"select count(*) as num_rows from {relation}", fetch="one"
+        )
         assert result[0] == 10
 
         # relations_equal
-        check_relations_equal(project.adapter, ["base", "view_model", "table_model", "swappable"])
+        check_relations_equal(
+            project.adapter, ["base", "view_model", "table_model", "swappable"]
+        )
 
         # check relations in catalog
         catalog = run_dbt(["docs", "generate"])
@@ -144,7 +150,9 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
                 ]
             )
         else:
-            results = run_dbt(["run", "-m", "swappable", "--vars", "materialized_var: view"])
+            results = run_dbt(
+                ["run", "-m", "swappable", "--vars", "materialized_var: view"]
+            )
         assert len(results) == 1
         # check relation types, swappable is view
         expected = {
@@ -157,7 +165,15 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         check_relation_types(project.adapter, expected)
 
         # run_dbt changing materialized_var to incremental
-        results = run_dbt(["run", "-m", "swappable", "--vars", "materialized_var: incremental"])
+        results = run_dbt(
+            [
+                "run",
+                "-m",
+                "swappable",
+                "--vars",
+                "materialized_var: incremental",
+            ]
+        )
         assert len(results) == 1
 
         # check relation types, swappable is table

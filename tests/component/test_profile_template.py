@@ -36,6 +36,8 @@ from dbt.adapters.dremio.credentials import DremioCredentials
 #
 #     These tests assumes there exists a $HOME/.dbt/profiles.yml
 #     file containing these three dbt projects.
+
+
 class TestProfileTemplate:
     # non-OS specific
     PROFILE_DIRECTORY = os.path.expanduser("~") + "/.dbt/"
@@ -100,7 +102,9 @@ class TestProfileTemplate:
 
     def test_software_username_password_options(self) -> None:
         self._test_project_profile_options(
-            self._get_dbt_test_project_dict(self._TEST_SOFTWARE_USER_PASSWORD_PROFILE_PROJECT),
+            self._get_dbt_test_project_dict(
+                self._TEST_SOFTWARE_USER_PASSWORD_PROFILE_PROJECT
+            ),
             self._DREMIO_SOFTWARE_USERNAME_PASSWORD_PROFILE_OPTIONS,
         )
 

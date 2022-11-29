@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dbt.adapters.dremio.connections import DremioConnectionManager
 from dbt.adapters.dremio.credentials import DremioCredentials
 from dbt.adapters.dremio.impl import DremioAdapter
 
