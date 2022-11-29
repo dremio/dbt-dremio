@@ -83,9 +83,7 @@ class UrlBuilder:
     ):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
-            url_path += UrlBuilder.CLOUD_JOB_ENDPOINT.format(
-                parameters.cloud_project_id
-            )
+            url_path += UrlBuilder.CLOUD_JOB_ENDPOINT.format(parameters.cloud_project_id)
         else:
             url_path += UrlBuilder.SOFTWARE_JOB_ENDPOINT
 
@@ -95,9 +93,7 @@ class UrlBuilder:
     def catalog_url(cls, parameters: Parameters):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
-            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
-                parameters.cloud_project_id
-            )
+            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(parameters.cloud_project_id)
         else:
             url_path += UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
 
@@ -114,9 +110,7 @@ class UrlBuilder:
     def catalog_item_by_id_url(cls, parameters: Parameters, catalog_id):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
-            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
-                parameters.cloud_project_id
-            )
+            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(parameters.cloud_project_id)
         else:
             url_path += UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
 
@@ -127,9 +121,7 @@ class UrlBuilder:
     def catalog_item_by_path_url(cls, parameters: Parameters, path_list):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
-            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(
-                parameters.cloud_project_id
-            )
+            url_path += UrlBuilder.CLOUD_CATALOG_ENDPOINT.format(parameters.cloud_project_id)
         else:
             url_path += UrlBuilder.SOFTWARE_CATALOG_ENDPOINT
 

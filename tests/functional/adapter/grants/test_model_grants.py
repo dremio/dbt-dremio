@@ -97,9 +97,7 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, multiple grantees
-        updated_yaml = self.interpolate_name_overrides(
-            multiple_users_table_model_schema_yml
-        )
+        updated_yaml = self.interpolate_name_overrides(multiple_users_table_model_schema_yml)
         write_file(updated_yaml, project.project_root, "models", "schema.yml")
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1
@@ -110,9 +108,7 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, multiple privileges
-        updated_yaml = self.interpolate_name_overrides(
-            multiple_privileges_table_model_schema_yml
-        )
+        updated_yaml = self.interpolate_name_overrides(multiple_privileges_table_model_schema_yml)
         write_file(updated_yaml, project.project_root, "models", "schema.yml")
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1

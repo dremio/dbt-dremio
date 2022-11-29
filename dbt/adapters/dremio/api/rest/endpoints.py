@@ -46,9 +46,7 @@ def _get(url, request_headers, details="", ssl_verify=True):
     return _check_error(response, details)
 
 
-def _post(
-    url, request_headers=None, json=None, details="", ssl_verify=True, timeout=None
-):
+def _post(url, request_headers=None, json=None, details="", ssl_verify=True, timeout=None):
     if isinstance(json, str):
         json = jsonlib.loads(json)
     response = requests.post(
@@ -111,27 +109,17 @@ def _check_error(response, details=""):
     if code == 404:
         raise DremioNotFoundException("Not found:" + details, error, response)
     if code == 408:
-        raise DremioRequestTimeoutException(
-            "Request timeout:" + details, error, response
-        )
+        raise DremioRequestTimeoutException("Request timeout:" + details, error, response)
     if code == 409:
         raise DremioAlreadyExistsException("Already exists:" + details, error, response)
     if code == 429:
-        raise DremioTooManyRequestsException(
-            "Too many requests:" + details, error, response
-        )
+        raise DremioTooManyRequestsException("Too many requests:" + details, error, response)
     if code == 500:
-        raise DremioInternalServerException(
-            "Internal server error:" + details, error, response
-        )
+        raise DremioInternalServerException("Internal server error:" + details, error, response)
     if code == 503:
-        raise DremioServiceUnavailableException(
-            "Service unavailable:" + details, error, response
-        )
+        raise DremioServiceUnavailableException("Service unavailable:" + details, error, response)
     if code == 504:
-        raise DremioGatewayTimeoutException(
-            "Gateway Timeout:" + details, error, response
-        )
+        raise DremioGatewayTimeoutException("Gateway Timeout:" + details, error, response)
     raise DremioException("Unknown error", error)
 
 
@@ -181,9 +169,7 @@ def job_cancel_api(api_parameters: Parameters, job_id, ssl_verify=True):
     )
 
 
-def job_results(
-    api_parameters: Parameters, job_id, offset=0, limit=100, ssl_verify=True
-):
+def job_results(api_parameters: Parameters, job_id, offset=0, limit=100, ssl_verify=True):
     url = UrlBuilder.job_results_url(
         api_parameters,
         job_id,
@@ -207,9 +193,7 @@ def create_catalog_api(api_parameters, json, ssl_verify=True):
     )
 
 
-def get_catalog_item(
-    api_parameters, catalog_id=None, catalog_path=None, ssl_verify=True
-):
+def get_catalog_item(api_parameters, catalog_id=None, catalog_path=None, ssl_verify=True):
     if catalog_id is None and catalog_path is None:
         raise TypeError("both id and path can't be None for a catalog_item call")
 

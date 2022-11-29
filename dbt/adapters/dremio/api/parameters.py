@@ -75,9 +75,7 @@ class ParametersBuilder:
 
     @classmethod
     def _build_dremio_authentication(self, credentials: DremioCredentials):
-        return DremioAuthentication.build(
-            credentials.UID, credentials.PWD, credentials.pat
-        )
+        return DremioAuthentication.build(credentials.UID, credentials.PWD, credentials.pat)
 
 
 @dataclass

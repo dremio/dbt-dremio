@@ -100,9 +100,7 @@ class TestProfileTemplate:
 
     def test_software_username_password_options(self) -> None:
         self._test_project_profile_options(
-            self._get_dbt_test_project_dict(
-                self._TEST_SOFTWARE_USER_PASSWORD_PROFILE_PROJECT
-            ),
+            self._get_dbt_test_project_dict(self._TEST_SOFTWARE_USER_PASSWORD_PROFILE_PROJECT),
             self._DREMIO_SOFTWARE_USERNAME_PASSWORD_PROFILE_OPTIONS,
         )
 

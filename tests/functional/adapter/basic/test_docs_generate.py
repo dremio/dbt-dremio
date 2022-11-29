@@ -106,9 +106,7 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
 
     # Override this fixture to set root_path=schema
     @pytest.fixture(scope="class")
-    def dbt_profile_data(
-        self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
         profile = {
             "config": {"send_anonymous_usage_stats": False},
             "test": {
@@ -144,9 +142,7 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
     # Test "--no-compile" flag works and produces no manifest.json
     def test_run_and_generate_no_compile(self, project, expected_catalog):
         start_time = run_and_generate(project, ["--no-compile"])
-        assert not os.path.exists(
-            os.path.join(project.project_root, "target", "manifest.json")
-        )
+        assert not os.path.exists(os.path.join(project.project_root, "target", "manifest.json"))
         verify_catalog_nodes(project, expected_catalog, start_time)
 
     # Test generic "docs generate" command
@@ -186,9 +182,7 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
 
     # Override this fixture to set root_path=schema
     @pytest.fixture(scope="class")
-    def dbt_profile_data(
-        self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
         profile = {
             "config": {"send_anonymous_usage_stats": False},
             "test": {

@@ -40,9 +40,7 @@ class BaseGrantsDremio(BaseGrants):
         }
 
     @pytest.fixture(scope="class")
-    def dbt_profile_data(
-        self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
         profile = {
             "config": {"send_anonymous_usage_stats": False},
             "test": {

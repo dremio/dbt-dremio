@@ -54,9 +54,7 @@ class DremioPasswordAuthentication(DremioAuthentication):
     token: Optional[str] = None
 
     def get_headers(self):
-        authorization_field = "_dremio{authorization_token}".format(
-            authorization_token=self.token
-        )
+        authorization_field = "_dremio{authorization_token}".format(authorization_token=self.token)
         return self.build_headers(authorization_field)
 
 
@@ -65,7 +63,5 @@ class DremioPatAuthentication(DremioAuthentication):
     pat: Optional[str] = None
 
     def get_headers(self):
-        authorization_field = "Bearer {authorization_token}".format(
-            authorization_token=self.pat
-        )
+        authorization_field = "Bearer {authorization_token}".format(authorization_token=self.pat)
         return self.build_headers(authorization_field)

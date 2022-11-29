@@ -54,25 +54,17 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
         model = manifest.nodes[model_id]
         assert model.config.materialized == "incremental"
         expected = {select_privilege_name: [test_users[0]]}
-        self.assert_expected_grants_match_actual(
-            project, "my_incremental_model", expected
-        )
+        self.assert_expected_grants_match_actual(project, "my_incremental_model", expected)
 
         # Incremental materialization, run again without changes
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1
         assert "revoke " not in log_output
-        assert (
-            "grant " not in log_output
-        )  # with space to disambiguate from 'show grants'
-        self.assert_expected_grants_match_actual(
-            project, "my_incremental_model", expected
-        )
+        assert "grant " not in log_output  # with space to disambiguate from 'show grants'
+        self.assert_expected_grants_match_actual(project, "my_incremental_model", expected)
 
         # Incremental materialization, change select grant user
-        updated_yaml = self.interpolate_name_overrides(
-            user2_incremental_model_schema_yml
-        )
+        updated_yaml = self.interpolate_name_overrides(user2_incremental_model_schema_yml)
         write_file(updated_yaml, project.project_root, "models", "schema.yml")
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1
@@ -81,17 +73,13 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
         model = manifest.nodes[model_id]
         assert model.config.materialized == "incremental"
         expected = {select_privilege_name: [test_users[1]]}
-        self.assert_expected_grants_match_actual(
-            project, "my_incremental_model", expected
-        )
+        self.assert_expected_grants_match_actual(project, "my_incremental_model", expected)
 
         # Incremental materialization, same config, now with --full-refresh
         run_dbt(["--debug", "run", "--full-refresh"])
         assert len(results) == 1
         # whether grants or revokes happened will vary by adapter
-        self.assert_expected_grants_match_actual(
-            project, "my_incremental_model", expected
-        )
+        self.assert_expected_grants_match_actual(project, "my_incremental_model", expected)
 
         # Now drop the schema (with the table in it)
         adapter = project.adapter
@@ -105,6 +93,4 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
         # Need to comment this out, as it looks like the grant is copied over
         # assert "grant " in log_output
         assert "revoke " not in log_output
-        self.assert_expected_grants_match_actual(
-            project, "my_incremental_model", expected
-        )
+        self.assert_expected_grants_match_actual(project, "my_incremental_model", expected)

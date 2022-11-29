@@ -63,9 +63,7 @@ class DremioRelation(BaseRelation):
             path_part: Optional[str] = None
             if self.include_policy.get_part(key):
                 tmp_path_part = self.path.get_part(key)
-                if not (
-                    key == ComponentName.Schema and tmp_path_part == self.no_schema
-                ):
+                if not (key == ComponentName.Schema and tmp_path_part == self.no_schema):
                     path_part = tmp_path_part
                 if path_part is not None and (
                     self.quote_policy.get_part(key)

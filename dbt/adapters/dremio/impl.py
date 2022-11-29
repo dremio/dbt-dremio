@@ -74,9 +74,7 @@ class DremioAdapter(SQLAdapter):
             schema = relation.schema
             self.connections.drop_catalog(database, schema)
 
-    def timestamp_add_sql(
-        self, add_to: str, number: int = 1, interval: str = "hour"
-    ) -> str:
+    def timestamp_add_sql(self, add_to: str, number: int = 1, interval: str = "hour") -> str:
         return f"DATE_ADD({add_to}, CAST({number} AS INTERVAL {interval}))"
 
     def get_rows_different_sql(

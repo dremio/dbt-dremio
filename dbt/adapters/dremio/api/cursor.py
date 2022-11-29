@@ -83,9 +83,7 @@ class DremioCursor:
         if bindings is None:
             self._initialize()
 
-            json_payload = sql_endpoint(
-                self._parameters, sql, context=None, ssl_verify=True
-            )
+            json_payload = sql_endpoint(self._parameters, sql, context=None, ssl_verify=True)
 
             self._job_id = json_payload["id"]
 
@@ -164,6 +162,4 @@ class DremioCursor:
                 if data_type_str == "BIGINT":
                     tester = agate.TypeTester(force={f"{name}": agate.Number()})
 
-            self._table_results = agate.Table.from_object(
-                json_rows, column_types=tester
-            )
+            self._table_results = agate.Table.from_object(json_rows, column_types=tester)

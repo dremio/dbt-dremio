@@ -49,9 +49,7 @@ class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
     # Need to set target_database=datalake, and target_schema=root_path
     # These are necessary and defined in the model config
     @pytest.fixture(scope="class")
-    def dbt_profile_data(
-        self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
+    def dbt_profile_data(self, unique_schema, dbt_profile_target, profiles_config_update):
         profile = {
             "config": {"send_anonymous_usage_stats": False},
             "test": {

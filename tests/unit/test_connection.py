@@ -27,9 +27,7 @@ class TestRetryConnection:
         mocked_post_func,
     ):
         # Arrange
-        TOTAL_CONNECTION_ATTEMPTS = (
-            DremioConnectionManager.DEFAULT_CONNECTION_RETRIES + 1
-        )
+        TOTAL_CONNECTION_ATTEMPTS = DremioConnectionManager.DEFAULT_CONNECTION_RETRIES + 1
 
         mocked_connection_obj.credentials.software_host = ""
         mocked_connection_obj.credentials.cloud_host = None
