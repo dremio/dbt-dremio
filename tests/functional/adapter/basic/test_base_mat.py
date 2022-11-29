@@ -36,7 +36,7 @@ schema_base_yml = """
 version: 2
 sources:
   - name: raw
-    database: "dbt_test_source" 
+    database: "dbt_test_source"
     schema: "{{ target.schema }}"
     tables:
       - name: seed
