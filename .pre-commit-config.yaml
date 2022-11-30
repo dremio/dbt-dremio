@@ -29,7 +29,6 @@ repos:
     - id: check-merge-conflict
     - id: debug-statements
     - id: detect-private-key
-    - id: requirements-txt-fixer
 - repo: https://github.com/psf/black
   rev: 22.10.0
   hooks:
@@ -49,3 +48,8 @@ repos:
   rev: 6.0.0
   hooks:
   - id: flake8
+- repo: https://github.com/PyCQA/bandit
+  rev: 1.7.4
+  hooks:
+  - id: bandit
+    args: ["-c", ".bandit.yml", "-r", "."]
