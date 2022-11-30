@@ -1,4 +1,5 @@
 agate
+bandit
 black
 bumpversion
 dbt-core==1.3.0
@@ -9,7 +10,6 @@ freezegun
 ipdb
 mypy
 pip-tools
-pre-commit
 pre-commit
 pytest
 pytest-csv

@@ -110,7 +110,7 @@ def check_relation_types(adapter, relation_to_type):
         for relation in found_relations:
             # this might be too broad
             if relation.identifier == key:
-                assert relation.type == value, (
+                assert relation.type == value, (  # nosec assert_used
                     f"Got an unexpected relation type of {relation.type} "
                     f"for relation {key}, expected {value}"
                 )

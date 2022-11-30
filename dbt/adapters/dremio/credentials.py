@@ -26,8 +26,8 @@ class DremioCredentials(Credentials):
     pat: Optional[str] = None
     datalake: Optional[str] = None
     root_path: Optional[str] = None
-    database: Optional[str] = None
-    schema: Optional[str] = None
+    database: str = None
+    schema: str = None
     cloud_project_id: Optional[str] = None
     cloud_host: Optional[str] = None
     software_host: Optional[str] = None
