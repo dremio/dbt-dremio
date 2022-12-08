@@ -29,6 +29,8 @@ repos:
     - id: check-merge-conflict
     - id: debug-statements
     - id: detect-private-key
+    - id: no-commit-to-branch
+      args: [--branch, main]
 - repo: https://github.com/psf/black
   rev: 22.10.0
   hooks:
@@ -36,14 +38,6 @@ repos:
     additional_dependencies: ['click==8.0.4']
     args:
     - "--target-version=py310"
-  - id: black
-    alias: black-check
-    stages: [manual]
-    additional_dependencies: ['click==8.0.4']
-    args:
-    - "--target-version=py310"
-    - "--check"
-    - "--diff"
 - repo: https://github.com/pycqa/flake8
   rev: 6.0.0
   hooks:
