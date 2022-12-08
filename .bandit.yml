@@ -1,6 +1,5 @@
 
 ### Bandit config file generated from:
-# '/Users/jaredl/.pyenv/versions/3.10.7/bin/bandit-config-generator --out bandit.yml'
 
 ### This config may optionally select a subset of tests to run or skip by
 ### filling out the 'tests' and 'skips' lists given below. If no tests are
