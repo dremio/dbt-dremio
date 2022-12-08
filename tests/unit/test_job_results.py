@@ -63,15 +63,15 @@ class TestJobResults:
     @patch("dbt.adapters.dremio.api.cursor.job_results")
     def test_job_result_pagination(self, mocked_job_results_func):
         # Arrange
-        PAGE_LIMIT = 2
+        ROW_LIMIT = 2
         JOB_RESULT_TOTAL_CALLS = ceil(
-            self.mocked_job_results_dict[0]["rowCount"] / PAGE_LIMIT
+            self.mocked_job_results_dict[0]["rowCount"] / ROW_LIMIT
         )
         dremio_cursor_obj = DremioCursor(Parameters("hello", DremioAuthentication()))
         mocked_job_results_func.side_effect = self.mocked_job_results_dict
 
         # Act
-        dremio_cursor_obj._populate_job_results(page_limit=PAGE_LIMIT)
+        dremio_cursor_obj._populate_job_results(row_limit=ROW_LIMIT)
 
         # Assert
         assert dremio_cursor_obj._job_results == self.expected_combined_job_results
