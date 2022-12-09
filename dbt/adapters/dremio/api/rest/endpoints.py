@@ -33,24 +33,33 @@ from .error import (
     DremioPermissionException,
     DremioUnauthorizedException,
     DremioAlreadyExistsException,
+    DremioRequestTimeoutException,
+    DremioTooManyRequestsException,
+    DremioInternalServerException,
+    DremioServiceUnavailableException,
+    DremioGatewayTimeoutException,
 )
 
 
 def _get(url, request_headers, details="", ssl_verify=True):
-    r = requests.get(url, headers=request_headers, verify=ssl_verify)
-    return _check_error(r, details)
+    response = requests.get(url, headers=request_headers, verify=ssl_verify)
+    return _check_error(response, details)
 
 
-def _post(url, request_headers, json=None, details="", ssl_verify=True):
+def _post(
+    url, request_headers=None, json=None, details="", ssl_verify=True, timeout=None
+):
     if isinstance(json, str):
         json = jsonlib.loads(json)
-    r = requests.post(url, headers=request_headers, verify=ssl_verify, json=json)
-    return _check_error(r, details)
+    response = requests.post(
+        url, headers=request_headers, timeout=timeout, verify=ssl_verify, json=json
+    )
+    return _check_error(response, details)
 
 
 def _delete(url, request_headers, details="", ssl_verify=True):
-    r = requests.delete(url, headers=request_headers, verify=ssl_verify)
-    return _check_error(r, details)
+    response = requests.delete(url, headers=request_headers, verify=ssl_verify)
+    return _check_error(response, details)
 
 
 def _raise_for_status(self):
@@ -85,24 +94,44 @@ def _raise_for_status(self):
         return None, self.status_code, reason
 
 
-def _check_error(r, details=""):
-    error, code, reason = _raise_for_status(r)
+def _check_error(response, details=""):
+    error, code, reason = _raise_for_status(response)
     if not error:
         try:
-            data = r.json()
+            data = response.json()
             return data
         except:  # NOQA
-            return r.text
+            return response.text
     if code == 400:
-        raise DremioBadRequestException("Bad request:" + details, error, r)
+        raise DremioBadRequestException("Bad request:" + details, error, response)
     if code == 401:
-        raise DremioUnauthorizedException("Unauthorized:" + details, error, r)
+        raise DremioUnauthorizedException("Unauthorized:" + details, error, response)
     if code == 403:
-        raise DremioPermissionException("No permission:" + details, error, r)
+        raise DremioPermissionException("No permission:" + details, error, response)
     if code == 404:
-        raise DremioNotFoundException("Not found:" + details, error, r)
+        raise DremioNotFoundException("Not found:" + details, error, response)
+    if code == 408:
+        raise DremioRequestTimeoutException(
+            "Request timeout:" + details, error, response
+        )
     if code == 409:
-        raise DremioAlreadyExistsException("Already exists:" + details, error, r)
+        raise DremioAlreadyExistsException("Already exists:" + details, error, response)
+    if code == 429:
+        raise DremioTooManyRequestsException(
+            "Too many requests:" + details, error, response
+        )
+    if code == 500:
+        raise DremioInternalServerException(
+            "Internal server error:" + details, error, response
+        )
+    if code == 503:
+        raise DremioServiceUnavailableException(
+            "Service unavailable:" + details, error, response
+        )
+    if code == 504:
+        raise DremioGatewayTimeoutException(
+            "Gateway Timeout:" + details, error, response
+        )
     raise DremioException("Unknown error", error)
 
 
@@ -112,19 +141,17 @@ def login(api_parameters: Parameters, timeout=10, verify=True):
         return api_parameters
 
     url = UrlBuilder.login_url(api_parameters)
-
-    r = requests.post(
+    response = _post(
         url,
         json={
             "userName": api_parameters.authentication.username,
             "password": api_parameters.authentication.password,
         },
         timeout=timeout,
-        verify=verify,
+        ssl_verify=verify,
     )
-    r.raise_for_status()
 
-    api_parameters.authentication.token = r.json()["token"]
+    api_parameters.authentication.token = response["token"]
 
     return api_parameters
 
@@ -201,8 +228,7 @@ def get_catalog_item(
 
 
 def delete_catalog(api_parameters, cid, ssl_verify=True):
-
-    url = UrlBuilder.catalog_url(api_parameters, cid)
+    url = UrlBuilder.delete_catalog_url(api_parameters, cid)
     return _delete(
         url,
         api_parameters.authentication.get_headers(),

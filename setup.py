@@ -13,7 +13,7 @@
 from setuptools import find_namespace_packages, setup
 
 package_name = "dbt-dremio"
-package_version = "1.1.0"
+package_version = "1.3.0"
 description = """The Dremio adapter plugin for dbt"""
 
 setup(
