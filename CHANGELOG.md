@@ -8,6 +8,8 @@
 
 -   Change \_populate_job_results() to have limit of 500 (Dremio's limit).
 
+-   Fix error handling so the error reported when a job fails is the actual error from Dremio. ([#69](https://github.com/dremio/dbt-dremio/issues/69))
+
 ## Under the Hood
 
 ## Dependency
