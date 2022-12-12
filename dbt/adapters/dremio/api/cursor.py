@@ -147,15 +147,32 @@ class DremioCursor:
 
         self._rowcount = rows
 
-    def _populate_job_results(self):
-        if self._job_results is None:
-            self._job_results = job_results(
+
+    def _populate_job_results(self, row_limit=100):
+        if self._job_results == None:
+            combined_job_results = job_results(
                 self._parameters,
                 self._job_id,
                 offset=0,
-                limit=500,
+                limit=row_limit,
                 ssl_verify=True,
             )
+            total_row_count = combined_job_results["rowCount"]
+            current_row_count = len(combined_job_results["rows"])
+
+            while current_row_count < total_row_count:
+                combined_job_results["rows"].extend(
+                    job_results(
+                        self._parameters,
+                        self._job_id,
+                        offset=current_row_count,
+                        limit=row_limit,
+                        ssl_verify=True,
+                    )["rows"]
+                )
+                current_row_count += row_limit
+
+            self._job_results = combined_job_results
 
     def _populate_results_table(self):
         if self._job_results is not None:
