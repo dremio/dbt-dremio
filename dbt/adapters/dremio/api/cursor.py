@@ -126,11 +126,12 @@ class DremioCursor:
         while True:
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
-            if (
-                job_status_state == "COMPLETED"
-                or job_status_state == "CANCELLED"
-                or job_status_state == "FAILED"
-            ):
+
+            if job_status_state == "FAILED":
+                error_message = job_status_response["errorMessage"]
+                raise Exception(f"ERROR: {error_message}")
+
+            if job_status_state == "COMPLETED" or job_status_state == "CANCELLED":
                 break
             last_job_state = job_status_state
             job_status_response = job_status(self._parameters, job_id, ssl_verify=True)

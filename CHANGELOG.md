@@ -10,6 +10,8 @@
 
 -   Implement pagination in \_populate_job_results() ([#61](https://github.com/dremio/dbt-dremio/issues/61))
 
+-   Fix error handling so the error reported when a job fails is the actual error from Dremio. ([#69](https://github.com/dremio/dbt-dremio/issues/69))
+
 ## Under the Hood
 
 ## Dependency

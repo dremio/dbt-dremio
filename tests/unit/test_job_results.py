@@ -67,7 +67,7 @@ class TestJobResults:
         JOB_RESULT_TOTAL_CALLS = ceil(
             self.mocked_job_results_dict[0]["rowCount"] / ROW_LIMIT
         )
-        dremio_cursor_obj = DremioCursor(Parameters("hello", DremioAuthentication()))
+        dremio_cursor_obj = DremioCursor(Parameters("base_url", DremioAuthentication()))
         mocked_job_results_func.side_effect = self.mocked_job_results_dict
 
         # Act
