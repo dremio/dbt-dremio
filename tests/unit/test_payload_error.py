@@ -7,7 +7,9 @@ from dbt.adapters.dremio.api.authentication import DremioAuthentication
 class TestPayloadErrorMessage(TestCase):
     @mock.patch("dbt.adapters.dremio.api.cursor.job_status")
     def test_payload_error(self, mocked_job_status):
-        dremio_cursor_object = DremioCursor(Parameters("hola", DremioAuthentication))
+        dremio_cursor_object = DremioCursor(
+            Parameters("base_url", DremioAuthentication)
+        )
         mocked_job_status.return_value = {
             "jobState": "FAILED",
             "errorMessage": "ERROR: Expected error message",
