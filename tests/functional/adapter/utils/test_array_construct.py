@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dbt.tests.adapter.utils.data_types.test_type_boolean import BaseTypeBoolean
+import pytest
+from dbt.tests.adapter.utils.test_array_construct import BaseArrayConstruct
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
-class TestTypeBoolean(BaseTypeBoolean):
+class TestArrayConstruct(BaseArrayConstruct):
     pass
