@@ -20,14 +20,14 @@ from dbt.adapters.dremio.relation import DremioRelation
 
 @dataclass
 class DremioCredentials(Credentials):
+    database: Optional[str] = None
+    schema: Optional[str] = None
     environment: Optional[str] = None
     UID: Optional[str] = None
     PWD: Optional[str] = None
     pat: Optional[str] = None
     datalake: Optional[str] = None
     root_path: Optional[str] = None
-    database: Optional[str] = None
-    schema: Optional[str] = None
     cloud_project_id: Optional[str] = None
     cloud_host: Optional[str] = None
     software_host: Optional[str] = None

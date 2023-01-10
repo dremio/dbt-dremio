@@ -12,6 +12,7 @@
 import pytest
 from tests.utils.util import BUCKET
 
+
 # This ensures the schema works with our datalake
 @pytest.fixture(scope="class")
 def unique_schema(request, prefix) -> str:

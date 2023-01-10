@@ -61,7 +61,7 @@ class DremioCursor:
     def job_results(self):
         if self.closed:
             raise Exception("CursorClosed")
-        if self._job_results == None:
+        if self._job_results is None:
             self._populate_job_results()
 
         return self._job_results
@@ -98,7 +98,7 @@ class DremioCursor:
 
     def fetchone(self):
         row = None
-        if self._table_results != None:
+        if self._table_results is not None:
             row = self._table_results.rows[0]
         return row
 
@@ -115,8 +115,8 @@ class DremioCursor:
     def _populate_rowcount(self):
         if self.closed:
             raise Exception("CursorClosed")
-        ## keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
-        ## map job results to AdapterResponse
+        # keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
+        # map job results to AdapterResponse
         job_id = self._job_id
 
         last_job_state = ""
@@ -148,6 +148,7 @@ class DremioCursor:
 
         self._rowcount = rows
 
+
     def _populate_job_results(self, row_limit=100):
         if self._job_results == None:
             combined_job_results = job_results(
@@ -175,7 +176,7 @@ class DremioCursor:
             self._job_results = combined_job_results
 
     def _populate_results_table(self):
-        if self._job_results != None:
+        if self._job_results is not None:
             tester = agate.TypeTester()
             json_rows = self._job_results["rows"]
             self._table_results = json_rows
