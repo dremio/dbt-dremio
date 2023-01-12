@@ -20,4 +20,4 @@ twine
 wheel
 agate==1.6.3
 requests==2.28.1
-setuptools==65.6.3
+setuptools==65.7.0
