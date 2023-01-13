@@ -13,8 +13,12 @@
 # limitations under the License.
 
 import pytest
-from dbt.tests.adapter.basic.test_snapshot_check_cols import BaseSnapshotCheckCols
-from dbt.tests.adapter.basic.test_snapshot_timestamp import BaseSnapshotTimestamp
+from dbt.tests.adapter.basic.test_snapshot_check_cols import (
+    BaseSnapshotCheckCols,
+)
+from dbt.tests.adapter.basic.test_snapshot_timestamp import (
+    BaseSnapshotTimestamp,
+)
 from tests.utils.util import BUCKET
 
 

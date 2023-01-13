@@ -15,15 +15,15 @@
 << comment
 Intent:
 
-  The original intent of this script was to run automatic tests 
+  The original intent of this script was to run automatic tests
   in Github when a PR is created. Currently, we do not have access
-  to a public facing Dremio cluster, so this script will have to 
-  run manually in the meantime 
+  to a public facing Dremio cluster, so this script will have to
+  run manually in the meantime
   (https://github.com/dremio/dbt-dremio/issues/39)
 
   Run all three tests (softwareUP, softwarePAT, and cloud) before
-  submitting a pull request. This is a smoke test to ensure the 
-  adapter works as expected after your changes. 
+  submitting a pull request. This is a smoke test to ensure the
+  adapter works as expected after your changes.
 
 Preconditions:
   Dremio Sample Source added and available.
@@ -137,7 +137,7 @@ EOF
   create_model && \
   cd $project/ && \
   dbt debug && \
-  dbt run 
+  dbt run
 }
 
 # Main
@@ -151,12 +151,12 @@ if [ -f $profiles_path ]; then
 fi
 
 
-if [ $test_type == softwareUP ]; then 
+if [ $test_type == softwareUP ]; then
     test_user=$2
     test_password=$3
     test_host=$4
     test_port=$5
-  
+
     project=software_proj
     test_softwareUP
 
@@ -182,4 +182,3 @@ fi
 if [ -f $temp_path ]; then
   mv $temp_path $profiles_path
 fi
-

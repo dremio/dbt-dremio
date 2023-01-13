@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ limitations under the License.*/
             and (strpos(regexp_replace(display_columns, '$|, |^', '/'), '/' || column_name || '/') > 0
                   or strpos(regexp_replace(dimensions, '$|, |^', '/'), '/' || column_name || '/') > 0
                   or strpos(regexp_replace(measures, '$|, |^', '/'), '/' || column_name || '/') > 0 ))
-      where 
+      where
         {% for table_schema in table_schemas -%}
           ilike( table_schema, {{ table_schema.strip('"') }}){%- if not loop.last %} or {% endif -%}
         {%- endfor %}

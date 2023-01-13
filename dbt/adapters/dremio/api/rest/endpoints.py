@@ -13,19 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import requests
-import json as jsonlib
-from requests.exceptions import HTTPError
-
-from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
-from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.rest.url_builder import UrlBuilder
-
-from dbt.events import AdapterLogger
-
-logger = AdapterLogger("dremio")
-
 from .error import (
     DremioBadRequestException,
     DremioException,
@@ -40,6 +27,18 @@ from .error import (
     DremioGatewayTimeoutException,
 )
 
+import requests
+import json as jsonlib
+from requests.exceptions import HTTPError
+
+from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
+from dbt.adapters.dremio.api.parameters import Parameters
+from dbt.adapters.dremio.api.rest.url_builder import UrlBuilder
+
+from dbt.events import AdapterLogger
+
+logger = AdapterLogger("dremio")
+
 
 def _get(url, request_headers, details="", ssl_verify=True):
     response = requests.get(url, headers=request_headers, verify=ssl_verify)
@@ -47,12 +46,21 @@ def _get(url, request_headers, details="", ssl_verify=True):
 
 
 def _post(
-    url, request_headers=None, json=None, details="", ssl_verify=True, timeout=None
+    url,
+    request_headers=None,
+    json=None,
+    details="",
+    ssl_verify=True,
+    timeout=None,
 ):
     if isinstance(json, str):
         json = jsonlib.loads(json)
     response = requests.post(
-        url, headers=request_headers, timeout=timeout, verify=ssl_verify, json=json
+        url,
+        headers=request_headers,
+        timeout=timeout,
+        verify=ssl_verify,
+        json=json,
     )
     return _check_error(response, details)
 
@@ -89,7 +97,11 @@ def _raise_for_status(self):
         )
 
     if http_error_msg:
-        return HTTPError(http_error_msg, response=self), self.status_code, reason
+        return (
+            HTTPError(http_error_msg, response=self),
+            self.status_code,
+            reason,
+        )
     else:
         return None, self.status_code, reason
 
