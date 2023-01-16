@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Optional
+from typing import Tuple
 from contextlib import contextmanager
 
-from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
@@ -27,8 +26,6 @@ import json
 import dbt.exceptions
 from dbt.adapters.sql import SQLConnectionManager
 from dbt.contracts.connection import AdapterResponse
-
-from dbt.adapters.dremio.credentials import DremioCredentials
 
 from dbt.adapters.dremio.api.rest.endpoints import (
     delete_catalog,

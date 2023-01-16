@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from operator import contains
 from dbt.tests.util import check_relations_equal_with_relations
 from typing import List
 from contextlib import contextmanager
@@ -111,7 +110,7 @@ def check_relation_types(adapter, relation_to_type):
         for relation in found_relations:
             # this might be too broad
             if relation.identifier == key:
-                assert relation.type == value, (
+                assert relation.type == value, (  # nosec assert_used
                     f"Got an unexpected relation type of {relation.type} "
                     f"for relation {key}, expected {value}"
                 )
