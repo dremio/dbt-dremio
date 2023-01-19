@@ -16,7 +16,6 @@
 from dataclasses import dataclass
 from typing import Optional
 from abc import abstractmethod
-from xmlrpc.client import boolean
 
 from dbt.events import AdapterLogger
 
@@ -29,7 +28,7 @@ class DremioAuthentication:
 
     @classmethod
     def build(cls, username: None, password: None, pat: None):
-        if password != None:
+        if password is not None:
             return DremioPasswordAuthentication(username, password, token=None)
         return DremioPatAuthentication(username, pat)
 

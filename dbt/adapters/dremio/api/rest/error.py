@@ -18,7 +18,7 @@
 class DremioException(Exception):
     def __init__(self, msg, original_exception, response=None):
         message = f"{msg}: ({original_exception})"
-        if response != None:
+        if response is not None:
             message += f": ({response.text})"
 
         self.message = message
