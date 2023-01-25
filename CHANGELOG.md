@@ -19,3 +19,5 @@
 ## Dependency
 
 -   Upgrade dbt-core to 1.3.2.
+
+-   Upgrade dbt-tests-adapter to 1.3.2.
