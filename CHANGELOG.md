@@ -21,3 +21,7 @@
 -   Implement new Incremental materialization logic from dbt 1.3 as part of the upgrade to support dbt-core v1.3.0. ([#44](https://github.com/dremio/dbt-dremio/issues/44), [#16](https://github.com/dremio/dbt-dremio/issues/16))
 
 ## Dependency
+
+-   Upgrade dbt-core to 1.3.2.
+
+-   Upgrade dbt-tests-adapter to 1.3.2.
