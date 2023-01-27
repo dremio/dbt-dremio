@@ -46,12 +46,12 @@ limitations under the License.*/
   {% set to_drop = [] %}
 
   {% if existing_relation is none %}
-    {% set build_sql = get_create_table_as_sql(False, target_relation, sql) %}
+    {% set build_sql = get_create_table_as_sql(False, target_relation, external_query(sql)) %}
   {% elif full_refresh_mode %}
-    {% set build_sql = get_create_table_as_sql(False, intermediate_relation, sql) %}
+    {% set build_sql = get_create_table_as_sql(False, intermediate_relation, external_query(sql)) %}
     {% set need_swap = true %}
   {% else %}
-    {% do run_query(get_create_table_as_sql(True, temp_relation, sql)) %}
+    {% do run_query(get_create_table_as_sql(True, temp_relation, external_query(sql))) %}
     {% do adapter.expand_target_column_types(
              from_relation=temp_relation,
              to_relation=target_relation) %}
