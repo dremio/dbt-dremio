@@ -28,9 +28,9 @@ limitations under the License.*/
 
 {% macro dremio__rename_relation(from_relation, to_relation) -%}
   {% call statement('rename_relation1/2 - create to_relation from from_relation') -%}
-    CREATE TABLE {{ to_relation }} AS (select * from {{from_relation}})
+    {{ get_create_table_as_sql(temporary=False, relation=to_relation, sql="select * from " ~ from_relation)}}
   {%- endcall %}
   {% call statement('rename_relation2/2 - drop from_relation') -%}
-    DROP TABLE {{ from_relation }}
+    DROP TABLE {{from_relation}}
   {%- endcall %}
 {% endmacro %}
