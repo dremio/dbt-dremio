@@ -136,7 +136,7 @@ class DremioConnectionManager(SQLConnectionManager):
         if auto_begin and connection.transaction_open is False:
             self.begin()
 
-        logger.debug(f'Using {self.TYPE} connection "{connection.name}')
+        logger.debug(f'Using {self.TYPE} connection "{connection.name}"')
 
         with self.exception_handler(sql):
             if abridge_sql_log:

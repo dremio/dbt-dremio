@@ -108,6 +108,12 @@ class DremioAdapter(SQLAdapter):
 
         return sql
 
+    def valid_incremental_strategies(self):
+        """The set of standard builtin strategies which this adapter supports out-of-the-box.
+        Not used to validate custom strategies defined by end users.
+        """
+        return ["append"]
+
     def standardize_grants_dict(self, grants_table: agate.Table) -> dict:
         """Translate the result of `show grants` (or equivalent) to match the
         grants which a user would configure in their project.
