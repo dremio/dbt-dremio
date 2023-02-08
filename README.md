@@ -18,7 +18,7 @@ Version 1.3.2 of the dbt-dremio adapter is compatible with dbt-core versions 1.2
 
 ## Getting started
 
--   [Install dbt](https://docs.getdbt.com/docs/installation)
+-   [Install dbt-dremio](https://docs.getdbt.com/reference/warehouse-setups/dremio-setup)
     -   Version 1.3.2 of dbt-dremio requires dbt-core >= 1.2.0 and <=1.3.2. Installing dbt-dremio will automatically upgrade existing dbt-core versions earlier than 1.2.0 to 1.3.2, or install dbt-core v1.3.2 if no version of dbt-core is found.
 -   Read the [introduction](https://docs.getdbt.com/docs/introduction/) and [viewpoint](https://docs.getdbt.com/docs/about/viewpoint/)
 
