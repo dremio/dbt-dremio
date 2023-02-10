@@ -1,0 +1,21 @@
+
+name: Enhancement Request
+description: Request an enhancement to the project
+labels: ["Type: enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to share your feedback on ways dbt-dremio can be improved!
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the enhancement requested
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Justification for this enhancement
+    validations:
+      required: false
