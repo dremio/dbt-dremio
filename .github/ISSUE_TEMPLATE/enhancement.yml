@@ -27,7 +27,7 @@ body:
     validations:
       required: true
   - type: textarea
-    id: description
+    id: justification
     attributes:
       label: Justification for this enhancement
     validations:
