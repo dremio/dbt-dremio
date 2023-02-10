@@ -18,6 +18,7 @@ from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.utils.util import relation_from_name
 from dbt.tests.util import get_connection
 
+
 class TestInvalidGrantsDremio(BaseGrantsDremio, BaseInvalidGrants):
     def grantee_does_not_exist_error(self):
         return "StatusRuntimeException: INTERNAL"
