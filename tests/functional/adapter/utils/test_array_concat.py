@@ -17,5 +17,6 @@ from dbt.tests.adapter.utils.test_array_concat import BaseArrayConcat
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
+@pytest.mark.skip(reason="Dremio does not currently support Array Concat.")
 class TestArrayConcat(BaseArrayConcat):
     pass
