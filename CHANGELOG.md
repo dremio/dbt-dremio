@@ -1,4 +1,16 @@
-# dbt-dremio 1.3.2 - release February 7, 2023
+# dbt-dremio 1.4.1 - release TBD
+
+## Features
+
+## Fixes
+
+## Under the Hood
+
+-   [#64](https://github.com/dremio/dbt-dremio/issues/64) Add BaseArrayTests and throw exceptions for unsupported Array Macros.
+
+## Dependency
+
+# dbt-dremio 1.3.2 - release February 8, 2023
 
 ## Features
 
