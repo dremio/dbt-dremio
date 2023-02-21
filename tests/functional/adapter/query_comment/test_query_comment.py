@@ -1,5 +1,4 @@
 import pytest
-from tests.fixtures.profiles import unique_schema, dbt_profile_data
 from dbt.tests.adapter.query_comment.test_query_comment import (
     BaseQueryComments,
     BaseMacroQueryComments,
@@ -8,6 +7,7 @@ from dbt.tests.adapter.query_comment.test_query_comment import (
     BaseNullQueryComments,
     BaseEmptyQueryComments,
 )
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
 class TestQueryCommentsDremio(BaseQueryComments):
