@@ -11,6 +11,10 @@
 
 ## Dependency
 
+-   Upgrade dbt-core to 1.4.1.
+
+-   Upgrade dbt-tests-adapter to 1.4.1.
+
 # dbt-dremio 1.3.2 - release February 8, 2023
 
 ## Features
