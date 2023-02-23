@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dbt.adapters.base.relation import (
     BaseRelation,
     Policy,
@@ -37,8 +37,10 @@ class DremioIncludePolicy(Policy):
 
 @dataclass(frozen=True, eq=False, repr=False)
 class DremioRelation(BaseRelation):
-    quote_policy: DremioQuotePolicy = DremioQuotePolicy()
-    include_policy: DremioIncludePolicy = DremioIncludePolicy()
+    quote_policy: DremioQuotePolicy = field(default_factory=lambda: DremioQuotePolicy())
+    include_policy: DremioIncludePolicy = field(
+        default_factory=lambda: DremioIncludePolicy()
+    )
     no_schema = "no_schema"
     format: Optional[str] = None
     format_clause: Optional[str] = None
