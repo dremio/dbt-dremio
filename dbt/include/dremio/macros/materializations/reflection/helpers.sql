@@ -28,7 +28,7 @@ limitations under the License.*/
     Expected one of: {{ accepted_types | join(', ') }}
   {%- endset %}
   {% if raw_reflection_type not in accepted_types %}
-    {% do exceptions.raise_compiler_error(invalid_reflection_type_msg) %}
+    {% do exceptions.CompilationError(invalid_reflection_type_msg) %}
   {% endif %}
   {% do return(raw_reflection_type) %}
 {% endmacro %}

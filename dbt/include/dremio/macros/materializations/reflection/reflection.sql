@@ -14,7 +14,7 @@ limitations under the License.*/
 
 {% materialization reflection, adapter='dremio' %}
   {%- if not  var('dremio:reflections_enabled', default=false)  -%}
-    {% do exceptions.raise_compiler_error("reflections are disabled, set 'dremio:reflections_enabled' variable to true to enable them") %}
+    {% do exceptions.CompilationError("reflections are disabled, set 'dremio:reflections_enabled' variable to true to enable them") %}
   {%- endif -%}
 
   {% set raw_reflection_type = config.get('reflection_type', validator=validation.any[basestring]) or 'raw' %}
