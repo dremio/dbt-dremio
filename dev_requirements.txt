@@ -19,7 +19,7 @@ pytest-logbook
 pytest-xdist
 pytz
 requests==2.28.1
-setuptools==65.6.3
+setuptools==67.4.0
 tox>=3.13
 twine
 wheel
