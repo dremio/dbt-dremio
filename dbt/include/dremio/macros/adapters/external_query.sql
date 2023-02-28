@@ -37,10 +37,10 @@ limitations under the License.*/
       {%- if source_names | length == 1 -%}
         {{ return(model.sources[0]) }}
       {%- else -%}
-        {% do exceptions.raise_compiler_error("Invalid external query configuration: awaiting one single source name among all source dependencies") %}
+        {% do exceptions.CompilationError("Invalid external query configuration: awaiting one single source name among all source dependencies") %}
       {%- endif -%}
     {%- else -%}
-      {% do exceptions.raise_compiler_error("Invalid external query: awaiting only source dependencies") %}
+      {% do exceptions.CompilationError("Invalid external query: awaiting only source dependencies") %}
     {%- endif -%}
   {%- else -%}
     {{ return(none) }}

@@ -23,7 +23,7 @@ limitations under the License.*/
   {%- endset %}
 
   {% if raw_file_format not in accepted_formats %}
-    {% do exceptions.raise_compiler_error(invalid_file_format_msg) %}
+    {% do exceptions.CompilationError(invalid_file_format_msg) %}
   {% endif %}
 
   {% do return(raw_file_format) %}
@@ -38,7 +38,7 @@ limitations under the License.*/
   {%- endset %}
 
   {% if raw_strategy not in ['append'] %}
-    {% do exceptions.raise_compiler_error(invalid_strategy_msg) %}
+    {% do exceptions.CompilationError(invalid_strategy_msg) %}
   {% endif %}
 
   {% do return(raw_strategy) %}

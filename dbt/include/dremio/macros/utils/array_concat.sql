@@ -13,5 +13,5 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro dremio__array_concat(array_1, array_2) -%}
-    {% do exceptions.raise_compiler_error("Array Concat is not currently supported by Dremio.") %}
+    {% do exceptions.CompilationError("Array Concat is not currently supported by Dremio.") %}
 {%- endmacro %}
