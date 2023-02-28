@@ -60,13 +60,13 @@ class DremioConnectionManager(SQLConnectionManager):
         except Exception as e:
             logger.debug(f"Error running SQL: {sql}")
             self.release()
-            if isinstance(e, dbt.exceptions.RuntimeException):
+            if isinstance(e, dbt.exceptions.DbtRuntimeError):
                 # during a sql query, an internal to dbt exception was raised.
                 # this sounds a lot like a signal handler and probably has
                 # useful information, so raise it without modification.
                 raise
 
-            raise dbt.exceptions.RuntimeException(e)
+            raise dbt.exceptions.DbtRuntimeError(e)
 
     @classmethod
     def open(cls, connection):

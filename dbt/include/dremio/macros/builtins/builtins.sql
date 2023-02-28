@@ -17,7 +17,7 @@ limitations under the License.*/
   {%- if execute -%}
     {%- set model = graph.nodes.values() | selectattr("name", "equalto", model_name) | list | first -%}
     {%- if model.config.materialized == 'reflection' -%}
-      {% do exceptions.raise_compiler_error("Reflections cannot be ref()erenced (" ~ relation ~ ")") %}
+      {% do exceptions.CompilationError("Reflections cannot be ref()erenced (" ~ relation ~ ")") %}
     {%- endif -%}
     {%- set format = model.config.format if
       model.config.materialized not in ['view', 'reflection']

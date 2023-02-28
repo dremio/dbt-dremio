@@ -9,6 +9,7 @@
 -   [#64](https://github.com/dremio/dbt-dremio/issues/64) Add BaseArrayTests and throw exceptions for unsupported Array Macros.
 -   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add support for Query Comment Tests and Python 3.11
 -   [#134]https://github.com/dremio/dbt-dremio/issues/134) Add dremio:exact_search_enabled variable that if set to true, replaces usage of ilike with a basic equality in dremio\_\_list_relations_without_caching when reflections are not enabled.
+-   [#117](https://github.com/dremio/dbt-dremio/issues/117) Replace deprecated dbt-core exceptions
 
 ## Dependency
 

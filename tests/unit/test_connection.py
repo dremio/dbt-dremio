@@ -11,7 +11,7 @@
 
 import pytest
 from unittest.mock import patch
-from dbt.exceptions import FailedToConnectException
+from dbt.exceptions import DbtRuntimeError
 from dbt.adapters.dremio.api.rest.error import DremioRequestTimeoutException
 from dbt.adapters.dremio.connections import DremioConnectionManager
 
@@ -41,7 +41,7 @@ class TestRetryConnection:
         )
 
         # Act
-        with pytest.raises(FailedToConnectException):
+        with pytest.raises(DbtRuntimeError):
             DremioConnectionManager.open(connection=mocked_connection_obj)
 
         # Assert

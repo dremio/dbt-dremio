@@ -13,5 +13,5 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro dremio__array_append(array, new_element) -%}
-    {% do exceptions.raise_compiler_error("Array Append is not currently supported by Dremio.") %}
+    {% do exceptions.CompilationError("Array Append is not currently supported by Dremio.") %}
 {%- endmacro %}
