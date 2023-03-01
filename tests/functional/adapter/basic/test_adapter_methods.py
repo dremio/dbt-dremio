@@ -26,7 +26,7 @@ models__my_model_sql = """
     {%- do adapter.drop_schema(upstream) -%}
     {% set existing = adapter.get_relation(upstream.database, upstream.schema, upstream.identifier) %}
     {% if existing is not defined %}
-        {% do exceptions.raise_compiler_error('expected ' ~ ' to not exist, but it did') %}
+        {% do exceptions.CompilationError('expected ' ~ ' to not exist, but it did') %}
     {% endif %}
 
     {%- do adapter.create_schema(upstream) -%}

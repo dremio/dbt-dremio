@@ -31,7 +31,7 @@ limitations under the License.*/
     {% set no_sql_for_strategy_msg -%}
       No known SQL for the incremental strategy provided: {{ strategy }}
     {%- endset %}
-    {%- do exceptions.raise_compiler_error(no_sql_for_strategy_msg) -%}
+    {%- do exceptions.CompilationError(no_sql_for_strategy_msg) -%}
   {%- endif -%}
 
 {% endmacro %}

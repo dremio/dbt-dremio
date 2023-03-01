@@ -16,6 +16,6 @@ limitations under the License.*/
     {% if inputs|length > 0 %}
     array[ {{ inputs|join(' , ') }} ]
     {% else %}
-    {% do exceptions.raise_compiler_error("Constructing empty arrays is not currently supported by Dremio.") %}
+    {% do exceptions.CompilationError("Constructing empty arrays is not currently supported by Dremio.") %}
     {% endif %}
 {%- endmacro %}
