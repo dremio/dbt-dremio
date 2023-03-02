@@ -23,6 +23,7 @@ from dbt.adapters.dremio.credentials import DremioCredentials
 class Parameters:
     base_url: str
     authentication: DremioAuthentication
+    verify_ssl: bool
 
 
 @dataclass
@@ -38,6 +39,7 @@ class SoftwareParameters(Parameters):
 @dataclass
 class ParametersBuilder:
     authentication: Optional[DremioCredentials] = None
+    verify_ssl: bool = True
 
     @classmethod
     def build(cls, credentials: DremioCredentials):
@@ -48,10 +50,11 @@ class ParametersBuilder:
         ):
             return CloudParametersBuilder(
                 cls._build_dremio_authentication(credentials=credentials),
+                credentials.verify_ssl,
                 credentials.cloud_host,
                 credentials.cloud_project_id,
             )
-        elif (
+        if (
             credentials.software_host is not None
             and credentials.cloud_host is None
             and credentials.port is not None
@@ -62,6 +65,7 @@ class ParametersBuilder:
                 credentials.software_host,
                 credentials.port,
                 credentials.use_ssl,
+                credentials.verify_ssl,
             )
         raise ValueError("Credentials match neither Cloud nor Software")
 
@@ -95,6 +99,7 @@ class CloudParametersBuilder(ParametersBuilder):
             base_url=self.build_base_url(),
             authentication=self.authentication,
             cloud_project_id=self.cloud_project_id,
+            verify_ssl=self.verify_ssl,
         )
 
 
@@ -113,5 +118,7 @@ class SoftwareParametersBuilder(ParametersBuilder):
 
     def get_parameters(self) -> Parameters:
         return SoftwareParameters(
-            base_url=self.build_base_url(), authentication=self.authentication
+            base_url=self.build_base_url(),
+            authentication=self.authentication,
+            verify_ssl=self.verify_ssl,
         )

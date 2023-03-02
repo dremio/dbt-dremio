@@ -147,7 +147,7 @@ def _check_error(response, details=""):
     raise DremioException("Unknown error", error)
 
 
-def login(api_parameters: Parameters, timeout=10, verify=True):
+def login(api_parameters: Parameters, timeout=10):
 
     if isinstance(api_parameters.authentication, DremioPatAuthentication):
         return api_parameters
@@ -160,7 +160,7 @@ def login(api_parameters: Parameters, timeout=10, verify=True):
             "password": api_parameters.authentication.password,
         },
         timeout=timeout,
-        ssl_verify=verify,
+        ssl_verify=api_parameters.verify_ssl,
     )
 
     api_parameters.authentication.token = response["token"]
@@ -168,34 +168,36 @@ def login(api_parameters: Parameters, timeout=10, verify=True):
     return api_parameters
 
 
-def sql_endpoint(api_parameters: Parameters, query, context=None, ssl_verify=True):
+def sql_endpoint(api_parameters: Parameters, query, context=None):
     url = UrlBuilder.sql_url(api_parameters)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=ssl_verify,
+        ssl_verify=api_parameters.verify_ssl,
         json={"sql": query, "context": context},
     )
 
 
-def job_status(api_parameters: Parameters, job_id, ssl_verify=True):
+def job_status(api_parameters: Parameters, job_id):
     url = UrlBuilder.job_status_url(api_parameters, job_id)
-    return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
+    return _get(
+        url,
+        api_parameters.authentication.get_headers(),
+        ssl_verify=api_parameters.verify_ssl,
+    )
 
 
-def job_cancel_api(api_parameters: Parameters, job_id, ssl_verify=True):
+def job_cancel_api(api_parameters: Parameters, job_id):
     url = UrlBuilder.job_cancel_url(api_parameters, job_id)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
         json=None,
-        ssl_verify=ssl_verify,
+        ssl_verify=api_parameters.verify_ssl,
     )
 
 
-def job_results(
-    api_parameters: Parameters, job_id, offset=0, limit=100, ssl_verify=True
-):
+def job_results(api_parameters: Parameters, job_id, offset=0, limit=100):
     url = UrlBuilder.job_results_url(
         api_parameters,
         job_id,
@@ -205,23 +207,21 @@ def job_results(
     return _get(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=ssl_verify,
+        ssl_verify=api_parameters.verify_ssl,
     )
 
 
-def create_catalog_api(api_parameters, json, ssl_verify=True):
+def create_catalog_api(api_parameters, json):
     url = UrlBuilder.catalog_url(api_parameters)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
         json=json,
-        ssl_verify=ssl_verify,
+        ssl_verify=api_parameters.verify_ssl,
     )
 
 
-def get_catalog_item(
-    api_parameters, catalog_id=None, catalog_path=None, ssl_verify=True
-):
+def get_catalog_item(api_parameters, catalog_id=None, catalog_path=None):
     if catalog_id is None and catalog_path is None:
         raise TypeError("both id and path can't be None for a catalog_item call")
 
@@ -236,13 +236,17 @@ def get_catalog_item(
             api_parameters,
             catalog_id,
         )
-    return _get(url, api_parameters.authentication.get_headers(), ssl_verify=ssl_verify)
+    return _get(
+        url,
+        api_parameters.authentication.get_headers(),
+        ssl_verify=api_parameters.verify_ssl,
+    )
 
 
-def delete_catalog(api_parameters, cid, ssl_verify=True):
+def delete_catalog(api_parameters, cid):
     url = UrlBuilder.delete_catalog_url(api_parameters, cid)
     return _delete(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=ssl_verify,
+        ssl_verify=api_parameters.verify_ssl,
     )
