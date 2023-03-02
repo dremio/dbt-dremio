@@ -3,6 +3,7 @@
 ## Features
 
 ## Fixes
+-   [#142](https://github.com/dremio/dbt-dremio/issues/142) Ensure ssl verification is enabled in all api calls. Also added an option called `verify_ssl` so it can be disabled in necessary circumstances.
 
 ## Under the Hood
 
