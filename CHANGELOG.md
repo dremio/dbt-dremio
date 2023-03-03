@@ -9,7 +9,9 @@
 
 -   [#64](https://github.com/dremio/dbt-dremio/issues/64) Add BaseArrayTests and throw exceptions for unsupported Array Macros.
 -   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add support for Query Comment Tests and Python 3.11
+-   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add Base Current Timestamps Tests 
 -   [#117](https://github.com/dremio/dbt-dremio/issues/117) Replace deprecated dbt-core exceptions
+-   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add support for changing relation type test
 
 ## Dependency
 
