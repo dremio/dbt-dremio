@@ -17,11 +17,12 @@ version: 1.0
 config-version: 2
 
 quoting:
-  database: true
-  schema: true
-  identifier: true
+    database: true
+    schema: true
+    identifier: true
 
 macro-paths: ["macros"]
 
 vars:
-  'dremio:reflections_enabled': false
+    "dremio:reflections_enabled": false
+    "dremio:exact_search_enabled": false
