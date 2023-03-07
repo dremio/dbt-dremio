@@ -66,6 +66,9 @@ prompts:
   dremio_space_folder:
     default: 'no_schema'
     hint: 'dremio space folder [dbt alias: root_path]'
+  verify_ssl:
+    default: true
+    hint: 'enable certificate verification'
   threads:
     hint: '1 or more'
     type: 'int'
