@@ -49,10 +49,12 @@ class ParametersBuilder:
             and credentials.cloud_project_id is not None
         ):
             return CloudParametersBuilder(
-                cls._build_dremio_authentication(credentials=credentials),
-                credentials.verify_ssl,
-                credentials.cloud_host,
-                credentials.cloud_project_id,
+                authentication=cls._build_dremio_authentication(
+                    credentials=credentials
+                ),
+                verify_ssl=credentials.verify_ssl,
+                cloud_host=credentials.cloud_host,
+                cloud_project_id=credentials.cloud_project_id,
             )
         if (
             credentials.software_host is not None
@@ -61,11 +63,13 @@ class ParametersBuilder:
             and credentials.use_ssl is not None
         ):
             return SoftwareParametersBuilder(
-                cls._build_dremio_authentication(credentials=credentials),
-                credentials.software_host,
-                credentials.port,
-                credentials.use_ssl,
-                credentials.verify_ssl,
+                authentication=cls._build_dremio_authentication(
+                    credentials=credentials
+                ),
+                verify_ssl=credentials.verify_ssl,
+                software_host=credentials.software_host,
+                port=credentials.port,
+                use_ssl=credentials.use_ssl,
             )
         raise ValueError("Credentials match neither Cloud nor Software")
 

@@ -68,7 +68,7 @@ prompts:
     hint: 'dremio space folder [dbt alias: root_path]'
   verify_ssl:
     default: true
-    hint: 'enable certificate verification'
+    hint: 'enable certificate verification (ignored if ssl is disabled)'
   threads:
     hint: '1 or more'
     type: 'int'
