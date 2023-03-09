@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+import warnings
 from urllib3.connectionpool import InsecureRequestWarning
 import yaml
 from dbt.tests.util import (
@@ -41,7 +42,11 @@ class TestVerifyCertificateDremio:
         new_yaml = yaml.safe_dump(config)
         write_file(new_yaml, *paths)
 
-    def test_verify_cert(self, project):
+    @pytest.mark.filterwarnings("error:InsecureRequestWarning")
+    def test_insecure_request_warning_not_exist(self, project):
+        run_dbt(["run"])
+
+    def test_insecure_request_warning_exists(self, project):
         with pytest.warns(InsecureRequestWarning):
             self.update_config_file(
                 {"verify_ssl": False},
