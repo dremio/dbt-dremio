@@ -23,7 +23,6 @@ from dbt.adapters.dremio.credentials import DremioCredentials
 class Parameters:
     base_url: str
     authentication: DremioAuthentication
-    verify_ssl: bool
 
 
 @dataclass
@@ -39,7 +38,6 @@ class SoftwareParameters(Parameters):
 @dataclass
 class ParametersBuilder:
     authentication: Optional[DremioCredentials] = None
-    verify_ssl: bool = True
 
     @classmethod
     def build(cls, credentials: DremioCredentials):
@@ -52,7 +50,6 @@ class ParametersBuilder:
                 authentication=cls._build_dremio_authentication(
                     credentials=credentials
                 ),
-                verify_ssl=credentials.verify_ssl,
                 cloud_host=credentials.cloud_host,
                 cloud_project_id=credentials.cloud_project_id,
             )
@@ -66,7 +63,6 @@ class ParametersBuilder:
                 authentication=cls._build_dremio_authentication(
                     credentials=credentials
                 ),
-                verify_ssl=credentials.verify_ssl,
                 software_host=credentials.software_host,
                 port=credentials.port,
                 use_ssl=credentials.use_ssl,
@@ -84,7 +80,7 @@ class ParametersBuilder:
     @classmethod
     def _build_dremio_authentication(self, credentials: DremioCredentials):
         return DremioAuthentication.build(
-            credentials.UID, credentials.PWD, credentials.pat
+            credentials.UID, credentials.PWD, credentials.pat, credentials.verify_ssl
         )
 
 
@@ -103,7 +99,6 @@ class CloudParametersBuilder(ParametersBuilder):
             base_url=self.build_base_url(),
             authentication=self.authentication,
             cloud_project_id=self.cloud_project_id,
-            verify_ssl=self.verify_ssl,
         )
 
 
@@ -124,5 +119,4 @@ class SoftwareParametersBuilder(ParametersBuilder):
         return SoftwareParameters(
             base_url=self.build_base_url(),
             authentication=self.authentication,
-            verify_ssl=self.verify_ssl,
         )

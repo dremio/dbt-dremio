@@ -160,7 +160,7 @@ def login(api_parameters: Parameters, timeout=10):
             "password": api_parameters.authentication.password,
         },
         timeout=timeout,
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
     api_parameters.authentication.token = response["token"]
@@ -173,7 +173,7 @@ def sql_endpoint(api_parameters: Parameters, query, context=None):
     return _post(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
         json={"sql": query, "context": context},
     )
 
@@ -183,7 +183,7 @@ def job_status(api_parameters: Parameters, job_id):
     return _get(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
 
@@ -193,7 +193,7 @@ def job_cancel_api(api_parameters: Parameters, job_id):
         url,
         api_parameters.authentication.get_headers(),
         json=None,
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
 
@@ -207,7 +207,7 @@ def job_results(api_parameters: Parameters, job_id, offset=0, limit=100):
     return _get(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
 
@@ -217,7 +217,7 @@ def create_catalog_api(api_parameters, json):
         url,
         api_parameters.authentication.get_headers(),
         json=json,
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
 
@@ -239,7 +239,7 @@ def get_catalog_item(api_parameters, catalog_id=None, catalog_path=None):
     return _get(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
 
@@ -248,5 +248,5 @@ def delete_catalog(api_parameters, cid):
     return _delete(
         url,
         api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.verify_ssl,
+        ssl_verify=api_parameters.authentication.verify_ssl,
     )

@@ -65,7 +65,6 @@ class DremioCredentials(Credentials):
             "software_host",
             "port",
             "use_ssl",
-            "verify_ssl",
             "environment",
             # These are aliased...
             "UID",
