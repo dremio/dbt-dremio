@@ -1,4 +1,4 @@
-agate==1.6.3
+agate==1.7.1
 bandit
 black==23.1.0
 bumpversion
