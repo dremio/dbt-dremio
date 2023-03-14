@@ -47,21 +47,25 @@ class ParametersBuilder:
             and credentials.cloud_project_id is not None
         ):
             return CloudParametersBuilder(
-                cls._build_dremio_authentication(credentials=credentials),
-                credentials.cloud_host,
-                credentials.cloud_project_id,
+                authentication=cls._build_dremio_authentication(
+                    credentials=credentials
+                ),
+                cloud_host=credentials.cloud_host,
+                cloud_project_id=credentials.cloud_project_id,
             )
-        elif (
+        if (
             credentials.software_host is not None
             and credentials.cloud_host is None
             and credentials.port is not None
             and credentials.use_ssl is not None
         ):
             return SoftwareParametersBuilder(
-                cls._build_dremio_authentication(credentials=credentials),
-                credentials.software_host,
-                credentials.port,
-                credentials.use_ssl,
+                authentication=cls._build_dremio_authentication(
+                    credentials=credentials
+                ),
+                software_host=credentials.software_host,
+                port=credentials.port,
+                use_ssl=credentials.use_ssl,
             )
         raise ValueError("Credentials match neither Cloud nor Software")
 
@@ -76,7 +80,7 @@ class ParametersBuilder:
     @classmethod
     def _build_dremio_authentication(self, credentials: DremioCredentials):
         return DremioAuthentication.build(
-            credentials.UID, credentials.PWD, credentials.pat
+            credentials.UID, credentials.PWD, credentials.pat, credentials.verify_ssl
         )
 
 
@@ -113,5 +117,6 @@ class SoftwareParametersBuilder(ParametersBuilder):
 
     def get_parameters(self) -> Parameters:
         return SoftwareParameters(
-            base_url=self.build_base_url(), authentication=self.authentication
+            base_url=self.build_base_url(),
+            authentication=self.authentication,
         )

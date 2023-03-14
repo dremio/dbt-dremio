@@ -83,9 +83,7 @@ class DremioCursor:
         if bindings is None:
             self._initialize()
 
-            json_payload = sql_endpoint(
-                self._parameters, sql, context=None, ssl_verify=True
-            )
+            json_payload = sql_endpoint(self._parameters, sql, context=None)
 
             self._job_id = json_payload["id"]
 
@@ -120,7 +118,7 @@ class DremioCursor:
         job_id = self._job_id
 
         last_job_state = ""
-        job_status_response = job_status(self._parameters, job_id, ssl_verify=True)
+        job_status_response = job_status(self._parameters, job_id)
         job_status_state = job_status_response["jobState"]
 
         while True:
@@ -134,7 +132,7 @@ class DremioCursor:
             if job_status_state == "COMPLETED" or job_status_state == "CANCELLED":
                 break
             last_job_state = job_status_state
-            job_status_response = job_status(self._parameters, job_id, ssl_verify=True)
+            job_status_response = job_status(self._parameters, job_id)
             job_status_state = job_status_response["jobState"]
 
         # this is done as job status does not return a rowCount if there are no rows affected (even in completed job_state)
@@ -148,7 +146,6 @@ class DremioCursor:
 
         self._rowcount = rows
 
-
     def _populate_job_results(self, row_limit=100):
         if self._job_results == None:
             combined_job_results = job_results(
@@ -156,7 +153,6 @@ class DremioCursor:
                 self._job_id,
                 offset=0,
                 limit=row_limit,
-                ssl_verify=True,
             )
             total_row_count = combined_job_results["rowCount"]
             current_row_count = len(combined_job_results["rows"])
@@ -168,7 +164,6 @@ class DremioCursor:
                         self._job_id,
                         offset=current_row_count,
                         limit=row_limit,
-                        ssl_verify=True,
                     )["rows"]
                 )
                 current_row_count += row_limit

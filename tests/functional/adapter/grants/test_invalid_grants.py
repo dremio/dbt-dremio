@@ -24,4 +24,4 @@ class TestInvalidGrantsDremio(BaseGrantsDremio, BaseInvalidGrants):
         return "StatusRuntimeException: INTERNAL"
 
     def privilege_does_not_exist_error(self):
-        return "Failure parsing the query."
+        return 'Encountered "fake_privilege"'

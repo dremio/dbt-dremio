@@ -199,13 +199,12 @@ class DremioConnectionManager(SQLConnectionManager):
                     api_parameters,
                     catalog_id=None,
                     catalog_path=path_list,
-                    ssl_verify=False,
                 )
             except DremioNotFoundException:
                 logger.debug("Catalog not found. Returning")
                 return
 
-            delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
+            delete_catalog(api_parameters, catalog_info["id"])
 
     def create_catalog(self, database, schema):
         thread_connection = self.get_thread_connection()
@@ -232,7 +231,7 @@ class DremioConnectionManager(SQLConnectionManager):
     def _create_space(self, database, api_parameters):
         space_json = self._make_new_space_json(database)
         try:
-            create_catalog_api(api_parameters, space_json, False)
+            create_catalog_api(api_parameters, space_json)
         except DremioAlreadyExistsException:
             logger.debug(f"Database {database} already exists. Creating folders only.")
 
@@ -242,7 +241,7 @@ class DremioConnectionManager(SQLConnectionManager):
             temp_path_list.append(folder)
             folder_json = self._make_new_folder_json(temp_path_list)
             try:
-                create_catalog_api(api_parameters, folder_json, False)
+                create_catalog_api(api_parameters, folder_json)
             except DremioAlreadyExistsException:
                 logger.debug(f"Folder {folder} already exists.")
 
