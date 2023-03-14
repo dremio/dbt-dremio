@@ -1,28 +1,20 @@
 # Copyright (C) 2022 Dremio Corporation
-#
+
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: dbt_dremio
-version: 1.0
-config-version: 2
+from dbt.tests.adapter.utils.data_types.test_type_boolean import BaseTypeBoolean
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
-quoting:
-    database: true
-    schema: true
-    identifier: true
 
-macro-paths: ["macros"]
-
-vars:
-    "dremio:reflections_enabled": false
-    "dremio:exact_search_enabled": false
+class TestTypeBoolean(BaseTypeBoolean):
+    pass

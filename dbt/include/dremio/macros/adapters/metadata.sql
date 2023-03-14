@@ -189,7 +189,11 @@ limitations under the License.*/
           end) as table_schema
           ,lower(table_type) as table_type
       from information_schema."tables"
-      where ilike(table_schema, '{{ schema_name }}')
+      {%- if var('dremio:exact_search_enabled', default=false) %}
+        where table_schema = '{{ schema_name }}'
+      {%- else %}
+        where ilike(table_schema, '{{ schema_name }}')
+      {%- endif %}
       and table_type <> 'system_table'
 
   {% endcall %}
