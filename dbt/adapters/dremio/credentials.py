@@ -33,6 +33,7 @@ class DremioCredentials(Credentials):
     software_host: Optional[str] = None
     port: Optional[int] = 9047  # for rest endpoint
     use_ssl: Optional[bool] = True
+    verify_ssl: Optional[bool] = True
 
     _ALIASES = {
         # Only terms on right-side will be used going forward.

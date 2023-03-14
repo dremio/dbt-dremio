@@ -25,12 +25,17 @@ logger = AdapterLogger("dremio")
 @dataclass
 class DremioAuthentication:
     username: Optional[str] = None
+    verify_ssl: bool = True
 
     @classmethod
-    def build(cls, username: None, password: None, pat: None):
+    def build(cls, username: None, password: None, pat: None, verify_ssl: True):
         if password is not None:
-            return DremioPasswordAuthentication(username, password, token=None)
-        return DremioPatAuthentication(username, pat)
+            return DremioPasswordAuthentication(
+                username=username, verify_ssl=verify_ssl, password=password, token=None
+            )
+        return DremioPatAuthentication(
+            username=username, verify_ssl=verify_ssl, pat=pat
+        )
 
     @classmethod
     def build_headers(cls, authorization_field):

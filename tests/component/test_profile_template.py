@@ -60,6 +60,7 @@ class TestProfileTemplate:
         "dremio_space": "@user",
         "dremio_space_folder": "no_schema",
         "threads": 1,
+        "verify_ssl": True,
     }
     _DREMIO_CLOUD_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS = {
         "cloud_host": "api.dremio.cloud",
