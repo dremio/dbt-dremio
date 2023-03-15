@@ -3,7 +3,7 @@ bandit
 black==22.10.0
 bumpversion
 dbt-core==1.4.1
-dbt-tests-adapter==1.4.1
+dbt-tests-adapter==1.4.5
 black==22.10.0
 bumpversion
 flake8
