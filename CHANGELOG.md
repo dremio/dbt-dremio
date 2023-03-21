@@ -1,4 +1,4 @@
-# dbt-dremio 1.4.1 - release TBD
+# dbt-dremio 1.4.5 - release TBD
 
 ## Features
 
@@ -9,16 +9,15 @@
 
 -   [#64](https://github.com/dremio/dbt-dremio/issues/64) Add BaseArrayTests and throw exceptions for unsupported Array Macros.
 -   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add support for Query Comment Tests and Python 3.11
--   [#134]https://github.com/dremio/dbt-dremio/issues/134) Add dremio:exact_search_enabled variable that if set to true, replaces usage of ilike with a basic equality in dremio\_\_list_relations_without_caching when reflections are not enabled.
--   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add Base Current Timestamps Tests 
+-   [#134](https://github.com/dremio/dbt-dremio/issues/134) Add dremio:exact_search_enabled variable that if set to true, replaces usage of ilike with a basic equality in dremio\_\_list_relations_without_caching when reflections are not enabled.
+-   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add Base Current Timestamps Tests
 -   [#117](https://github.com/dremio/dbt-dremio/issues/117) Replace deprecated dbt-core exceptions
 -   [#117](https://github.com/dremio/dbt-dremio/issues/117) Add support for changing relation type test
 
 ## Dependency
 
--   Upgrade dbt-core to 1.4.1.
-
--   Upgrade dbt-tests-adapter to 1.4.1.
+-   Upgrade dbt-core to 1.4.5.
+-   Upgrade dbt-tests-adapter to 1.4.5.
 
 # dbt-dremio 1.3.2 - release February 8, 2023
 
