@@ -1,0 +1,831 @@
+bandit...................................................................[41mFailed[m
+[2m- hook id: bandit[m
+[2m- exit code: 1[m
+
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.798964[0m
+[95m
+Test results:[0m
+[94m>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'test_sw_up_options'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   Location: tests/component/test_profile_template.py:47:51
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b105_hardcoded_password_string.html[0m
+46	    _TEST_CLOUD_PROFILE_PROJECT = "test_cloud_options"
+47	    _TEST_SOFTWARE_USER_PASSWORD_PROFILE_PROJECT = "test_sw_up_options"
+48	    _TEST_SOFTWARE_PAT_PROFILE_PROJECT = "test_sw_pat_options"
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/component/test_profile_template.py:121:12
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+120	        for option, alias in self._PROFILE_OPTIONS_ALIASES.items():
+121	            assert credential_option_aliases[option] is not None
+122	            assert alias == credential_option_aliases[option]
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/component/test_profile_template.py:122:12
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+121	            assert credential_option_aliases[option] is not None
+122	            assert alias == credential_option_aliases[option]
+123
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/component/test_profile_template.py:136:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+135
+136	        assert test_project is not None
+137
+138	        for option in test_options:
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/component/test_profile_template.py:139:12
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+138	        for option in test_options:
+139	            assert test_project[option] is not None
+140	            if test_options[option] is not None:
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/component/test_profile_template.py:141:16
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+140	            if test_options[option] is not None:
+141	                assert test_project[option] == test_options[option]
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_singular_tests.py:26:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+25	        results = run_dbt(["test"], expect_pass=False)
+26	        assert len(results) == 2
+27
+28	        # We have the right result nodes
+29	        check_result_nodes_by_name(results, ["passing", "failing"])
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_singular_tests.py:34:16
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+33	            if result.node.name == "passing":
+34	                assert result.status == "pass"
+35	            elif result.node.name == "failing":
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_singular_tests.py:36:16
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+35	            elif result.node.name == "failing":
+36	                assert result.status == "fail"
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/utils/util.py:113:16
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+112	            if relation.identifier == key:
+113	                assert relation.type == value, (
+114	                    f"Got an unexpected relation type of {relation.type} "
+115	                    f"for relation {key}, expected {value}"
+116	                )
+
+--------------------------------------------------
+[95m
+Code scanned:[0m
+	Total lines of code: 436
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 10
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 1
+		High: 9
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.793743[0m
+[95m
+Test results:[0m
+	No issues identified.
+[95m
+Code scanned:[0m
+	Total lines of code: 285
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.783176[0m
+[95m
+Test results:[0m
+	No issues identified.
+[95m
+Code scanned:[0m
+	Total lines of code: 198
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.803633[0m
+[95m
+Test results:[0m
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:50:4
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+49	    catalog_path = os.path.join(project.project_root, "target", "catalog.json")
+50	    assert os.path.exists(catalog_path)
+51	    catalog = get_artifact(catalog_path)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:54:4
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+53	    # verify the catalog
+54	    assert set(catalog) == {"errors", "metadata", "nodes", "sources"}
+55	    verify_metadata(
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:60:4
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+59	    )
+60	    assert not catalog["errors"]
+61	    key = "nodes"
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:65:12
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+64	        for node_key in expected_node:
+65	            assert node_key in found_node
+66	            assert (
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:66:12
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+65	            assert node_key in found_node
+66	            assert (
+67	                found_node[node_key] == expected_node[node_key]
+68	            ), f"Key '{node_key}' in '{unique_id}' did not match"
+69
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:147:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+146	        start_time = run_and_generate(project, ["--no-compile"])
+147	        assert not os.path.exists(
+148	            os.path.join(project.project_root, "target", "manifest.json")
+149	        )
+150	        verify_catalog_nodes(project, expected_catalog, start_time)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:158:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+157	        # Check that assets have been copied to the target directory for use in the docs html page
+158	        assert os.path.exists(os.path.join(".", "target", "assets"))
+159	        assert os.path.exists(os.path.join(".", "target", "assets", "lorem-ipsum.txt"))
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:159:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+158	        assert os.path.exists(os.path.join(".", "target", "assets"))
+159	        assert os.path.exists(os.path.join(".", "target", "assets", "lorem-ipsum.txt"))
+160	        assert not os.path.exists(os.path.join(".", "target", "non-existent-assets"))
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_docs_generate.py:160:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+159	        assert os.path.exists(os.path.join(".", "target", "assets", "lorem-ipsum.txt"))
+160	        assert not os.path.exists(os.path.join(".", "target", "non-existent-assets"))
+161
+
+--------------------------------------------------
+[95m
+Code scanned:[0m
+	Total lines of code: 387
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 9
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 9
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.797557[0m
+[95m
+Test results:[0m
+	No issues identified.
+[95m
+Code scanned:[0m
+	Total lines of code: 290
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.809878[0m
+[95m
+Test results:[0m
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:40:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+39	        select_privilege_name = self.privilege_grantee_name_overrides()["select"]
+40	        assert len(test_users) == 3
+41
+42	        # View materialization, single select grant
+43	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:44:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+43	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+44	        assert len(results) == 1
+45	        manifest = get_manifest(project.project_root)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:49:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+48	        expected = {select_privilege_name: [test_users[0]]}
+49	        assert model.config.grants == expected
+50	        assert model.config.materialized == "view"
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:50:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+49	        assert model.config.grants == expected
+50	        assert model.config.materialized == "view"
+51	        self.assert_expected_grants_match_actual(project, "my_model", expected)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:57:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+56	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+57	        assert len(results) == 1
+58	        expected = {select_privilege_name: [get_test_users[1]]}
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:80:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+79	        insert_privilege_name = self.privilege_grantee_name_overrides()["insert"]
+80	        assert len(test_users) == 3
+81	        # Table materialization, single select grant
+82	        updated_yaml = self.interpolate_name_overrides(table_model_schema_yml)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:85:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+84	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+85	        assert len(results) == 1
+86	        manifest = get_manifest(project.project_root)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:89:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+88	        model = manifest.nodes[model_id]
+89	        assert model.config.materialized == "table"
+90	        expected = {select_privilege_name: [test_users[0]]}
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:97:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+96	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+97	        assert len(results) == 1
+98	        manifest = get_manifest(project.project_root)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:100:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+99	        model = manifest.nodes[model_id]
+100	        assert model.config.materialized == "table"
+101	        expected = {select_privilege_name: [test_users[1]]}
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:110:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+109	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+110	        assert len(results) == 1
+111	        manifest = get_manifest(project.project_root)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:113:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+112	        model = manifest.nodes[model_id]
+113	        assert model.config.materialized == "table"
+114	        expected = {select_privilege_name: [test_users[0], test_users[1]]}
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:123:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+122	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+123	        assert len(results) == 1
+124	        manifest = get_manifest(project.project_root)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_model_grants.py:126:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+125	        model = manifest.nodes[model_id]
+126	        assert model.config.materialized == "table"
+127	        expected = {
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/unit/test_connection.py:48:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+47	        # Assert
+48	        assert mocked_post_func.call_count == TOTAL_CONNECTION_ATTEMPTS
+
+--------------------------------------------------
+[95m
+Code scanned:[0m
+	Total lines of code: 334
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 15
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 15
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[node_visitor]	WARNING	Unable to find qualified name for module: setup.py
+[95mRun started:2022-11-30 02:48:16.785126[0m
+[95m
+Test results:[0m
+	No issues identified.
+[95m
+Code scanned:[0m
+	Total lines of code: 97
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.804530[0m
+[95m
+Test results:[0m
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:103:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+102	        # seed result length
+103	        assert len(results) == 1
+104
+105	        # run command
+106	        results = run_dbt()
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:108:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+107	        # run result length
+108	        assert len(results) == 3
+109
+110	        # names exist in result nodes
+111	        check_result_nodes_by_name(results, ["view_model", "table_model", "swappable"])
+
+--------------------------------------------------
+[93m>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:125:12
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b608_hardcoded_sql_expressions.html[0m
+124	        result = project.run_sql(
+125	            f"select count(*) as num_rows from {relation}", fetch="one"
+126	        )
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:127:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+126	        )
+127	        assert result[0] == 10
+128
+129	        # relations_equal
+130	        check_relations_equal(
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:136:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+135	        catalog = run_dbt(["docs", "generate"])
+136	        assert len(catalog.nodes) == 4
+137	        assert len(catalog.sources) == 1
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:137:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+136	        assert len(catalog.nodes) == 4
+137	        assert len(catalog.sources) == 1
+138
+139	        # run_dbt changing materialized_var to view
+140	        # required for BigQuery
+141	        if project.test_config.get("require_full_refresh", False):
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:156:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+155	            )
+156	        assert len(results) == 1
+157	        # check relation types, swappable is view
+158	        expected = {
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/basic/test_base_mat.py:177:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+176	        )
+177	        assert len(results) == 1
+178
+179	        # check relation types, swappable is table
+180	        expected = {
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:47:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+46	        select_privilege_name = self.privilege_grantee_name_overrides()["select"]
+47	        assert len(test_users) == 3
+48
+49	        # Incremental materialization, single select grant
+50	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:51:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+50	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+51	        assert len(results) == 1
+52	        manifest = get_manifest(project.project_root)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:55:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+54	        model = manifest.nodes[model_id]
+55	        assert model.config.materialized == "incremental"
+56	        expected = {select_privilege_name: [test_users[0]]}
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:63:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+62	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+63	        assert len(results) == 1
+64	        assert "revoke " not in log_output
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:64:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+63	        assert len(results) == 1
+64	        assert "revoke " not in log_output
+65	        assert (
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:65:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+64	        assert "revoke " not in log_output
+65	        assert (
+66	            "grant " not in log_output
+67	        )  # with space to disambiguate from 'show grants'
+68	        self.assert_expected_grants_match_actual(
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:78:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+77	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+78	        assert len(results) == 1
+79	        assert "revoke " in log_output
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:79:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+78	        assert len(results) == 1
+79	        assert "revoke " in log_output
+80	        manifest = get_manifest(project.project_root)
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:82:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+81	        model = manifest.nodes[model_id]
+82	        assert model.config.materialized == "incremental"
+83	        expected = {select_privilege_name: [test_users[1]]}
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:90:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+89	        run_dbt(["--debug", "run", "--full-refresh"])
+90	        assert len(results) == 1
+91	        # whether grants or revokes happened will vary by adapter
+92	        self.assert_expected_grants_match_actual(
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:104:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+103	        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+104	        assert len(results) == 1
+105	        # Need to comment this out, as it looks like the grant is copied over
+106	        # assert "grant " in log_output
+107	        assert "revoke " not in log_output
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/grants/test_incremental_grants.py:107:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+106	        # assert "grant " in log_output
+107	        assert "revoke " not in log_output
+108	        self.assert_expected_grants_match_actual(
+
+--------------------------------------------------
+[95m
+Code scanned:[0m
+	Total lines of code: 339
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 19
+		Medium: 1
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 1
+		Medium: 0
+		High: 19
+[95mFiles skipped (0):[0m
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.10.7
+[95mRun started:2022-11-30 02:48:16.793096[0m
+[95m
+Test results:[0m
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/test_concurrency.py:82:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+81	        results = run_dbt(["run"], expect_pass=False)
+82	        assert len(results) == 7
+83	        check_relations_equal(project.adapter, ["seed", "view_model"])
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/test_concurrency.py:94:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+93	        results, output = run_dbt_and_capture(["run"], expect_pass=False)
+94	        assert len(results) == 7
+95	        check_relations_equal(project.adapter, ["seed", "view_model"])
+
+--------------------------------------------------
+[94m>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   Location: tests/functional/adapter/test_concurrency.py:102:8
+   More Info: https://bandit.readthedocs.io/en/0.0.0/plugins/b101_assert_used.html[0m
+101
+102	        assert "PASS=5 WARN=0 ERROR=1 SKIP=1 TOTAL=7" in output
+
+--------------------------------------------------
+[95m
+Code scanned:[0m
+	Total lines of code: 82
+	Total lines skipped (#nosec): 0
+[95m
+Run metrics:[0m
+	Total issues (by severity):
+		Undefined: 0
+		Low: 3
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 3
+[95mFiles skipped (0):[0m
