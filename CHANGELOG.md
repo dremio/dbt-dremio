@@ -1,4 +1,4 @@
-# dbt-dremio 1.4.5 - release TBD
+# dbt-dremio 1.4.5 - release March 23, 2023
 
 ## Features
 
