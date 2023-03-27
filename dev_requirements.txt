@@ -33,7 +33,7 @@ multidict==6.0.4
 networkx==3.0
 packaging==23.0
 parsedatetime==2.4
-pathspec==0.10.3
+pathspec==0.11.1
 pip-licenses==4.1.0
 pluggy==1.0.0
 prettytable==3.6.0
