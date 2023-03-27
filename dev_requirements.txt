@@ -26,14 +26,14 @@ jsonschema==3.2.0
 leather==0.3.4
 Logbook==1.5.3
 MarkupSafe==2.1.2
-mashumaro==3.3.1
+mashumaro==3.5
 minimal-snowplow-tracker==0.0.2
 msgpack==1.0.5
 multidict==6.0.4
-networkx==2.8.8
+networkx==3.0
 packaging==23.0
 parsedatetime==2.6
-pathspec==0.10.3
+pathspec==0.11.1
 pip-licenses==4.1.0
 pluggy==1.0.0
 prettytable==3.6.0
