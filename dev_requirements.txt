@@ -30,7 +30,7 @@ mashumaro==3.5
 minimal-snowplow-tracker==0.0.2
 msgpack==1.0.5
 multidict==6.0.4
-networkx==2.8.8
+networkx==3.0
 packaging==23.0
 parsedatetime==2.4
 pathspec==0.10.3
