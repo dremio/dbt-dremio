@@ -17,7 +17,6 @@ limitations under the License.*/
 
   {{ sql_header if sql_header is not none }}
 
-  create or replace view {{ relation }} as (
-    {{ sql }}
-  )
+  create or replace view {{ relation }} as {{ sql }}
+
 {%- endmacro %}
