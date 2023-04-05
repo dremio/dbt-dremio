@@ -1,3 +1,15 @@
+# dbt-dremio 1.5.0 - release May 11, 2023
+
+## Features
+
+## Fixes
+-   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
+
+## Under the Hood
+
+## Dependency
+
+
 # dbt-dremio 1.4.5 - release March 23, 2023
 
 ## Features
