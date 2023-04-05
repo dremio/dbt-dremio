@@ -3,10 +3,9 @@
 ## Features
 
 ## Fixes
--   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
 
 ## Under the Hood
-
+-   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
 ## Dependency
 
 
