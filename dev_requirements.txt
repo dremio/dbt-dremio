@@ -26,7 +26,7 @@ jsonschema==4.17.3
 leather==0.3.4
 Logbook==1.5.3
 MarkupSafe==2.1.2
-mashumaro==3.5
+mashumaro==3.6
 minimal-snowplow-tracker==0.0.2
 msgpack==1.0.5
 multidict==6.0.4
