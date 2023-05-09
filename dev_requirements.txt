@@ -15,7 +15,7 @@ exceptiongroup==1.1.1
 future==0.18.3
 grpclib==0.4.3
 h2==4.1.0
-hologram==0.0.15
+hologram==0.0.16
 hpack==4.0.0
 hyperframe==6.0.1
 idna==3.4
