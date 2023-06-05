@@ -54,6 +54,14 @@ class DremioCredentials(Credentials):
         return "dremio"
 
     @property
+    def unique_field(self):
+        """
+        Hashed and included in anonymous telemetry to track adapter adoption.
+        Pick a field that can uniquely identify one team/organization building with this adapter
+        """
+        return self.software_host if self.cloud_host is None else self.cloud_host
+
+    @property
     def aliases(self):
         return self._ALIASES
 
