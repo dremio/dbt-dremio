@@ -13,7 +13,7 @@
 from setuptools import find_namespace_packages, setup
 
 package_name = "dbt-dremio"
-package_version = "1.4.5"
+package_version = "1.5.1"
 description = """The Dremio adapter plugin for dbt"""
 
 setup(
@@ -27,13 +27,14 @@ setup(
     packages=find_namespace_packages(include=["dbt", "dbt.*"]),
     include_package_data=True,
     install_requires=[
-        "dbt-core>=1.2, <=1.4.5",
+        "dbt-core>=1.2, <=1.5.1",
+        "requests>=2.31.0",
     ],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
-        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
 )
