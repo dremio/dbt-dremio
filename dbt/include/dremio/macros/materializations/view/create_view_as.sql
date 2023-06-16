@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro dremio__create_view_as(relation, sql) -%}
-  --Model Contracts are not supported
   {% set contract_config = config.get('contract') %}
   {% if contract_config.enforced %}
      {{exceptions.warn("Model contracts are not enforced by dbt-dremio!")}}
