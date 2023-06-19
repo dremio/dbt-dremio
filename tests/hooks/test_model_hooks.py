@@ -17,6 +17,8 @@ from dbt.tests.adapter.hooks.fixtures import (
 )
 
 from tests.hooks.fixtures import (
+    MODEL_PRE_HOOK,
+    MODEL_POST_HOOK,
     models__hooked,
     models__hooks,
     models__hooks_configured,
@@ -60,63 +62,6 @@ def dbt_profile_data(unique_schema, dbt_profile_target, profiles_config_update):
     if profiles_config_update:
         profile.update(profiles_config_update)
     return profile
-
-
-MODEL_PRE_HOOK = f"""
-   insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (
-        test_state,
-        target_dbname,
-        target_host,
-        target_name,
-        target_schema,
-        target_type,
-        target_user,
-        target_pass,
-        target_threads,
-        run_started_at,
-        invocation_id
-   ) VALUES (
-    'start',
-    '{{{{ target.dbname }}}}',
-    '{{{{ target.host }}}}',
-    '{{{{ target.name }}}}',
-    '{SOURCE}.{{{{ target.schema }}}}',
-    '{{{{ target.type }}}}',
-    '{{{{ target.user }}}}',
-    '{{{{ target.get("pass", "") }}}}',
-    {{{{ target.threads }}}},
-    '{{{{ run_started_at }}}}',
-    '{{{{ invocation_id }}}}'
-   )
-"""
-
-MODEL_POST_HOOK = f"""
-   insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (
-        test_state,
-        target_dbname,
-        target_host,
-        target_name,
-        target_schema,
-        target_type,
-        target_user,
-        target_pass,
-        target_threads,
-        run_started_at,
-        invocation_id
-   ) VALUES (
-    'end',
-    '{{{{ target.dbname }}}}',
-    '{{{{ target.host }}}}',
-    '{{{{ target.name }}}}',
-    '{SOURCE}.{{{{ target.schema }}}}',
-    '{{{{ target.type }}}}',
-    '{{{{ target.user }}}}',
-    '{{{{ target.get("pass", "") }}}}',
-    {{{{ target.threads }}}},
-    '{{{{ run_started_at }}}}',
-    '{{{{ invocation_id }}}}'
-   )
-"""
 
 
 class BaseTestPrePost(object):

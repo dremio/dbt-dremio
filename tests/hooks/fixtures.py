@@ -1,5 +1,61 @@
 from tests.utils.util import SOURCE
 
+MODEL_PRE_HOOK = f"""
+   insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (
+        test_state,
+        target_dbname,
+        target_host,
+        target_name,
+        target_schema,
+        target_type,
+        target_user,
+        target_pass,
+        target_threads,
+        run_started_at,
+        invocation_id
+   ) VALUES (
+    'start',
+    '{{{{ target.dbname }}}}',
+    '{{{{ target.host }}}}',
+    '{{{{ target.name }}}}',
+    '{SOURCE}.{{{{ target.schema }}}}',
+    '{{{{ target.type }}}}',
+    '{{{{ target.user }}}}',
+    '{{{{ target.get("pass", "") }}}}',
+    {{{{ target.threads }}}},
+    '{{{{ run_started_at }}}}',
+    '{{{{ invocation_id }}}}'
+   )
+"""
+
+MODEL_POST_HOOK = f"""
+   insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (
+        test_state,
+        target_dbname,
+        target_host,
+        target_name,
+        target_schema,
+        target_type,
+        target_user,
+        target_pass,
+        target_threads,
+        run_started_at,
+        invocation_id
+   ) VALUES (
+    'end',
+    '{{{{ target.dbname }}}}',
+    '{{{{ target.host }}}}',
+    '{{{{ target.name }}}}',
+    '{SOURCE}.{{{{ target.schema }}}}',
+    '{{{{ target.type }}}}',
+    '{{{{ target.user }}}}',
+    '{{{{ target.get("pass", "") }}}}',
+    {{{{ target.threads }}}},
+    '{{{{ run_started_at }}}}',
+    '{{{{ invocation_id }}}}'
+   )
+"""
+
 macros_missing_column = """
 {% macro export_table_check() %}
 
