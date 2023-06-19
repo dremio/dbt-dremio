@@ -134,9 +134,9 @@ class EmptyModelsArentRunBase(SimpleCopySetup):
         assert "disabled" not in tables.keys()
 
 
-class TestSimpleCopyBase(SimpleCopyBase):
+class TestSimpleCopyBaseDremio(SimpleCopyBase):
     pass
 
 
-class TestEmptyModelsArentRun(EmptyModelsArentRunBase):
+class TestEmptyModelsArentRunDremio(EmptyModelsArentRunBase):
     pass

@@ -52,7 +52,7 @@ def dbt_profile_data(unique_schema, dbt_profile_target, profiles_config_update):
     return profile
 
 
-class TestPrePostRunHooks(object):
+class TestPrePostRunHooksDremio(object):
     @pytest.fixture(scope="function")
     def setUp(self, project):
         project.run_sql_file(project.test_data_dir / Path("seed_run.sql"))
@@ -184,7 +184,7 @@ class TestPrePostRunHooks(object):
         self.assert_used_schemas(project)
 
 
-class TestAfterRunHooks(object):
+class TestAfterRunHooksDremio(object):
     @pytest.fixture(scope="class")
     def macros(self):
         return {"temp_macro.sql": macros_missing_column}

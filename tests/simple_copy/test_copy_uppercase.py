@@ -18,7 +18,7 @@ from dbt.tests.adapter.simple_copy.fixtures import (
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
-class TestSimpleCopyUppercase:
+class TestSimpleCopyUppercaseDremio:
     @pytest.fixture(scope="class")
     def models(self):
         return {

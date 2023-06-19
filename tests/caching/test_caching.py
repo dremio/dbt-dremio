@@ -55,16 +55,16 @@ class TestNoPopulateCache(BaseCachingTest):
         self.run_and_inspect_cache(project, run_args)
 
 
-class TestCachingLowerCaseModel(BaseCachingLowercaseModel):
+class TestCachingLowerCaseModelDremio(BaseCachingLowercaseModel):
     pass
 
 
 @pytest.mark.skip(
     reason="Dremio does not support case-sensitive data file names or table names."
 )
-class TestCachingUppercaseModel(BaseCachingUppercaseModel):
+class TestCachingUppercaseModelDremio(BaseCachingUppercaseModel):
     pass
 
 
-class TestCachingSelectedSchemaOnly(BaseCachingSelectedSchemaOnly):
+class TestCachingSelectedSchemaOnlyDremio(BaseCachingSelectedSchemaOnly):
     pass

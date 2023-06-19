@@ -168,7 +168,7 @@ class BaseTestPrePost(object):
             ), "invocation_id was not set"
 
 
-class TestPrePostModelHooks(BaseTestPrePost):
+class TestPrePostModelHooksDremio(BaseTestPrePost):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -206,7 +206,7 @@ class TestPrePostModelHooks(BaseTestPrePost):
         self.check_hooks("end", project, dbt_profile_target.get("host", None))
 
 
-class TestPrePostModelHooksUnderscores(TestPrePostModelHooks):
+class TestPrePostModelHooksUnderscoresDremio(TestPrePostModelHooksDremio):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -235,7 +235,7 @@ class TestPrePostModelHooksUnderscores(TestPrePostModelHooks):
         }
 
 
-class TestHookRefs(BaseTestPrePost):
+class TestHookRefsDremio(BaseTestPrePost):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -277,7 +277,7 @@ class TestHookRefs(BaseTestPrePost):
         self.check_hooks("end", project, dbt_profile_target.get("host", None))
 
 
-class TestPrePostModelHooksOnSeeds(object):
+class TestPrePostModelHooksOnSeedsDremio(object):
     @pytest.fixture(scope="class")
     def seeds(self):
         return {"example_seed.csv": seeds__example_seed_csv}
@@ -309,7 +309,7 @@ class TestPrePostModelHooksOnSeeds(object):
         assert len(res) == 1, "Expected exactly one item"
 
 
-class TestHooksRefsOnSeeds:
+class TestHooksRefsOnSeedsDremio:
     """
     This should not succeed, and raise an explicit error
     https://github.com/dbt-labs/dbt-core/issues/6806
@@ -339,7 +339,9 @@ class TestHooksRefsOnSeeds:
         assert "Seeds cannot depend on other nodes" in str(excinfo.value)
 
 
-class TestPrePostModelHooksOnSeedsPlusPrefixed(TestPrePostModelHooksOnSeeds):
+class TestPrePostModelHooksOnSeedsPlusPrefixedDremio(
+    TestPrePostModelHooksOnSeedsDremio
+):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -355,7 +357,9 @@ class TestPrePostModelHooksOnSeedsPlusPrefixed(TestPrePostModelHooksOnSeeds):
         }
 
 
-class TestPrePostModelHooksOnSeedsPlusPrefixedWhitespace(TestPrePostModelHooksOnSeeds):
+class TestPrePostModelHooksOnSeedsPlusPrefixedWhitespaceDremio(
+    TestPrePostModelHooksOnSeedsDremio
+):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -371,7 +375,7 @@ class TestPrePostModelHooksOnSeedsPlusPrefixedWhitespace(TestPrePostModelHooksOn
         }
 
 
-class TestPrePostModelHooksOnSnapshots(object):
+class TestPrePostModelHooksOnSnapshotsDremio(object):
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
@@ -453,7 +457,7 @@ class PrePostModelHooksInConfigSetup(BaseTestPrePost):
         return {"hooks.sql": models__hooks_configured}
 
 
-class TestPrePostModelHooksInConfig(PrePostModelHooksInConfigSetup):
+class TestPrePostModelHooksInConfigDremio(PrePostModelHooksInConfigSetup):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {"seeds": {"+twin_strategy": "prevent"}}
@@ -465,7 +469,7 @@ class TestPrePostModelHooksInConfig(PrePostModelHooksInConfigSetup):
         self.check_hooks("end", project, dbt_profile_target.get("host", None))
 
 
-class TestPrePostModelHooksInConfigWithCount(PrePostModelHooksInConfigSetup):
+class TestPrePostModelHooksInConfigWithCountDremio(PrePostModelHooksInConfigSetup):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -505,7 +509,7 @@ class TestPrePostModelHooksInConfigWithCount(PrePostModelHooksInConfigSetup):
         self.check_hooks("end", project, dbt_profile_target.get("host", None), count=2)
 
 
-class TestPrePostModelHooksInConfigKwargs(TestPrePostModelHooksInConfig):
+class TestPrePostModelHooksInConfigKwargsDremio(TestPrePostModelHooksInConfigDremio):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {"seeds": {"+twin_strategy": "prevent"}}
@@ -515,7 +519,9 @@ class TestPrePostModelHooksInConfigKwargs(TestPrePostModelHooksInConfig):
         return {"hooks.sql": models__hooks_kwargs}
 
 
-class TestPrePostSnapshotHooksInConfigKwargs(TestPrePostModelHooksOnSnapshots):
+class TestPrePostSnapshotHooksInConfigKwargsDremio(
+    TestPrePostModelHooksOnSnapshotsDremio
+):
     @pytest.fixture(scope="class", autouse=True)
     def setUp(self, project):
         path = Path(project.project_root) / "test-kwargs-snapshots"
@@ -538,7 +544,7 @@ class TestPrePostSnapshotHooksInConfigKwargs(TestPrePostModelHooksOnSnapshots):
         }
 
 
-class TestDuplicateHooksInConfigs(object):
+class TestDuplicateHooksInConfigsDremio(object):
     @pytest.fixture(scope="class")
     def models(self):
         return {"hooks.sql": models__hooks_error}
