@@ -139,7 +139,6 @@ class TestProfileTemplate:
         assert test_project is not None
 
         for option in test_options:
-            print(f"option: {option}")
             assert test_project[option] is not None
             if test_options[option] is not None:
                 assert test_project[option] == test_options[option]
