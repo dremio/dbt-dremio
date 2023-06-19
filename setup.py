@@ -27,7 +27,7 @@ setup(
     packages=find_namespace_packages(include=["dbt", "dbt.*"]),
     include_package_data=True,
     install_requires=[
-        "dbt-core>=1.2, <=1.5.0",
+        "dbt-core>=1.2, <1.6.0",
         "requests>=2.31.0",
     ],
     classifiers=[
