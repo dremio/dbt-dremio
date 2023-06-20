@@ -16,6 +16,12 @@ from dbt.tests.adapter.hooks.fixtures import (
     seeds__example_seed_csv,
 )
 
+from dbt.tests.adapter.hooks.test_model_hooks import (
+    TestHooksRefsOnSeeds,
+    TestPrePostModelHooksOnSnapshots,
+    TestDuplicateHooksInConfigs,
+)
+
 from tests.hooks.fixtures import (
     MODEL_PRE_HOOK,
     MODEL_POST_HOOK,
@@ -254,34 +260,10 @@ class TestPrePostModelHooksOnSeedsDremio(object):
         assert len(res) == 1, "Expected exactly one item"
 
 
-class TestHooksRefsOnSeedsDremio:
-    """
-    This should not succeed, and raise an explicit error
-    https://github.com/dbt-labs/dbt-core/issues/6806
-    """
-
-    @pytest.fixture(scope="class")
-    def seeds(self):
-        return {"example_seed.csv": seeds__example_seed_csv}
-
+class TestHooksRefsOnSeedsDremio(TestHooksRefsOnSeeds):
     @pytest.fixture(scope="class")
     def models(self):
         return {"schema.yml": properties__seed_models, "post.sql": models__post}
-
-    @pytest.fixture(scope="class")
-    def project_config_update(self):
-        return {
-            "seeds": {
-                "post-hook": [
-                    "select * from {{ ref('post') }}",
-                ],
-            },
-        }
-
-    def test_hook_with_ref_on_seeds(self, project):
-        with pytest.raises(ParsingError) as excinfo:
-            run_dbt(["parse"])
-        assert "Seeds cannot depend on other nodes" in str(excinfo.value)
 
 
 class TestPrePostModelHooksOnSeedsPlusPrefixedDremio(
@@ -320,7 +302,7 @@ class TestPrePostModelHooksOnSeedsPlusPrefixedWhitespaceDremio(
         }
 
 
-class TestPrePostModelHooksOnSnapshotsDremio(object):
+class TestPrePostModelHooksOnSnapshotsDremio(TestPrePostModelHooksOnSnapshots):
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
@@ -357,14 +339,6 @@ class TestPrePostModelHooksOnSnapshotsDremio(object):
         path = Path(project.project_root) / "test-snapshots"
         Path.mkdir(path)
         write_file(snapshots__test_snapshot, path, "snapshot.sql")
-
-    @pytest.fixture(scope="class")
-    def models(self):
-        return {"schema.yml": properties__test_snapshot_models}
-
-    @pytest.fixture(scope="class")
-    def seeds(self):
-        return {"example_seed.csv": seeds__example_seed_csv}
 
     @pytest.fixture(scope="class")
     def project_config_update(self):
@@ -489,13 +463,7 @@ class TestPrePostSnapshotHooksInConfigKwargsDremio(
         }
 
 
-class TestDuplicateHooksInConfigsDremio(object):
+class TestDuplicateHooksInConfigsDremio(TestDuplicateHooksInConfigs):
     @pytest.fixture(scope="class")
     def models(self):
         return {"hooks.sql": models__hooks_error}
-
-    def test_run_duplicate_hook_defs(self, project):
-        with pytest.raises(CompilationError) as exc:
-            run_dbt()
-        assert "pre_hook" in str(exc.value)
-        assert "pre-hook" in str(exc.value)
