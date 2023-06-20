@@ -17,6 +17,8 @@ from dbt.tests.util import (
     run_dbt,
 )
 
+from dbt.tests.adapter.hooks.test_run_hooks import TestAfterRunHooks
+
 from tests.utils.util import BUCKET, SOURCE
 
 
@@ -184,7 +186,7 @@ class TestPrePostRunHooksDremio(object):
         self.assert_used_schemas(project)
 
 
-class TestAfterRunHooksDremio(object):
+class TestAfterRunHooksDremio(TestAfterRunHooks):
     @pytest.fixture(scope="class")
     def macros(self):
         return {"temp_macro.sql": macros_missing_column}
@@ -192,15 +194,3 @@ class TestAfterRunHooksDremio(object):
     @pytest.fixture(scope="class")
     def models(self):
         return {"test_column.sql": models__missing_column}
-
-    @pytest.fixture(scope="class")
-    def project_config_update(self):
-        return {
-            # The create and drop table statements here validate that these hooks run
-            # in the same order that they are defined. Drop before create is an error.
-            # Also check that the table does not exist below.
-            "on-run-start": "- {{ export_table_check() }}"
-        }
-
-    def test_missing_column_pre_hook(self, project):
-        run_dbt(["run"], expect_pass=False)
