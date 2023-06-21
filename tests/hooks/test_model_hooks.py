@@ -18,6 +18,7 @@ from dbt.tests.adapter.hooks.fixtures import (
 
 from dbt.tests.adapter.hooks.test_model_hooks import (
     TestHooksRefsOnSeeds,
+    TestPrePostModelHooksOnSeeds,
     TestPrePostModelHooksOnSnapshots,
     TestDuplicateHooksInConfigs,
 )
@@ -228,15 +229,7 @@ class TestHookRefsDremio(BaseTestPrePost):
         self.check_hooks("end", project, dbt_profile_target.get("host", None))
 
 
-class TestPrePostModelHooksOnSeedsDremio(object):
-    @pytest.fixture(scope="class")
-    def seeds(self):
-        return {"example_seed.csv": seeds__example_seed_csv}
-
-    @pytest.fixture(scope="class")
-    def models(self):
-        return {"schema.yml": properties__seed_models}
-
+class TestPrePostModelHooksOnSeedsDremio(TestPrePostModelHooksOnSeeds):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -252,12 +245,6 @@ class TestPrePostModelHooksOnSeedsDremio(object):
                 "quote_columns": False,
             },
         }
-
-    def test_hooks_on_seeds(self, project):
-        res = run_dbt(["seed"])
-        assert len(res) == 1, "Expected exactly one item"
-        res = run_dbt(["test"])
-        assert len(res) == 1, "Expected exactly one item"
 
 
 class TestHooksRefsOnSeedsDremio(TestHooksRefsOnSeeds):
