@@ -1,7 +1,7 @@
 import pytest
 from tests.utils.util import BUCKET
 from dbt.tests.adapter.caching.test_caching import (
-    BaseCachingTest,
+    TestNoPopulateCache,
     BaseCachingSelectedSchemaOnly,
     BaseCachingLowercaseModel,
     BaseCachingUppercaseModel,
@@ -41,18 +41,8 @@ def dbt_profile_data(unique_schema, dbt_profile_target, profiles_config_update):
     return profile
 
 
-class TestNoPopulateCacheDremio(BaseCachingTest):
-    @pytest.fixture(scope="class")
-    def models(self):
-        return {
-            "model.sql": model_sql,
-        }
-
-    def test_cache(self, project):
-        # --no-populate-cache still allows the cache to populate all relations
-        # under a schema, so the behavior here remains the same as other tests
-        run_args = ["--no-populate-cache", "run"]
-        self.run_and_inspect_cache(project, run_args)
+class TestNoPopulateCacheDremio(TestNoPopulateCache):
+    pass
 
 
 class TestCachingLowerCaseModelDremio(BaseCachingLowercaseModel):
