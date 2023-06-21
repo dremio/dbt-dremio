@@ -41,7 +41,7 @@ def dbt_profile_data(unique_schema, dbt_profile_target, profiles_config_update):
     return profile
 
 
-class TestNoPopulateCache(BaseCachingTest):
+class TestNoPopulateCacheDremio(BaseCachingTest):
     @pytest.fixture(scope="class")
     def models(self):
         return {
