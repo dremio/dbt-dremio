@@ -1,4 +1,4 @@
-# dbt-dremio 1.X.X - release TBD
+# dbt-dremio 1.5.0 - release TBD
 
 ## Features
 
@@ -6,9 +6,20 @@
 
 ## Under the Hood
 
+-   [#179](https://github.com/dremio/dbt-dremio/issues/179) Upgrade to support dbt-core v1.5.0.
+    -   Add support for Python 3.11.
+    -   Add support for relevant Tests:
+        -   caching
+        -   hooks
+        -   simple_copy
+-   Add support for model contracts (Stub the feature to let users know the feature is not supported).
+
 ## Dependency
 
 -   Upgrade sqlparse to 0.4.4 [#180](https://github.com/dremio/dbt-dremio/issues/180).
+-   Upgrade dbt-core to 1.5.0.
+-   Upgrade dbt-tests-adapter to 1.5.0.
+-   Upgrade Requests to 2.31.0. [#183](https://github.com/dremio/dbt-dremio/issues/183).
 
 # dbt-dremio 1.4.5 - release March 23, 2023
 
