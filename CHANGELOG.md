@@ -1,3 +1,9 @@
+# dbt-dremio vNext - release TBD
+
+## Under the Hood
+
+-   [#199](https://github.com/dremio/dbt-dremio/issues/199) Populate PyPI's `long_description` with contents of `README.md`
+
 # dbt-dremio 1.5.0 - release June 22, 2023
 
 ## Features
