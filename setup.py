@@ -10,7 +10,16 @@
 # limitations under the License.
 
 #!/usr/bin/env python
+from pathlib import Path
 from setuptools import find_namespace_packages, setup
+
+
+
+# pull the long description from the README
+README = Path(__file__).parent / "README.md"
+
+
+README
 
 package_name = "dbt-dremio"
 package_version = "1.5.0"
@@ -20,7 +29,7 @@ setup(
     name=package_name,
     version=package_version,
     description=description,
-    long_description=description,
+    long_description=README.read_text(),
     license="Apache Software License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)",
     author="Dremio",
     url="https://github.com/dremio/dbt-dremio",
