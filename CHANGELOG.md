@@ -1,12 +1,33 @@
-# dbt-dremio 1.5.0 - release May 11, 2023
+# dbt-dremio vNext - release TBD
+
+## Under the Hood
+
+-   [#199](https://github.com/dremio/dbt-dremio/issues/199) Populate PyPI's `long_description` with contents of `README.md`
+-   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
+
+
+# dbt-dremio 1.5.0 - release June 22, 2023
+
 
 ## Features
 
 ## Fixes
 
 ## Under the Hood
--   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
+-   [#179](https://github.com/dremio/dbt-dremio/issues/179) Upgrade to support dbt-core v1.5.0.
+    -   Add support for Python 3.11.
+    -   Add support for relevant Tests:
+        -   caching
+        -   hooks
+        -   simple_copy
+-   Add support for model contracts (Stub the feature to let users know the feature is not supported).
+
 ## Dependency
+
+-   Upgrade sqlparse to 0.4.4 [#180](https://github.com/dremio/dbt-dremio/issues/180).
+-   Upgrade dbt-core to 1.5.0.
+-   Upgrade dbt-tests-adapter to 1.5.0.
+-   Upgrade Requests to 2.31.0. [#183](https://github.com/dremio/dbt-dremio/issues/183).
 
 
 # dbt-dremio 1.4.5 - release March 23, 2023
@@ -14,6 +35,7 @@
 ## Features
 
 ## Fixes
+
 -   [#142](https://github.com/dremio/dbt-dremio/issues/142) Ensure ssl verification is enabled in all api calls. Also added an option called `verify_ssl` so it can be disabled in necessary circumstances.
 
 ## Under the Hood
