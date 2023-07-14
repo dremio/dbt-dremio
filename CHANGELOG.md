@@ -3,15 +3,17 @@
 ## Under the Hood
 
 -   [#199](https://github.com/dremio/dbt-dremio/issues/199) Populate PyPI's `long_description` with contents of `README.md`
+-   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
+
 
 # dbt-dremio 1.5.0 - release June 22, 2023
+
 
 ## Features
 
 ## Fixes
 
 ## Under the Hood
-
 -   [#179](https://github.com/dremio/dbt-dremio/issues/179) Upgrade to support dbt-core v1.5.0.
     -   Add support for Python 3.11.
     -   Add support for relevant Tests:
@@ -26,6 +28,7 @@
 -   Upgrade dbt-core to 1.5.0.
 -   Upgrade dbt-tests-adapter to 1.5.0.
 -   Upgrade Requests to 2.31.0. [#183](https://github.com/dremio/dbt-dremio/issues/183).
+
 
 # dbt-dremio 1.4.5 - release March 23, 2023
 
