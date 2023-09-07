@@ -4,6 +4,8 @@
 
 -   [#199](https://github.com/dremio/dbt-dremio/issues/199) Populate PyPI's `long_description` with contents of `README.md`
 -   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
+-   [#176](https://github.com/dremio/dbt-dremio/issues/176) Make fetching model data optional by allowing users to set fetch value to true or false. This improves performance where job results do not need to be populated.
+-   [#203](https://github.com/dremio/dbt-dremio/issues/203) Allow for dots in schema name, by surrounding in single and double quotes.
 
 
 # dbt-dremio 1.5.0 - release June 22, 2023
