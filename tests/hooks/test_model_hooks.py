@@ -18,8 +18,6 @@ from dbt.tests.adapter.hooks.fixtures import (
 
 from dbt.tests.adapter.hooks.test_model_hooks import (
     TestHooksRefsOnSeeds,
-    TestPrePostModelHooksOnSeeds,
-    TestPrePostModelHooksOnSnapshots,
     TestDuplicateHooksInConfigs,
 )
 
@@ -229,7 +227,15 @@ class TestHookRefsDremio(BaseTestPrePost):
         self.check_hooks("end", project, dbt_profile_target.get("host", None))
 
 
-class TestPrePostModelHooksOnSeedsDremio(TestPrePostModelHooksOnSeeds):
+class TestPrePostModelHooksOnSeedsDremio(object):
+    @pytest.fixture(scope="class")
+    def seeds(self):
+        return {"example_seed.csv": seeds__example_seed_csv}
+
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {"schema.yml": properties__seed_models}
+
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -245,6 +251,12 @@ class TestPrePostModelHooksOnSeedsDremio(TestPrePostModelHooksOnSeeds):
                 "quote_columns": False,
             },
         }
+
+    def test_hooks_on_seeds(self, project):
+        res = run_dbt(["seed"])
+        assert len(res) == 1, "Expected exactly one item"
+        res = run_dbt(["test"])
+        assert len(res) == 1, "Expected exactly one item"
 
 
 class TestHooksRefsOnSeedsDremio(TestHooksRefsOnSeeds):
@@ -289,7 +301,7 @@ class TestPrePostModelHooksOnSeedsPlusPrefixedWhitespaceDremio(
         }
 
 
-class TestPrePostModelHooksOnSnapshotsDremio(TestPrePostModelHooksOnSnapshots):
+class TestPrePostModelHooksOnSnapshotsDremio(object):
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
@@ -326,6 +338,14 @@ class TestPrePostModelHooksOnSnapshotsDremio(TestPrePostModelHooksOnSnapshots):
         path = Path(project.project_root) / "test-snapshots"
         Path.mkdir(path)
         write_file(snapshots__test_snapshot, path, "snapshot.sql")
+
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {"schema.yml": properties__test_snapshot_models}
+
+    @pytest.fixture(scope="class")
+    def seeds(self):
+        return {"example_seed.csv": seeds__example_seed_csv}
 
     @pytest.fixture(scope="class")
     def project_config_update(self):

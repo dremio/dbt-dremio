@@ -77,7 +77,7 @@ class DremioCursor:
         self._initialize()
         self.closed = True
 
-    def execute(self, sql, bindings=None):
+    def execute(self, sql, bindings=None, fetch=True):
         if self.closed:
             raise Exception("CursorClosed")
         if bindings is None:
@@ -88,7 +88,8 @@ class DremioCursor:
             self._job_id = json_payload["id"]
 
             self._populate_rowcount()
-            self._populate_job_results()
+            if fetch:
+                self._populate_job_results()
             self._populate_results_table()
 
         else:
