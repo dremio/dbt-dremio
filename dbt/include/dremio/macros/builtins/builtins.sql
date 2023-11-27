@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-{%- macro ref(model_name) -%}
-  {%- set relation = builtins.ref(model_name) -%}
+{%- macro ref(model_name, v=None) -%}
+  {%- set relation = builtins.ref(model_name, v=v) -%}
   {%- if execute -%}
     {%- set model = graph.nodes.values() | selectattr("name", "equalto", model_name) | list | first -%}
     {%- if model.config.materialized == 'reflection' -%}
