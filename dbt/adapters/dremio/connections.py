@@ -130,7 +130,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     # Auto_begin may not be relevant with the rest_api
     def add_query(
-        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False, fetch=True
+        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False, fetch=False
     ):
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
@@ -176,7 +176,6 @@ class DremioConnectionManager(SQLConnectionManager):
         sql = self._add_query_comment(sql)
         _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
         response = self.get_response(cursor)
-        # fetch = True
         if fetch:
             table = cursor.table
         else:

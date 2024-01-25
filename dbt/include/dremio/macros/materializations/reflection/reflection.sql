@@ -27,7 +27,7 @@ limitations under the License.*/
 
   {% if model.refs | length + model.sources | length == 1 %}
     {% if model.refs | length == 1 %}
-      {% set anchor = ref(model.refs[0][0]) %}
+      {% set anchor = ref(model.refs[0]['name']) %}
     {% else %}
       {% set anchor = source(model.sources[0][0], model.sources[0][1]) %}
     {% endif %}
