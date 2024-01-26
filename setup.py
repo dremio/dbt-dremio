@@ -14,7 +14,6 @@ from pathlib import Path
 from setuptools import find_namespace_packages, setup
 
 
-
 # pull the long description from the README
 README = Path(__file__).parent / "README.md"
 
@@ -22,7 +21,7 @@ README = Path(__file__).parent / "README.md"
 README
 
 package_name = "dbt-dremio"
-package_version = "1.5.0"
+package_version = "1.5.9"
 description = """The Dremio adapter plugin for dbt"""
 
 setup(

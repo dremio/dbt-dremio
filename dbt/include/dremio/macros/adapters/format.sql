@@ -54,7 +54,7 @@ for 'excel' :
     ,'pretty_print':'prettyPrint'} -%}
   {%- set options = [] -%}
   {%- set format = config.get('format', validator=validation.any[basestring]) or 'iceberg' -%}
-  {%- if format in ['text', 'json', 'arrow', 'parquet'] -%}
+  {%- if format in ['text', 'json', 'arrow', 'parquet', 'iceberg'] -%}
     {%- do options.append("type=>'" ~ format ~ "'") -%}
     {%- if format == 'text' -%}
       {%- for key in ['field_delimiter', 'line_delimiter', 'quote', 'comment', 'escape'] -%}
