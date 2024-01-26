@@ -21,7 +21,7 @@ README = Path(__file__).parent / "README.md"
 README
 
 package_name = "dbt-dremio"
-package_version = "1.5.9"
+package_version = "1.5.1"
 description = """The Dremio adapter plugin for dbt"""
 
 setup(
