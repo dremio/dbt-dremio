@@ -1,4 +1,4 @@
-# dbt-dremio vNext - release TBD
+# dbt-dremio v1.5.1
 
 ## Changes
 
@@ -7,7 +7,7 @@
 -   [#211](https://github.com/dremio/dbt-dremio/issues/211) Make fetching model data false by default. This improves performance where job results do not need to be populated.
 -   [#203](https://github.com/dremio/dbt-dremio/issues/203) Allow for dots in schema name, by surrounding in single and double quotes.
 -   [#193](https://github.com/dremio/dbt-dremio/issues/193) Fixes Reflection bug: The name argument to ref() must be a string, got <class 'jinja2.runtime.Undefined'>
-
+-   [Versioning](https://github.com/dremio/dbt-dremio/pull/210) Added optional parameter v to the ref macro
 
 # dbt-dremio 1.5.0 - release June 22, 2023
 
