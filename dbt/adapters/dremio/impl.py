@@ -138,6 +138,29 @@ class DremioAdapter(SQLAdapter):
                 grants_dict.update({privilege: [grantee]})
         return grants_dict
 
+    # This is for use in the test suite
+    # Need to override to add fetch to the execute method
+    def run_sql_for_tests(self, sql, fetch, conn):
+        cursor = conn.handle.cursor()
+        try:
+            cursor.execute(sql, None, True)
+            if hasattr(conn.handle, "commit"):
+                conn.handle.commit()
+            if fetch == "one":
+                return cursor.fetchone()
+            elif fetch == "all":
+                return cursor.fetchall()
+            else:
+                return
+        except BaseException as e:
+            if conn.handle and not getattr(conn.handle, "closed", True):
+                conn.handle.rollback()
+            print(sql)
+            print(e)
+            raise
+        finally:
+            conn.transaction_open = False
+
 
 COLUMNS_EQUAL_SQL = """
 with diff_count as (

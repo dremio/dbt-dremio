@@ -32,7 +32,7 @@ class TestSchemaParsingDremio:
 
     def test_schema_with_dots(self, project):
         self.update_config_file(
-            {"object_storage_path": 'dbtdremios3."test.dot"'},
+            {"object_storage_path": 'dbtdremios3."test.schema"'},
             project.profiles_dir,
             "profiles.yml",
         )
