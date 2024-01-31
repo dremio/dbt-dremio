@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from dataclasses import dataclass, field
 from dbt.adapters.base.relation import (
     BaseRelation,
@@ -46,10 +47,17 @@ class DremioRelation(BaseRelation):
     format_clause: Optional[str] = None
 
     def quoted_by_component(self, identifier, componentName):
+        dot_char = "."
         if componentName == ComponentName.Schema:
-            return ".".join(self.quoted(folder) for folder in identifier.split("."))
-        else:
-            return self.quoted(identifier)
+            if '"' in identifier:
+                quote_pattern = re.compile(r"""((?:[^."']|"[^"]*"|'[^']*')+)""")
+                return dot_char.join(quote_pattern.split(identifier)[1::2])
+            else:
+                return dot_char.join(
+                    self.quoted(folder) for folder in identifier.split(dot_char)
+                )
+
+        return self.quoted(identifier)
 
     def render(self) -> str:
         rendered = super().render()
@@ -64,7 +72,6 @@ class DremioRelation(BaseRelation):
     def _render_iterator(
         self,
     ) -> Iterator[Tuple[Optional[ComponentName], Optional[str]]]:
-
         for key in ComponentName:
             path_part: Optional[str] = None
             if self.include_policy.get_part(key):

@@ -21,7 +21,7 @@ from dbt.tests.util import get_connection
 
 class TestInvalidGrantsDremio(BaseGrantsDremio, BaseInvalidGrants):
     def grantee_does_not_exist_error(self):
-        return "StatusRuntimeException: INTERNAL"
+        return "Grant on catalog entity failed. User invalid_user does not exist."
 
     def privilege_does_not_exist_error(self):
         return 'Encountered "fake_privilege"'

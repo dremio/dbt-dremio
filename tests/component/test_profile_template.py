@@ -60,7 +60,6 @@ class TestProfileTemplate:
         "dremio_space": "@user",
         "dremio_space_folder": "no_schema",
         "threads": 1,
-        "verify_ssl": True,
     }
     _DREMIO_CLOUD_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS = {
         "cloud_host": "api.dremio.cloud",
@@ -137,7 +136,6 @@ class TestProfileTemplate:
     def _test_project_profile_options(
         self, test_project: Dict[str, any], test_options: Dict[str, any]
     ) -> None:
-
         assert test_project is not None
 
         for option in test_options:

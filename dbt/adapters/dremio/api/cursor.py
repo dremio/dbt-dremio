@@ -77,7 +77,7 @@ class DremioCursor:
         self._initialize()
         self.closed = True
 
-    def execute(self, sql, bindings=None):
+    def execute(self, sql, bindings=None, fetch=False):
         if self.closed:
             raise Exception("CursorClosed")
         if bindings is None:
@@ -88,7 +88,8 @@ class DremioCursor:
             self._job_id = json_payload["id"]
 
             self._populate_rowcount()
-            self._populate_job_results()
+            if fetch:
+                self._populate_job_results()
             self._populate_results_table()
 
         else:
@@ -146,7 +147,7 @@ class DremioCursor:
 
         self._rowcount = rows
 
-    def _populate_job_results(self, row_limit=100):
+    def _populate_job_results(self, row_limit=500):
         if self._job_results == None:
             combined_job_results = job_results(
                 self._parameters,
@@ -156,6 +157,11 @@ class DremioCursor:
             )
             total_row_count = combined_job_results["rowCount"]
             current_row_count = len(combined_job_results["rows"])
+
+            if total_row_count > 100000:
+                logger.warning(
+                    "Fetching more than 100000 records. This may result in slower performance."
+                )
 
             while current_row_count < total_row_count:
                 combined_job_results["rows"].extend(

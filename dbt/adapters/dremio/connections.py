@@ -70,7 +70,6 @@ class DremioConnectionManager(SQLConnectionManager):
 
     @classmethod
     def open(cls, connection):
-
         if connection.state == "open":
             logger.debug("Connection is already open, skipping open.")
             return connection
@@ -130,13 +129,14 @@ class DremioConnectionManager(SQLConnectionManager):
         pass
 
     # Auto_begin may not be relevant with the rest_api
-    def add_query(self, sql, auto_begin=True, bindings=None, abridge_sql_log=False):
-
+    def add_query(
+        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False, fetch=False
+    ):
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
             self.begin()
 
-        logger.debug(f'Using {self.TYPE} connection "{connection.name}"')
+        logger.debug(f'Using {self.TYPE} connection "{connection.name}". fetch={fetch}')
 
         with self.exception_handler(sql):
             if abridge_sql_log:
@@ -148,10 +148,10 @@ class DremioConnectionManager(SQLConnectionManager):
             cursor = connection.handle.cursor()
 
             if bindings is None:
-                cursor.execute(sql)
+                cursor.execute(sql, fetch=fetch)
             else:
                 logger.debug(f"Bindings: {bindings}")
-                cursor.execute(sql, bindings)
+                cursor.execute(sql, bindings, fetch=fetch)
 
             logger.debug(
                 "SQL status: {} in {:0.2f} seconds".format(
@@ -174,9 +174,8 @@ class DremioConnectionManager(SQLConnectionManager):
         self, sql: str, auto_begin: bool = False, fetch: bool = False
     ) -> Tuple[AdapterResponse, agate.Table]:
         sql = self._add_query_comment(sql)
-        _, cursor = self.add_query(sql, auto_begin)
+        _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
         response = self.get_response(cursor)
-        fetch = True
         if fetch:
             table = cursor.table
         else:
