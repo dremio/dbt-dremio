@@ -1,3 +1,6 @@
+# dbt-dremio v1.7.0
+
+
 # dbt-dremio v1.5.1
 
 ## Changes
