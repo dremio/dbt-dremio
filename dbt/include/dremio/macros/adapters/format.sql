@@ -53,7 +53,7 @@ for 'excel' :
     ,'auto_generated_column_names':'autoGenerateColumnNames'
     ,'pretty_print':'prettyPrint'} -%}
   {%- set options = [] -%}
-  {%- set format = config.get('format', validator=validation.any[basestring]) or 'iceberg' -%}
+  {%- set format = config.get('format', validator=validation.any[basestring])-%}
   {%- if format in ['text', 'json', 'arrow', 'parquet', 'iceberg'] -%}
     {%- do options.append("type=>'" ~ format ~ "'") -%}
     {%- if format == 'text' -%}
