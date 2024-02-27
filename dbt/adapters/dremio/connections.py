@@ -40,6 +40,7 @@ from dbt.adapters.dremio.api.rest.error import (
     DremioInternalServerException,
     DremioServiceUnavailableException,
     DremioGatewayTimeoutException,
+    DremioBadRequestException,
 )
 
 from dbt.events import AdapterLogger
