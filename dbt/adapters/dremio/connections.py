@@ -205,18 +205,19 @@ class DremioConnectionManager(SQLConnectionManager):
 
             delete_catalog(api_parameters, catalog_info["id"])
 
-    def create_catalog(self, database, schema):
+    def create_catalog(self, relation):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
+        database = relation.database
+        schema = relation.schema
 
         if database == ("@" + credentials.UID):
             logger.debug("Database is default: creating folders only")
         else:
             self._create_space(database, api_parameters)
-        if database != credentials.datalake:
-            self._create_folders(database, schema, api_parameters)
+        self._create_folders(database, schema, api_parameters)
         return
 
     def _make_new_space_json(self, name) -> json:

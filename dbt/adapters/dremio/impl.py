@@ -61,9 +61,8 @@ class DremioAdapter(SQLAdapter):
         return "time"
 
     def create_schema(self, relation: DremioRelation) -> None:
-        database = relation.database
-        schema = relation.schema
-        self.connections.create_catalog(database, schema)
+        if relation.is_view:
+            self.connections.create_catalog(relation)
 
     def drop_schema(self, relation: DremioRelation) -> None:
         if relation.type == "table":
