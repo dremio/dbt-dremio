@@ -13,6 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro is_datalake_node(node) -%}
-  {{ return(node.resource_type in ['test', 'seed']
+  {{ return(node.resource_type in ['test', 'seed', 'snapshot']
     or (node.resource_type == 'model' and node.config.materialized not in ['view', 'reflection'])) }}
 {%- endmacro %}
