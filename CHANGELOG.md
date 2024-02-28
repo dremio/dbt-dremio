@@ -2,10 +2,12 @@
 
 ## Changes
 
+-   [195](https://github.com/dremio/dbt-dremio/issues/195) Ensure the adapter does not try and create folders in object storage source
+
+
 # dbt-dremio v1.5.1
 
 ## Changes
--   [195](https://github.com/dremio/dbt-dremio/issues/195) Ensure the adapter does not try and create folders in object storage source
 
 -   [#199](https://github.com/dremio/dbt-dremio/issues/199) Populate PyPI's `long_description` with contents of `README.md`
 -   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 

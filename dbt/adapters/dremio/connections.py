@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple
+from typing import Tuple, Optional
 from contextlib import contextmanager
 
 from dbt.adapters.dremio.api.cursor import DremioCursor
@@ -171,7 +171,11 @@ class DremioConnectionManager(SQLConnectionManager):
         return AdapterResponse(_message=message, rows_affected=rows)
 
     def execute(
-        self, sql: str, auto_begin: bool = False, fetch: bool = False
+        self,
+        sql: str,
+        auto_begin: bool = False,
+        fetch: bool = False,
+        limit: Optional[int] = None,
     ) -> Tuple[AdapterResponse, agate.Table]:
         sql = self._add_query_comment(sql)
         _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
