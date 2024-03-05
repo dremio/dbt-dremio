@@ -36,7 +36,7 @@ class DremioCredentials(Credentials):
     verify_ssl: Optional[bool] = True
 
     _ALIASES = {
-        # Only terms on right-side will be used going forward.
+        # Only terms on left-side will be used going forward.
         "username": "UID",  # backwards compatibility with existing profiles
         "user": "UID",
         "password": "PWD",

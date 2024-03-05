@@ -1,5 +1,9 @@
 # dbt-dremio v1.7.0
 
+## Changes
+
+-   [195](https://github.com/dremio/dbt-dremio/issues/195) Ensure the adapter does not try and create folders in object storage source
+
 
 # dbt-dremio v1.5.1
 
