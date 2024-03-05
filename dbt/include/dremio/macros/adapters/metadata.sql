@@ -200,3 +200,24 @@ limitations under the License.*/
   {% set t = load_result('list_relations_without_caching').table %}
   {{ return(t) }}
 {% endmacro %}
+
+{% macro dremio__get_relation_last_modified(information_schema, relations) -%}
+  relation = relations[0]
+
+  {%- if relation.type != 'view' -%}
+
+    {%- call statement('last_modified', fetch_result=True) -%}
+          select committed_at as last_modified,
+                {{ current_timestamp() }} as snapshotted_at
+          from TABLE( table_snapshot('{{relation}}') )
+    {%- endcall -%}
+  {%- else -%}
+    
+  {%- endif -%}
+
+  {{ return(load_result('last_modified')) }}
+
+
+
+
+{% endmacro %}

@@ -38,7 +38,7 @@ class DremioAdapter(SQLAdapter):
     Relation = DremioRelation
 
     _capabilities = CapabilityDict(
-        {Capability.SchemaMetadataByRelations: CapabilitySupport(support=Support.Full)}
+        {Capability.TableLastModifiedMetadata: CapabilitySupport(support=Support.Full)}
     )
 
     @classmethod
