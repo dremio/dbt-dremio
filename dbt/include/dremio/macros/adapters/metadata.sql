@@ -202,8 +202,7 @@ limitations under the License.*/
 {% endmacro %}
 
 {% macro dremio__get_relation_last_modified(information_schema, relations) -%}
-  relation = relations[0]
-
+  {% set relation = relations[0] %}
   {%- if relation.type != 'view' -%}
 
     {%- call statement('last_modified', fetch_result=True) -%}
@@ -212,7 +211,7 @@ limitations under the License.*/
           from TABLE( table_snapshot('{{relation}}') )
     {%- endcall -%}
   {%- else -%}
-    
+
   {%- endif -%}
 
   {{ return(load_result('last_modified')) }}

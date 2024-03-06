@@ -1,7 +1,4 @@
-import os
 import pytest
-
-from dbt.cli.main import dbtRunner
 from dbt.tests.util import run_dbt
 from tests.utils.util import BUCKET
 
@@ -13,22 +10,31 @@ sources:
       warn_after: {count: 10, period: hour}
       error_after: {count: 1, period: day}
     database: "dbt_test_source"  
-    schema: "dbtdremios3"
+    schema: "{{ target.schema }}"
     tables:
-      - name: test_table
+      - name: test_source
 """
 
-table = """
-{{config(materialized = "table")}}
-select 1 as id
-"""
+
+seed = """
+id,name
+1,Martin
+2,Jeter
+3,Ruth
+4,Gehrig
+5,DiMaggio
+6,Torre
+7,Mantle
+8,Berra
+9,Maris
+""".strip()
 
 
 class TestGetLastRelationModified:
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
-            "models": {
+            "seeds": {
                 "+twin_strategy": "prevent",
             },
         }
@@ -67,25 +73,18 @@ class TestGetLastRelationModified:
     def models(self):
         return {
             "schema.yml": freshness_via_metadata_schema_yml,
-            "test_table.sql": table,
         }
+
+    @pytest.fixture(scope="class")
+    def seeds(self):
+        return {"test_source.csv": seed}
 
     def test_get_last_relation_modified(self, project):
 
         # run command
-        results = run_dbt()
-        # run result length
+        result = run_dbt(["seed"])
+
+        results = run_dbt(["source", "freshness"])
         assert len(results) == 1
-
-        warning_or_error = False
-
-        def probe(e):
-            nonlocal warning_or_error
-            if e.info.level in ["warning", "error"]:
-                warning_or_error = True
-
-        runner = dbtRunner(callbacks=[probe])
-        runner.invoke(["source", "freshness"])
-
-        # The 'source freshness' command should succeed without warnings or errors.
-        assert not warning_or_error
+        result = results[0]
+        assert result.status == "pass"
