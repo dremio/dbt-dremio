@@ -2,7 +2,8 @@
 
 ## Changes
 
--   [195](https://github.com/dremio/dbt-dremio/issues/195) Ensure the adapter does not try and create folders in object storage source
+-   [#195](https://github.com/dremio/dbt-dremio/issues/195) Ensure the adapter does not try and create folders in object storage source
+-   [#220](https://github.com/dremio/dbt-dremio/pull/220) Optimize networking performance with Dremio server
 
 
 # dbt-dremio v1.5.1

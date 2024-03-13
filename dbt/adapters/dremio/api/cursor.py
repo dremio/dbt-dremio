@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import time
+
 import agate
 
 from dbt.adapters.dremio.api.rest.endpoints import (
@@ -123,6 +125,8 @@ class DremioCursor:
         job_status_state = job_status_response["jobState"]
 
         while True:
+            time.sleep(0.2)
+            
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
 

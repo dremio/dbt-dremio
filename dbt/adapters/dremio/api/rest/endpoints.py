@@ -39,9 +39,10 @@ from dbt.events import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
+session = requests.Session()
 
 def _get(url, request_headers, details="", ssl_verify=True):
-    response = requests.get(url, headers=request_headers, verify=ssl_verify)
+    response = session.get(url, headers=request_headers, verify=ssl_verify)
     return _check_error(response, details)
 
 
@@ -55,7 +56,7 @@ def _post(
 ):
     if isinstance(json, str):
         json = jsonlib.loads(json)
-    response = requests.post(
+    response = session.post(
         url,
         headers=request_headers,
         timeout=timeout,
@@ -66,7 +67,7 @@ def _post(
 
 
 def _delete(url, request_headers, details="", ssl_verify=True):
-    response = requests.delete(url, headers=request_headers, verify=ssl_verify)
+    response = session.delete(url, headers=request_headers, verify=ssl_verify)
     return _check_error(response, details)
 
 
