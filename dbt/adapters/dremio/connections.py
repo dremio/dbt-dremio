@@ -257,7 +257,7 @@ class DremioConnectionManager(SQLConnectionManager):
                if "Can not create a folder inside a [SOURCE]" in e.message:
                    logger.debug(f"Ignoring {e}")
                else:
-                   raise DremioBadRequestException(e)
+                   raise e
 
     def _create_path_list(self, database, schema):
         path = [database]
