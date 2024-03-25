@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro drop_reflection_if_exists(relation, reflection) %}
-  {% if reflection is not none and reflection.type == 'materializedview' %}
+  {% if reflection is not none and reflection.type == 'materialized_view' %}
     {% call statement('drop reflection') -%}
       alter dataset {{ relation }}
         drop reflection {{ reflection.include(database=False, schema=False) }}

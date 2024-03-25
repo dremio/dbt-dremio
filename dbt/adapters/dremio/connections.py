@@ -40,6 +40,7 @@ from dbt.adapters.dremio.api.rest.error import (
     DremioInternalServerException,
     DremioServiceUnavailableException,
     DremioGatewayTimeoutException,
+    DremioBadRequestException,
 )
 
 from dbt.events import AdapterLogger
@@ -49,7 +50,7 @@ logger = AdapterLogger("dremio")
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
-    DEFAULT_CONNECTION_RETRIES = 1
+    DEFAULT_CONNECTION_RETRIES = 5
 
     retries = DEFAULT_CONNECTION_RETRIES
 
@@ -220,8 +221,12 @@ class DremioConnectionManager(SQLConnectionManager):
         if database == ("@" + credentials.UID):
             logger.debug("Database is default: creating folders only")
         else:
+            logger.debug(f"Creating space: {database}")
             self._create_space(database, api_parameters)
-        self._create_folders(database, schema, api_parameters)
+
+        if database != credentials.datalake:
+            logger.debug(f"Creating folder(s): {database}.{schema}")
+            self._create_folders(database, schema, api_parameters)
         return
 
     def _make_new_space_json(self, name) -> json:
@@ -248,6 +253,11 @@ class DremioConnectionManager(SQLConnectionManager):
                 create_catalog_api(api_parameters, folder_json)
             except DremioAlreadyExistsException:
                 logger.debug(f"Folder {folder} already exists.")
+            except DremioBadRequestException as e:
+               if "Can not create a folder inside a [SOURCE]" in e.message:
+                   logger.debug(f"Ignoring {e}")
+               else:
+                   raise e
 
     def _create_path_list(self, database, schema):
         path = [database]

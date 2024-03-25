@@ -56,7 +56,7 @@ limitations under the License.*/
 
   {%- set old_relation = adapter.get_relation(database=anchor.database, schema=anchor.schema, identifier=identifier) -%}
   {%- set target_relation = api.Relation.create(
-      identifier=identifier, schema=anchor.schema, database=anchor.database, type='materializedview') -%}
+      identifier=identifier, schema=anchor.schema, database=anchor.database, type='materialized_view') -%}
 
   {%- set reflection_type = dbt_dremio_validate_get_reflection_type(raw_reflection_type) -%}
   {% if (reflection_type == 'raw' and display is none)
