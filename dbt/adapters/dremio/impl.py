@@ -21,6 +21,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from dbt.adapters.base.relation import BaseRelation
+
 from dbt.adapters.capability import (
     CapabilityDict,
     CapabilitySupport,
@@ -38,7 +39,14 @@ class DremioAdapter(SQLAdapter):
     Relation = DremioRelation
 
     _capabilities = CapabilityDict(
-        {Capability.TableLastModifiedMetadata: CapabilitySupport(support=Support.Full)}
+        {
+            Capability.TableLastModifiedMetadata: CapabilitySupport(
+                support=Support.Full
+            ),
+            Capability.SchemaMetadataByRelations: CapabilitySupport(
+                support=Support.Full
+            ),
+        }
     )
 
     @classmethod

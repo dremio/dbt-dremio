@@ -20,5 +20,6 @@ from dbt.tests.util import run_dbt
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
+# Need to modify test to not assert any sources for it to pass
 class TestEphemeralDremio(BaseEphemeral):
     pass
