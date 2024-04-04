@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-from dbt.tests.adapter.basic.test_incremental import (
-    BaseIncremental,
-    BaseIncrementalNotSchemaChange,
-)
+
+from dbt.tests.adapter.dbt_show.test_dbt_show import BaseShowSqlHeader, BaseShowLimit
+from tests.utils.util import BUCKET
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
-# Need to modify test to not assert any sources for it to pass
-class TestIncrementalDremio(BaseIncremental):
+class TestShowLimitDremio(BaseShowLimit):
     pass
 
 
-class TestBaseIncrementalNotSchemaChange(BaseIncrementalNotSchemaChange):
+class TestShowSqlHeaderDremio(BaseShowSqlHeader):
     pass

@@ -1,11 +1,8 @@
 # Copyright (C) 2022 Dremio Corporation
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
 # http://www.apache.org/licenses/LICENSE-2.0
-
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,17 +10,10 @@
 # limitations under the License.
 
 import pytest
-from dbt.tests.adapter.basic.test_incremental import (
-    BaseIncremental,
-    BaseIncrementalNotSchemaChange,
-)
+from dbt.tests.adapter.utils.test_get_powers_of_two import BaseGetPowersOfTwo
+from tests.utils.util import BUCKET
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
-# Need to modify test to not assert any sources for it to pass
-class TestIncrementalDremio(BaseIncremental):
-    pass
-
-
-class TestBaseIncrementalNotSchemaChange(BaseIncrementalNotSchemaChange):
+class TestGetPowersOfTwoDremio(BaseGetPowersOfTwo):
     pass
