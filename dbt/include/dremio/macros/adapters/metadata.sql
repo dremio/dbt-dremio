@@ -13,60 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro dremio__get_catalog(information_schema, schemas) -%}
-  {%- set database = information_schema.database.strip('"') -%}
-  {%- set table_schemas = [] -%}
-  {%- for schema in schemas -%}
-    {%- set schema = schema.strip('"') -%}
-    {%- do table_schemas.append(
-      "'" + database + (('.' + schema) if schema != 'no_schema' else '') + "'"
-    ) -%}
-  {%- endfor -%}
-  {%- call statement('catalog', fetch_result=True) -%}
-
-    with cte as (
-
-    {%- if var('dremio:reflections_enabled', default=false) %}
-      {{get_catalog_reflections(information_schema)}}
-
-      union all
-
-    {%- endif %}
-
-      select (case when position('.' in columns.table_schema) > 0
-            then substring(columns.table_schema, 1, position('.' in columns.table_schema) - 1)
-            else columns.table_schema
-        end) as table_database
-        ,(case when position('.' in columns.table_schema) > 0
-            then substring(columns.table_schema, position('.' in columns.table_schema) + 1)
-            else 'no_schema'
-        end) as table_schema
-        ,columns.table_name
-        ,lower(t.table_type) as table_type
-        ,cast(null as varchar) as table_comment
-        ,column_name
-        ,ordinal_position as column_index
-        ,lower(data_type) as column_type
-        ,cast(null as varchar) as column_comment
-        ,cast(null as varchar) as table_owner
-      from information_schema."tables" as t
-      join information_schema.columns
-        on (t.table_schema = columns.table_schema
-        and t.table_name = columns.table_name)
-      where t.table_type <> 'SYSTEM_TABLE'
-      and (
-        {%- for table_schema in table_schemas -%}
-          ilike( t.table_schema, {{ table_schema.strip('"') }}){%- if not loop.last %} or {% endif -%}
-        {%- endfor -%}
-      )
-    )
-
-    select *
-    from cte
-    order by table_schema
-      ,table_name
-      ,column_index
-  {%- endcall -%}
-  {{ return(load_result('catalog').table) }}
+    {% set query %}
+        with t_query as (
+            {{ dremio__get_catalog_tables_sql(information_schema) }}
+            {{ dremio__get_catalog_schemas_where_clause_sql(information_schema, schemas) }}
+        ),
+        columns as (
+            {{ dremio__get_catalog_columns_sql(information_schema) }}
+            {{ dremio__get_catalog_schemas_where_clause_sql(information_schema, schemas) }}
+        )
+        {{ dremio__get_catalog_results_sql() }}
+    {%- endset -%}
+    {{ return(run_query(query)) }}
 {%- endmacro %}
 
 
@@ -121,16 +79,16 @@ limitations under the License.*/
   {%- set database = information_schema.database.strip('"') -%}
   {%- set table_schemas = [] -%}
   {%- for schema in schemas -%}
-    {%- set schema = schema.strip('"') -%}
+    {%- set my_schema = schema.strip('"') -%}
     {%- do table_schemas.append(
-      "'" + database + (('.' + schema) if schema != 'no_schema' else '') + "'"
+      "'" + database + (('.' + my_schema) if my_schema != 'no_schema' else '') + "'"
     ) -%}
   {%- endfor -%}
 
       where (
         {%- for t_schema in table_schemas -%}
           ilike( (case when position('.' in table_schema) > 0
-                              then substring(table_schema, position('.' in table_schema) + 1)
+                              then table_schema
                               else 'no_schema'
                           end), 
                   {{ t_schema.strip('"') }})
@@ -158,7 +116,6 @@ limitations under the License.*/
                               then substring(table_schema, position('.' in table_schema) + 1)
                               else 'no_schema'
                           end), '{{relation.schema}}')
-                )
             {% else %}
                 {% do exceptions.raise_compiler_error(
                     '`get_catalog_relations` requires a list of relations, each with a schema'
@@ -167,7 +124,7 @@ limitations under the License.*/
 
             {%- if not loop.last %} or {% endif -%}
         {%- endfor -%}
-    )
+      )
 {%- endmacro -%}
 
 
@@ -181,9 +138,9 @@ limitations under the License.*/
     {% endif %}
 
     select *
-    from t
-    join columns on (t.table_schema = columns.table_schema
-        and t.table_name = columns.table_name)
+    from t_query
+    join columns on (t_query.table_schema = columns.table_schema
+        and t_query.table_name = columns.table_name)
     order by "column_index"
 {%- endmacro -%}
 
@@ -351,8 +308,5 @@ limitations under the License.*/
   {%- endif -%}
 
   {{ return(load_result('last_modified')) }}
-
-
-
 
 {% endmacro %}
