@@ -37,7 +37,7 @@ limitations under the License.*/
                 else 'no_schema'
             end as table_schema
         ,reflection_name as table_name
-        ,'materializedview' as table_type
+        ,'materialized_view' as table_type
         ,case
             when nullif(external_reflection, '') is not null then 'target: ' || external_reflection
             when arrow_cache then 'arrow cache'
@@ -166,7 +166,7 @@ limitations under the License.*/
           ,replace(case when first_dot < last_dot
           then substr(dataset_name, first_dot + 1, last_dot - first_dot - 1)
           else 'no_schema' end, '"', '') as table_schema
-          ,'materializedview' as table_type
+          ,'materialized_view' as table_type
         from cte1
       )
       select table_catalog, table_name, table_schema, table_type
