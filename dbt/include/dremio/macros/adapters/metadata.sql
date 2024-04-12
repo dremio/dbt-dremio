@@ -38,7 +38,7 @@ limitations under the License.*/
             {{ dremio__get_catalog_columns_sql(information_schema) }}
             {{ dremio__get_catalog_relations_where_clause_sql(relations) }}
         )
-        {{ dremio__get_catalog_relations_result_sql() }}
+        {{ dremio__get_catalog_relations_result_sql(relations) }}
     {%- endset -%}
     {{ return(run_query(query)) }}
 {%- endmacro -%}
@@ -98,8 +98,6 @@ limitations under the License.*/
 {%- endmacro -%}
 
 {% macro dremio__get_catalog_relations_where_clause_sql(relations) %}
-      {%- set my_table_schema = table_schema.split('.')[1] if '.' in table_schema 
-        else 'no_schema' -%} 
     where (
         {%- for relation in relations -%}
             {% if relation.schema and relation.identifier %}
@@ -130,13 +128,6 @@ limitations under the License.*/
 
 
 {% macro dremio__get_catalog_results_sql() %}
-    {%- if var('dremio:reflections_enabled', default=false) %}
-
-        {{get_catalog_reflections(information_schema)}}
-
-      union all
-    {% endif %}
-
     select *
     from t_query
     join columns on (t_query.table_schema = columns.table_schema
@@ -144,22 +135,20 @@ limitations under the License.*/
     order by "column_index"
 {%- endmacro -%}
 
-{% macro dremio__get_catalog_relations_result_sql() %}
+{% macro dremio__get_catalog_relations_result_sql(relations) %}
     {%- if var('dremio:reflections_enabled', default=false) %}
+        {{get_catalog_reflections(relations)}}
+    {% else %}    
 
-        {{get_catalog_reflections(information_schema)}}
-
-      union all
+      select *
+      from t
+      join columns on (t.table_schema = columns.table_schema
+          and t.table_name = columns.table_name)
+      order by "column_index"
     {% endif %}
-
-    select *
-    from t
-    join columns on (t.table_schema = columns.table_schema
-        and t.table_name = columns.table_name)
-    order by "column_index"
 {%- endmacro -%}
 
-{% macro get_catalog_reflections(information_schema) %}
+{% macro get_catalog_reflections(relations) %}
     select
       case when position('.' in table_schema) > 0
               then substring(table_schema, 1, position('.' in table_schema) - 1)
@@ -170,7 +159,7 @@ limitations under the License.*/
               else 'no_schema'
           end as table_schema
       ,reflection_name as table_name
-      ,'materializedview' as table_type
+      ,'materialized_view' as table_type
       ,case
           when nullif(external_reflection, '') is not null then 'target: ' || external_reflection
           when arrow_cache then 'arrow cache'
@@ -187,16 +176,36 @@ limitations under the License.*/
       ,', ',case when strpos(regexp_replace(distribution_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'distribution' end
       ) as column_comment
       ,cast(null as varchar) as table_owner
-    from sys.reflections
+      {%- if target.cloud_host and not target.software_host %}
+        from sys.project.reflections
+      {%- elif target.software_host and not target.cloud_host %}
+        from sys.reflections
+      {%- endif %}
     join information_schema.columns
         on (columns.table_schema || '.' || columns.table_name = replace(dataset_name, '"', '')
           and (strpos(regexp_replace(display_columns, '$|, |^', '/'), '/' || column_name || '/') > 0
                 or strpos(regexp_replace(dimensions, '$|, |^', '/'), '/' || column_name || '/') > 0
-                or strpos(regexp_replace(measures, '$|, |^', '/'), '/' || column_name || '/') > 0 ))
-    where
-      {% for table_schema in table_schemas -%}
-        ilike( table_schema, {{ table_schema.strip('"') }}){%- if not loop.last %} or {% endif -%}
-      {%- endfor %}
+                or strpos(regexp_replace(measures, '$|, |^', '/'), '/' || column_name || '/') > 0 ))           
+      where
+        {%- for relation in relations -%}
+            {% if relation.identifier %}
+                (
+                    ilike((case when position('.' in table_schema) > 0
+                              then substring(table_schema, position('.' in table_schema) + 1)
+                              else 'no_schema'
+                          end), '{{target.root_path}}')
+                    and ilike(reflection_name, '{{ relation.identifier }}')
+                )
+            {% else%}
+                (
+                    ilike(case when position('.' in table_schema) > 0
+                              then substring(table_schema, position('.' in table_schema) + 1)
+                              else 'no_schema'
+                          end), '{{target.root_path}}')
+            {% endif %}
+
+            {%- if not loop.last %} or {% endif -%}
+        {%- endfor -%}
 {%- endmacro -%}
 
 {% macro dremio__information_schema_name(database) -%}
@@ -250,7 +259,11 @@ limitations under the License.*/
           else strpos(reverse(dataset_name), '.') - 1
           end as last_dot
           ,length(dataset_name) as length
-        from sys.reflections
+        {%- if target.cloud_host and not target.software_host %}
+          from sys.project.reflections
+        {%- elif target.software_host and not target.cloud_host %}
+          from sys.reflections
+        {%- endif %}
       )
       , cte2 as (
         select
@@ -259,7 +272,7 @@ limitations under the License.*/
           ,replace(case when first_dot < last_dot
           then substr(dataset_name, first_dot + 1, last_dot - first_dot - 1)
           else 'no_schema' end, '"', '') as table_schema
-          ,'materializedview' as table_type
+          ,'materialized_view' as table_type
         from cte1
       )
       select table_catalog, table_name, table_schema, table_type
