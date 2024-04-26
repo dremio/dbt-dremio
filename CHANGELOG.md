@@ -1,10 +1,11 @@
 # dbt-dremio v1.7.0
 
 ## Changes
-
--   [#195](https://github.com/dremio/dbt-dremio/issues/195) Ensure the adapter does not try and create folders in object storage source
+-   [#8307](https://github.com/dbt-labs/dbt-core/discussions/8307) Allow source freshness to be evaluated from table metadata
+-   [#8307](https://github.com/dbt-labs/dbt-core/discussions/8307) Catalog fetch performance improvements
+-   [#8307](https://github.com/dbt-labs/dbt-core/discussions/8307) Migrate data_spine macros
+-   [#195](https://github.com/dremio/dbt-dremio/issues/195) Ensure api call to create folders does not get called when creating a table
 -   [#220](https://github.com/dremio/dbt-dremio/pull/220) Optimize networking performance with Dremio server
-
 
 # dbt-dremio v1.5.1
 

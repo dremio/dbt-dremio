@@ -13,98 +13,200 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro dremio__get_catalog(information_schema, schemas) -%}
+    {% set query %}
+        with t_query as (
+            {{ dremio__get_catalog_tables_sql(information_schema) }}
+            {{ dremio__get_catalog_schemas_where_clause_sql(information_schema, schemas) }}
+        ),
+        columns as (
+            {{ dremio__get_catalog_columns_sql(information_schema) }}
+            {{ dremio__get_catalog_schemas_where_clause_sql(information_schema, schemas) }}
+        )
+        {{ dremio__get_catalog_results_sql() }}
+    {%- endset -%}
+    {{ return(run_query(query)) }}
+{%- endmacro %}
+
+
+{% macro dremio__get_catalog_relations(information_schema, relations) %}
+    {% set query %}
+        with t as (
+            {{ dremio__get_catalog_tables_sql(information_schema) }}
+            {{ dremio__get_catalog_relations_where_clause_sql(relations) }}
+        ),
+        columns as (
+            {{ dremio__get_catalog_columns_sql(information_schema) }}
+            {{ dremio__get_catalog_relations_where_clause_sql(relations) }}
+        )
+        {{ dremio__get_catalog_relations_result_sql(relations) }}
+    {%- endset -%}
+    {{ return(run_query(query)) }}
+{%- endmacro -%}
+
+
+{% macro dremio__get_catalog_tables_sql(information_schema) %}
+  select (case when position('.' in table_schema) > 0
+              then substring(table_schema, 1, position('.' in table_schema) - 1)
+              else table_schema
+          end) as table_database,
+          (case when position('.' in table_schema) > 0
+              then substring(table_schema, position('.' in table_schema) + 1)
+              else 'no_schema'
+          end) as table_schema,
+          table_name,
+          lower(table_type) as table_type,
+          cast(null as varchar) as table_comment,
+          cast(null as varchar) as table_owner
+        from information_schema."tables" as t
+{%- endmacro -%}
+
+
+{% macro dremio__get_catalog_columns_sql(information_schema) %}
+  select
+    (case when position('.' in table_schema) > 0
+        then substring(table_schema, position('.' in table_schema) + 1)
+        else 'no_schema'
+    end) as table_schema, 
+    table_name,
+    column_name,
+    ordinal_position as column_index,
+    lower(data_type) as column_type,
+    cast(null as varchar) as column_comment
+    from information_schema.columns as columns
+{%- endmacro -%}
+
+{% macro dremio__get_catalog_schemas_where_clause_sql(information_schema, schemas) %}
   {%- set database = information_schema.database.strip('"') -%}
   {%- set table_schemas = [] -%}
   {%- for schema in schemas -%}
-    {%- set schema = schema.strip('"') -%}
+    {%- set my_schema = schema.strip('"') -%}
     {%- do table_schemas.append(
-      "'" + database + (('.' + schema) if schema != 'no_schema' else '') + "'"
+      "'" + database + (('.' + my_schema) if my_schema != 'no_schema' else '') + "'"
     ) -%}
   {%- endfor -%}
-  {%- call statement('catalog', fetch_result=True) -%}
 
-    with cte as (
-
-    {%- if var('dremio:reflections_enabled', default=false) %}
-
-      select
-        case when position('.' in table_schema) > 0
-                then substring(table_schema, 1, position('.' in table_schema) - 1)
-                else table_schema
-            end as table_database
-        ,case when position('.' in table_schema) > 0
-                then substring(table_schema, position('.' in table_schema) + 1)
-                else 'no_schema'
-            end as table_schema
-        ,reflection_name as table_name
-        ,'materialized_view' as table_type
-        ,case
-            when nullif(external_reflection, '') is not null then 'target: ' || external_reflection
-            when arrow_cache then 'arrow cache'
-        end as table_comment
-        ,column_name
-        ,ordinal_position as column_index
-        ,lower(data_type) as column_type
-        ,concat(
-        case when strpos(regexp_replace(display_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'display' end
-        ,', ',case when strpos(regexp_replace(dimensions, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'dimension'  end
-        ,', ',case when strpos(regexp_replace(measures, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'measure'  end
-        ,', ',case when strpos(regexp_replace(sort_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'sort'  end
-        ,', ',case when strpos(regexp_replace(partition_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'partition'  end
-        ,', ',case when strpos(regexp_replace(distribution_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'distribution' end
-        ) as column_comment
-        ,cast(null as varchar) as table_owner
-      from sys.reflections
-      join information_schema.columns
-          on (columns.table_schema || '.' || columns.table_name = replace(dataset_name, '"', '')
-            and (strpos(regexp_replace(display_columns, '$|, |^', '/'), '/' || column_name || '/') > 0
-                  or strpos(regexp_replace(dimensions, '$|, |^', '/'), '/' || column_name || '/') > 0
-                  or strpos(regexp_replace(measures, '$|, |^', '/'), '/' || column_name || '/') > 0 ))
-      where
-        {% for table_schema in table_schemas -%}
-          ilike( table_schema, {{ table_schema.strip('"') }}){%- if not loop.last %} or {% endif -%}
-        {%- endfor %}
-
-      union all
-
-    {%- endif %}
-
-      select (case when position('.' in columns.table_schema) > 0
-            then substring(columns.table_schema, 1, position('.' in columns.table_schema) - 1)
-            else columns.table_schema
-        end) as table_database
-        ,(case when position('.' in columns.table_schema) > 0
-            then substring(columns.table_schema, position('.' in columns.table_schema) + 1)
-            else 'no_schema'
-        end) as table_schema
-        ,columns.table_name
-        ,lower(t.table_type) as table_type
-        ,cast(null as varchar) as table_comment
-        ,column_name
-        ,ordinal_position as column_index
-        ,lower(data_type) as column_type
-        ,cast(null as varchar) as column_comment
-        ,cast(null as varchar) as table_owner
-      from information_schema."tables" as t
-      join information_schema.columns
-        on (t.table_schema = columns.table_schema
-        and t.table_name = columns.table_name)
-      where t.table_type <> 'SYSTEM_TABLE'
-      and (
-        {%- for table_schema in table_schemas -%}
-          ilike( t.table_schema, {{ table_schema.strip('"') }}){%- if not loop.last %} or {% endif -%}
+      where (
+        {%- for t_schema in table_schemas -%}
+          ilike( (case when position('.' in table_schema) > 0
+                              then table_schema
+                              else 'no_schema'
+                          end), 
+                  {{ t_schema.strip('"') }})
+          {%- if not loop.last %} or {% endif -%}
         {%- endfor -%}
       )
-    )
+{%- endmacro -%}
 
+{% macro dremio__get_catalog_relations_where_clause_sql(relations) %}
+    where (
+        {%- for relation in relations -%}
+            {% if relation.schema and relation.identifier %}
+                (
+                    ilike((case when position('.' in table_schema) > 0
+                              then substring(table_schema, position('.' in table_schema) + 1)
+                              else 'no_schema'
+                          end), '{{relation.schema}}')
+                    and ilike(table_name, '{{ relation.identifier }}')
+                )
+            {% elif relation.schema %}
+                (
+                    ilike(case when position('.' in table_schema) > 0
+                              then substring(table_schema, position('.' in table_schema) + 1)
+                              else 'no_schema'
+                          end), '{{relation.schema}}')
+            {% else %}
+                {% do exceptions.raise_compiler_error(
+                    '`get_catalog_relations` requires a list of relations, each with a schema'
+                ) %}
+            {% endif %}
+
+            {%- if not loop.last %} or {% endif -%}
+        {%- endfor -%}
+      )
+{%- endmacro -%}
+
+
+
+{% macro dremio__get_catalog_results_sql() %}
     select *
-    from cte
-    order by table_schema
-      ,table_name
-      ,column_index
-  {%- endcall -%}
-  {{ return(load_result('catalog').table) }}
-{%- endmacro %}
+    from t_query
+    join columns on (t_query.table_schema = columns.table_schema
+        and t_query.table_name = columns.table_name)
+    order by "column_index"
+{%- endmacro -%}
+
+{% macro dremio__get_catalog_relations_result_sql(relations) %}
+    {%- if var('dremio:reflections_enabled', default=false) %}
+        {{get_catalog_reflections(relations)}}
+    {% else %}    
+
+      select *
+      from t
+      join columns on (t.table_schema = columns.table_schema
+          and t.table_name = columns.table_name)
+      order by "column_index"
+    {% endif %}
+{%- endmacro -%}
+
+{% macro get_catalog_reflections(relations) %}
+    select
+      case when position('.' in table_schema) > 0
+              then substring(table_schema, 1, position('.' in table_schema) - 1)
+              else table_schema
+          end as table_database
+      ,case when position('.' in table_schema) > 0
+              then substring(table_schema, position('.' in table_schema) + 1)
+              else 'no_schema'
+          end as table_schema
+      ,reflection_name as table_name
+      ,'materialized_view' as table_type
+      ,case
+          when nullif(external_reflection, '') is not null then 'target: ' || external_reflection
+          when arrow_cache then 'arrow cache'
+      end as table_comment
+      ,column_name
+      ,ordinal_position as column_index
+      ,lower(data_type) as column_type
+      ,concat(
+      case when strpos(regexp_replace(display_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'display' end
+      ,', ',case when strpos(regexp_replace(dimensions, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'dimension'  end
+      ,', ',case when strpos(regexp_replace(measures, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'measure'  end
+      ,', ',case when strpos(regexp_replace(sort_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'sort'  end
+      ,', ',case when strpos(regexp_replace(partition_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'partition'  end
+      ,', ',case when strpos(regexp_replace(distribution_columns, '$|, |^', '/'), '/' || column_name || '/') > 0 then 'distribution' end
+      ) as column_comment
+      ,cast(null as varchar) as table_owner
+      {%- if target.cloud_host and not target.software_host %}
+        from sys.project.reflections
+      {%- elif target.software_host and not target.cloud_host %}
+        from sys.reflections
+      {%- endif %}
+    join information_schema.columns
+        on (columns.table_schema || '.' || columns.table_name = replace(dataset_name, '"', '')
+          and (strpos(regexp_replace(display_columns, '$|, |^', '/'), '/' || column_name || '/') > 0
+                or strpos(regexp_replace(dimensions, '$|, |^', '/'), '/' || column_name || '/') > 0
+                or strpos(regexp_replace(measures, '$|, |^', '/'), '/' || column_name || '/') > 0 ))           
+      where
+        {%- for relation in relations -%}
+            {% if relation.identifier %}
+                (
+                    ilike((case when position('.' in table_schema) > 0
+                              then substring(table_schema, position('.' in table_schema) + 1)
+                              else 'no_schema'
+                          end), '{{target.root_path}}')
+                    and ilike(reflection_name, '{{ relation.identifier }}')
+                )
+            {% else%}
+                (
+                    ilike(case when position('.' in table_schema) > 0
+                              then substring(table_schema, position('.' in table_schema) + 1)
+                              else 'no_schema'
+                          end), '{{target.root_path}}')
+            {% endif %}
+
+            {%- if not loop.last %} or {% endif -%}
+        {%- endfor -%}
+{%- endmacro -%}
 
 {% macro dremio__information_schema_name(database) -%}
     information_schema
@@ -157,7 +259,11 @@ limitations under the License.*/
           else strpos(reverse(dataset_name), '.') - 1
           end as last_dot
           ,length(dataset_name) as length
-        from sys.reflections
+        {%- if target.cloud_host and not target.software_host %}
+          from sys.project.reflections
+        {%- elif target.software_host and not target.cloud_host %}
+          from sys.reflections
+        {%- endif %}
       )
       , cte2 as (
         select
@@ -199,4 +305,21 @@ limitations under the License.*/
   {% endcall %}
   {% set t = load_result('list_relations_without_caching').table %}
   {{ return(t) }}
+{% endmacro %}
+
+{% macro dremio__get_relation_last_modified(information_schema, relations) -%}
+  {% set relation = relations[0] %}
+  {%- if relation.type != 'view' -%}
+
+    {%- call statement('last_modified', fetch_result=True) -%}
+          select committed_at as last_modified,
+                {{ current_timestamp() }} as snapshotted_at
+          from TABLE( table_snapshot('{{relation}}') )
+    {%- endcall -%}
+  {%- else -%}
+
+  {%- endif -%}
+
+  {{ return(load_result('last_modified')) }}
+
 {% endmacro %}

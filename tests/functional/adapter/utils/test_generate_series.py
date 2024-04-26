@@ -9,5 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version = "1.7.0"
+from dbt.tests.adapter.utils.test_generate_series import BaseGenerateSeries
+from tests.utils.util import BUCKET
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
+
+class TestGenerateSeriesDremio(BaseGenerateSeries):
+    pass
