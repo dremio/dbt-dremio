@@ -50,7 +50,7 @@ logger = AdapterLogger("dremio")
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
-    DEFAULT_CONNECTION_RETRIES = 1
+    DEFAULT_CONNECTION_RETRIES = 5
 
     retries = DEFAULT_CONNECTION_RETRIES
 
@@ -210,17 +210,22 @@ class DremioConnectionManager(SQLConnectionManager):
 
             delete_catalog(api_parameters, catalog_info["id"])
 
-    def create_catalog(self, database, schema):
+    def create_catalog(self, relation):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
+        database = relation.database
+        schema = relation.schema
 
         if database == ("@" + credentials.UID):
             logger.debug("Database is default: creating folders only")
         else:
+            logger.debug(f"Creating space: {database}")
             self._create_space(database, api_parameters)
+
         if database != credentials.datalake:
+            logger.debug(f"Creating folder(s): {database}.{schema}")
             self._create_folders(database, schema, api_parameters)
         return
 
@@ -248,6 +253,11 @@ class DremioConnectionManager(SQLConnectionManager):
                 create_catalog_api(api_parameters, folder_json)
             except DremioAlreadyExistsException:
                 logger.debug(f"Folder {folder} already exists.")
+            except DremioBadRequestException as e:
+               if "Can not create a folder inside a [SOURCE]" in e.message:
+                   logger.debug(f"Ignoring {e}")
+               else:
+                   raise e
 
     def _create_path_list(self, database, schema):
         path = [database]

@@ -21,7 +21,9 @@ README = Path(__file__).parent / "README.md"
 README
 
 package_name = "dbt-dremio"
+
 package_version = "1.7.0"
+
 description = """The Dremio adapter plugin for dbt"""
 
 setup(
@@ -36,6 +38,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "dbt-core>=1.2, <=1.7.9",
+
         "requests>=2.31.0",
     ],
     classifiers=[
@@ -45,4 +48,5 @@ setup(
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3.11",
     ],
+    python_requires=">=3.8",
 )
