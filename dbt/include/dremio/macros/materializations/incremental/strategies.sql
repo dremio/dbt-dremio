@@ -23,6 +23,18 @@ limitations under the License.*/
 
 {% endmacro %}
 
+
+{% macro dremio__get_merge_sql(target_relation, source_relation, unique_key, dest_columns, incremental_predicates=none) %}
+
+    {%- set dest_columns = adapter.get_columns_in_relation(target_relation) -%}
+    {%- set src_columns = adapter.get_columns_in_relation(source_relation) -%}
+    {%- set intersection = intersect_columns(src_columns, dest_columns) -%}
+    {%- set dest_cols_csv = intersection | map(attribute='quoted') | join(', ') -%}
+    insert into {{ target_relation }}( {{dest_cols_csv}} )
+    select {{dest_cols_csv}} from {{ source_relation }}
+
+{% endmacro %}
+
 {% macro dbt_dremio_get_incremental_sql(strategy, source, target, unique_key) %}
   {%- if strategy == 'append' -%}
     {#-- insert new records into existing table, without updating or overwriting #}
