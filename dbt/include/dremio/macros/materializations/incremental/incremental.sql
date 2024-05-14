@@ -61,16 +61,17 @@ limitations under the License.*/
     -- Process schema changes. Returns dict of changes if successful. Use source columns for upserting/merging
     {% set dest_columns = process_schema_changes(on_schema_change, temp_relation, existing_relation) %}
     {% if not dest_columns %}
-      {% set dest_columns = adapter.get_columns_in_relation(existing_relation) %}
+      {% set dest_columns = dremio__get_columns_in_relation(existing_relation) %}
     {% endif %}
 
     -- Get the incremental_strategy, the macro to use for the strategy, and build the sql
     {%- set incremental_strategy = config.get('incremental_strategy', validator=validation.any[basestring]) or 'append' -%}
     {%- set raw_file_format = config.get('format', validator=validation.any[basestring]) or 'iceberg' -%}
     {%- set file_format = dbt_dremio_validate_get_file_format(raw_file_format) -%}
-    {%- set strategy = dbt_dremio_validate_get_incremental_strategy(incremental_strategy, file_format) -%}
+    {%- set incremental_predicates = config.get('predicates', none) or config.get('incremental_predicates', none) -%}
+    {%- set strategy = dbt_dremio_validate_get_incremental_strategy(incremental_strategy) -%}
     {%- set raw_on_schema_change = config.get('on_schema_change', validator=validation.any[basestring]) or 'ignore' -%}
-    {% set build_sql = dbt_dremio_get_incremental_sql(strategy, intermediate_relation, target_relation, unique_key) %}
+    {% set build_sql = dbt_dremio_get_incremental_sql(strategy, intermediate_relation, target_relation, dest_columns, unique_key) %}
     
   {% endif %}
 
