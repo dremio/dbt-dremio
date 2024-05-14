@@ -22,7 +22,7 @@ from dbt.tests.adapter.incremental.test_incremental_merge_exclude_columns import
 )
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 from tests.utils.util import BUCKET, SOURCE
-from dbt.tests.util import run_dbt
+from dbt.tests.util import run_dbt, relation_from_name, check_relations_equal
 from collections import namedtuple
 
 
