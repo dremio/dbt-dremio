@@ -29,15 +29,15 @@ limitations under the License.*/
   {% do return(raw_file_format) %}
 {% endmacro %}
 
-{% macro dbt_dremio_validate_get_incremental_strategy(raw_strategy, file_format) %}
+{% macro dbt_dremio_validate_get_incremental_strategy(raw_strategy) %}
   {#-- Validate the incremental strategy #}
 
   {% set invalid_strategy_msg -%}
     Invalid incremental strategy provided: {{ raw_strategy }}
-    Expected one of: 'append'
+    Expected one of: 'append, merge'
   {%- endset %}
 
-  {% if raw_strategy not in ['append'] %}
+  {% if raw_strategy not in ['append', 'merge'] %}
     {% do exceptions.CompilationError(invalid_strategy_msg) %}
   {% endif %}
 
