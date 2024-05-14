@@ -21,6 +21,13 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from dbt.adapters.base.relation import BaseRelation
+
+from dbt.adapters.capability import (
+    CapabilityDict,
+    CapabilitySupport,
+    Support,
+    Capability,
+)
 from dbt.adapters.sql.impl import DROP_RELATION_MACRO_NAME
 from dbt.events import AdapterLogger
 
@@ -30,6 +37,17 @@ logger = AdapterLogger("dremio")
 class DremioAdapter(SQLAdapter):
     ConnectionManager = DremioConnectionManager
     Relation = DremioRelation
+
+    _capabilities = CapabilityDict(
+        {
+            Capability.TableLastModifiedMetadata: CapabilitySupport(
+                support=Support.Full
+            ),
+            Capability.SchemaMetadataByRelations: CapabilitySupport(
+                support=Support.Full
+            ),
+        }
+    )
 
     @classmethod
     def date_function(cls):

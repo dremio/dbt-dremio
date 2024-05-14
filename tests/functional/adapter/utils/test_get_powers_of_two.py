@@ -9,5 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version = "1.7.0"
+import pytest
+from dbt.tests.adapter.utils.test_get_powers_of_two import BaseGetPowersOfTwo
+from tests.utils.util import BUCKET
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
+
+class TestGetPowersOfTwoDremio(BaseGetPowersOfTwo):
+    pass

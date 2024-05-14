@@ -43,13 +43,13 @@ models__second_model_sql = """
 select * from {{ ref('seed') }}
 """
 
+
 # Remove check for sources and only include nodes
 def verify_catalog_nodes(project, expected_catalog, start_time):
     # get the catalog.json
     catalog_path = os.path.join(project.project_root, "target", "catalog.json")
     assert os.path.exists(catalog_path)
     catalog = get_artifact(catalog_path)
-
     # verify the catalog
     assert set(catalog) == {"errors", "metadata", "nodes", "sources"}
     verify_metadata(
@@ -221,3 +221,7 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
             model_stats=no_stats(),
             bigint_type="bigint",
         )
+
+    def test_references(self, project, expected_catalog):
+        start_time = run_and_generate(project)
+        verify_catalog_nodes(project, expected_catalog, start_time)

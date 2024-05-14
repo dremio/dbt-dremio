@@ -3,7 +3,7 @@ Babel==2.12.1
 betterproto==1.2.5
 certifi==2023.7.22
 charset-normalizer==3.1.0
-dbt-tests-adapter==1.5.0
+dbt-tests-adapter==1.7.0
 exceptiongroup==1.1.1
 future==0.18.3
 grpclib==0.4.3
