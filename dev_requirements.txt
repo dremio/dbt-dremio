@@ -19,7 +19,7 @@ multidict==6.0.4
 parsedatetime==2.4
 pip-licenses==4.1.0
 pluggy==1.0.0
-prettytable==3.6.0
+prettytable==3.9.0
 pycparser==2.21
 pyrsistent==0.19.3
 pytest==7.2.2
