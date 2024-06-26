@@ -1,6 +1,6 @@
 import pytest
 from dbt.tests.util import run_dbt
-from tests.utils.util import BUCKET
+from tests.utils.util import BUCKET, relation_from_name
 
 
 freshness_via_metadata_schema_yml = """version: 2
@@ -83,7 +83,10 @@ class TestGetLastRelationModified:
 
         # run command
         result = run_dbt(["seed"])
-
+        relation = relation_from_name(project.adapter, "test_source")
+        result = project.run_sql(
+            f"INSERT INTO {relation} VALUES (10, 'name')", fetch="one"
+        )
         results = run_dbt(["source", "freshness"])
         assert len(results) == 1
         result = results[0]
