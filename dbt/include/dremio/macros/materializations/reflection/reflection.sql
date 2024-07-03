@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ limitations under the License.*/
 
 {% materialization reflection, adapter='dremio' %}
   {%- if not  var('dremio:reflections_enabled', default=false)  -%}
-    {% do exceptions.raise_compiler_error("reflections are disabled, set 'dremio:reflections_enabled' variable to true to enable them") %}
+    {% do exceptions.CompilationError("reflections are disabled, set 'dremio:reflections_enabled' variable to true to enable them") %}
   {%- endif -%}
 
   {% set raw_reflection_type = config.get('reflection_type', validator=validation.any[basestring]) or 'raw' %}
@@ -27,7 +27,7 @@ limitations under the License.*/
 
   {% if model.refs | length + model.sources | length == 1 %}
     {% if model.refs | length == 1 %}
-      {% set anchor = ref(model.refs[0][0]) %}
+      {% set anchor = ref(model.refs[0]['name']) %}
     {% else %}
       {% set anchor = source(model.sources[0][0], model.sources[0][1]) %}
     {% endif %}
@@ -56,7 +56,7 @@ limitations under the License.*/
 
   {%- set old_relation = adapter.get_relation(database=anchor.database, schema=anchor.schema, identifier=identifier) -%}
   {%- set target_relation = api.Relation.create(
-      identifier=identifier, schema=anchor.schema, database=anchor.database, type='materializedview') -%}
+      identifier=identifier, schema=anchor.schema, database=anchor.database, type='materialized_view') -%}
 
   {%- set reflection_type = dbt_dremio_validate_get_reflection_type(raw_reflection_type) -%}
   {% if (reflection_type == 'raw' and display is none)

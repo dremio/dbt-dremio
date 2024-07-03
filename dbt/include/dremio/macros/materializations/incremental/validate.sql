@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,22 +23,22 @@ limitations under the License.*/
   {%- endset %}
 
   {% if raw_file_format not in accepted_formats %}
-    {% do exceptions.raise_compiler_error(invalid_file_format_msg) %}
+    {% do exceptions.CompilationError(invalid_file_format_msg) %}
   {% endif %}
 
   {% do return(raw_file_format) %}
 {% endmacro %}
 
-{% macro dbt_dremio_validate_get_incremental_strategy(raw_strategy, file_format) %}
+{% macro dbt_dremio_validate_get_incremental_strategy(raw_strategy) %}
   {#-- Validate the incremental strategy #}
 
   {% set invalid_strategy_msg -%}
     Invalid incremental strategy provided: {{ raw_strategy }}
-    Expected one of: 'append'
+    Expected one of: 'append, merge'
   {%- endset %}
 
-  {% if raw_strategy not in ['append'] %}
-    {% do exceptions.raise_compiler_error(invalid_strategy_msg) %}
+  {% if raw_strategy not in ['append', 'merge'] %}
+    {% do exceptions.CompilationError(invalid_strategy_msg) %}
   {% endif %}
 
   {% do return(raw_strategy) %}

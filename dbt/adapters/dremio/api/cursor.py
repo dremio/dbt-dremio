@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import time
+
 import agate
 
 from dbt.adapters.dremio.api.rest.endpoints import (
@@ -61,7 +63,7 @@ class DremioCursor:
     def job_results(self):
         if self.closed:
             raise Exception("CursorClosed")
-        if self._job_results == None:
+        if self._job_results is None:
             self._populate_job_results()
 
         return self._job_results
@@ -77,20 +79,19 @@ class DremioCursor:
         self._initialize()
         self.closed = True
 
-    def execute(self, sql, bindings=None):
+    def execute(self, sql, bindings=None, fetch=False):
         if self.closed:
             raise Exception("CursorClosed")
         if bindings is None:
             self._initialize()
 
-            json_payload = sql_endpoint(
-                self._parameters, sql, context=None, ssl_verify=True
-            )
+            json_payload = sql_endpoint(self._parameters, sql, context=None)
 
             self._job_id = json_payload["id"]
 
             self._populate_rowcount()
-            self._populate_job_results()
+            if fetch:
+                self._populate_job_results()
             self._populate_results_table()
 
         else:
@@ -98,7 +99,7 @@ class DremioCursor:
 
     def fetchone(self):
         row = None
-        if self._table_results != None:
+        if self._table_results is not None:
             row = self._table_results.rows[0]
         return row
 
@@ -115,25 +116,28 @@ class DremioCursor:
     def _populate_rowcount(self):
         if self.closed:
             raise Exception("CursorClosed")
-        ## keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
-        ## map job results to AdapterResponse
+        # keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
+        # map job results to AdapterResponse
         job_id = self._job_id
 
         last_job_state = ""
-        job_status_response = job_status(self._parameters, job_id, ssl_verify=True)
+        job_status_response = job_status(self._parameters, job_id)
         job_status_state = job_status_response["jobState"]
 
         while True:
+            time.sleep(0.2)
+            
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
-            if (
-                job_status_state == "COMPLETED"
-                or job_status_state == "CANCELLED"
-                or job_status_state == "FAILED"
-            ):
+
+            if job_status_state == "FAILED":
+                error_message = job_status_response["errorMessage"]
+                raise Exception(f"ERROR: {error_message}")
+
+            if job_status_state == "COMPLETED" or job_status_state == "CANCELLED":
                 break
             last_job_state = job_status_state
-            job_status_response = job_status(self._parameters, job_id, ssl_verify=True)
+            job_status_response = job_status(self._parameters, job_id)
             job_status_state = job_status_response["jobState"]
 
         # this is done as job status does not return a rowCount if there are no rows affected (even in completed job_state)
@@ -147,14 +151,37 @@ class DremioCursor:
 
         self._rowcount = rows
 
-    def _populate_job_results(self):
+    def _populate_job_results(self, row_limit=500):
         if self._job_results == None:
-            self._job_results = job_results(
-                self._parameters, self._job_id, offset=0, limit=100, ssl_verify=True
+            combined_job_results = job_results(
+                self._parameters,
+                self._job_id,
+                offset=0,
+                limit=row_limit,
             )
+            total_row_count = combined_job_results["rowCount"]
+            current_row_count = len(combined_job_results["rows"])
+
+            if total_row_count > 100000:
+                logger.warning(
+                    "Fetching more than 100000 records. This may result in slower performance."
+                )
+
+            while current_row_count < total_row_count:
+                combined_job_results["rows"].extend(
+                    job_results(
+                        self._parameters,
+                        self._job_id,
+                        offset=current_row_count,
+                        limit=row_limit,
+                    )["rows"]
+                )
+                current_row_count += row_limit
+
+            self._job_results = combined_job_results
 
     def _populate_results_table(self):
-        if self._job_results != None:
+        if self._job_results is not None:
             tester = agate.TypeTester()
             json_rows = self._job_results["rows"]
             self._table_results = json_rows

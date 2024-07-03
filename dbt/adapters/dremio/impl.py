@@ -21,6 +21,13 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from dbt.adapters.base.relation import BaseRelation
+
+from dbt.adapters.capability import (
+    CapabilityDict,
+    CapabilitySupport,
+    Support,
+    Capability,
+)
 from dbt.adapters.sql.impl import DROP_RELATION_MACRO_NAME
 from dbt.events import AdapterLogger
 
@@ -30,6 +37,17 @@ logger = AdapterLogger("dremio")
 class DremioAdapter(SQLAdapter):
     ConnectionManager = DremioConnectionManager
     Relation = DremioRelation
+
+    _capabilities = CapabilityDict(
+        {
+            Capability.TableLastModifiedMetadata: CapabilitySupport(
+                support=Support.Full
+            ),
+            Capability.SchemaMetadataByRelations: CapabilitySupport(
+                support=Support.Full
+            ),
+        }
+    )
 
     @classmethod
     def date_function(cls):
@@ -61,9 +79,7 @@ class DremioAdapter(SQLAdapter):
         return "time"
 
     def create_schema(self, relation: DremioRelation) -> None:
-        database = relation.database
-        schema = relation.schema
-        self.connections.create_catalog(database, schema)
+        self.connections.create_catalog(relation)
 
     def drop_schema(self, relation: DremioRelation) -> None:
         if relation.type == "table":
@@ -108,6 +124,12 @@ class DremioAdapter(SQLAdapter):
 
         return sql
 
+    def valid_incremental_strategies(self):
+        """The set of standard builtin strategies which this adapter supports out-of-the-box.
+        Not used to validate custom strategies defined by end users.
+        """
+        return ["append"]
+
     def standardize_grants_dict(self, grants_table: agate.Table) -> dict:
         """Translate the result of `show grants` (or equivalent) to match the
         grants which a user would configure in their project.
@@ -131,6 +153,29 @@ class DremioAdapter(SQLAdapter):
             else:
                 grants_dict.update({privilege: [grantee]})
         return grants_dict
+
+    # This is for use in the test suite
+    # Need to override to add fetch to the execute method
+    def run_sql_for_tests(self, sql, fetch, conn):
+        cursor = conn.handle.cursor()
+        try:
+            cursor.execute(sql, None, True)
+            if hasattr(conn.handle, "commit"):
+                conn.handle.commit()
+            if fetch == "one":
+                return cursor.fetchone()
+            elif fetch == "all":
+                return cursor.fetchall()
+            else:
+                return
+        except BaseException as e:
+            if conn.handle and not getattr(conn.handle, "closed", True):
+                conn.handle.rollback()
+            print(sql)
+            print(e)
+            raise
+        finally:
+            conn.transaction_open = False
 
 
 COLUMNS_EQUAL_SQL = """

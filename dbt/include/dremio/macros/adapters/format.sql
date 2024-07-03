@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,8 +53,8 @@ for 'excel' :
     ,'auto_generated_column_names':'autoGenerateColumnNames'
     ,'pretty_print':'prettyPrint'} -%}
   {%- set options = [] -%}
-  {%- set format = config.get('format', validator=validation.any[basestring]) or 'iceberg' -%}
-  {%- if format in ['text', 'json', 'arrow', 'parquet'] -%}
+  {%- set format = config.get('format', validator=validation.any[basestring])-%}
+  {%- if format in ['text', 'json', 'arrow', 'parquet', 'iceberg'] -%}
     {%- do options.append("type=>'" ~ format ~ "'") -%}
     {%- if format == 'text' -%}
       {%- for key in ['field_delimiter', 'line_delimiter', 'quote', 'comment', 'escape'] -%}

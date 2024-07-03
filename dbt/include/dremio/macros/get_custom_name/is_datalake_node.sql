@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,6 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro is_datalake_node(node) -%}
-  {{ return(node.resource_type in ['test', 'seed']
+  {{ return(node.resource_type in ['test', 'seed', 'snapshot']
     or (node.resource_type == 'model' and node.config.materialized not in ['view', 'reflection'])) }}
 {%- endmacro %}

@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ limitations under the License.*/
       {%- if source_names | length == 1 -%}
         {{ return(model.sources[0]) }}
       {%- else -%}
-        {% do exceptions.raise_compiler_error("Invalid external query configuration: awaiting one single source name among all source dependencies") %}
+        {% do exceptions.CompilationError("Invalid external query configuration: awaiting one single source name among all source dependencies") %}
       {%- endif -%}
     {%- else -%}
-      {% do exceptions.raise_compiler_error("Invalid external query: awaiting only source dependencies") %}
+      {% do exceptions.CompilationError("Invalid external query: awaiting only source dependencies") %}
     {%- endif -%}
   {%- else -%}
     {{ return(none) }}

@@ -16,7 +16,6 @@ import agate
 from typing import Tuple, Optional
 from contextlib import contextmanager
 
-from typing import List
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
@@ -27,8 +26,6 @@ import json
 import dbt.exceptions
 from dbt.adapters.sql import SQLConnectionManager
 from dbt.contracts.connection import AdapterResponse
-
-from dbt.adapters.dremio.credentials import DremioCredentials
 
 from dbt.adapters.dremio.api.rest.endpoints import (
     delete_catalog,
@@ -43,6 +40,7 @@ from dbt.adapters.dremio.api.rest.error import (
     DremioInternalServerException,
     DremioServiceUnavailableException,
     DremioGatewayTimeoutException,
+    DremioBadRequestException,
 )
 
 from dbt.events import AdapterLogger
@@ -52,7 +50,7 @@ logger = AdapterLogger("dremio")
 
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
-    DEFAULT_CONNECTION_RETRIES = 1
+    DEFAULT_CONNECTION_RETRIES = 5
 
     retries = DEFAULT_CONNECTION_RETRIES
 
@@ -63,17 +61,16 @@ class DremioConnectionManager(SQLConnectionManager):
         except Exception as e:
             logger.debug(f"Error running SQL: {sql}")
             self.release()
-            if isinstance(e, dbt.exceptions.RuntimeException):
+            if isinstance(e, dbt.exceptions.DbtRuntimeError):
                 # during a sql query, an internal to dbt exception was raised.
                 # this sounds a lot like a signal handler and probably has
                 # useful information, so raise it without modification.
                 raise
 
-            raise dbt.exceptions.RuntimeException(e)
+            raise dbt.exceptions.DbtRuntimeError(e)
 
     @classmethod
     def open(cls, connection):
-
         if connection.state == "open":
             logger.debug("Connection is already open, skipping open.")
             return connection
@@ -133,13 +130,14 @@ class DremioConnectionManager(SQLConnectionManager):
         pass
 
     # Auto_begin may not be relevant with the rest_api
-    def add_query(self, sql, auto_begin=True, bindings=None, abridge_sql_log=False):
-
+    def add_query(
+        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False, fetch=False
+    ):
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
             self.begin()
 
-        logger.debug(f'Using {self.TYPE} connection "{connection.name}')
+        logger.debug(f'Using {self.TYPE} connection "{connection.name}". fetch={fetch}')
 
         with self.exception_handler(sql):
             if abridge_sql_log:
@@ -151,10 +149,10 @@ class DremioConnectionManager(SQLConnectionManager):
             cursor = connection.handle.cursor()
 
             if bindings is None:
-                cursor.execute(sql)
+                cursor.execute(sql, fetch=fetch)
             else:
                 logger.debug(f"Bindings: {bindings}")
-                cursor.execute(sql, bindings)
+                cursor.execute(sql, bindings, fetch=fetch)
 
             logger.debug(
                 "SQL status: {} in {:0.2f} seconds".format(
@@ -174,12 +172,15 @@ class DremioConnectionManager(SQLConnectionManager):
         return AdapterResponse(_message=message, rows_affected=rows)
 
     def execute(
-        self, sql: str, auto_begin: bool = False, fetch: bool = False
+        self,
+        sql: str,
+        auto_begin: bool = False,
+        fetch: bool = False,
+        limit: Optional[int] = None,
     ) -> Tuple[AdapterResponse, agate.Table]:
         sql = self._add_query_comment(sql)
-        _, cursor = self.add_query(sql, auto_begin)
+        _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
         response = self.get_response(cursor)
-        fetch = True
         if fetch:
             table = cursor.table
         else:
@@ -202,25 +203,29 @@ class DremioConnectionManager(SQLConnectionManager):
                     api_parameters,
                     catalog_id=None,
                     catalog_path=path_list,
-                    ssl_verify=False,
                 )
             except DremioNotFoundException:
                 logger.debug("Catalog not found. Returning")
                 return
 
-            delete_catalog(api_parameters, catalog_info["id"], ssl_verify=False)
+            delete_catalog(api_parameters, catalog_info["id"])
 
-    def create_catalog(self, database, schema):
+    def create_catalog(self, relation):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
+        database = relation.database
+        schema = relation.schema
 
         if database == ("@" + credentials.UID):
             logger.debug("Database is default: creating folders only")
         else:
+            logger.debug(f"Creating space: {database}")
             self._create_space(database, api_parameters)
+
         if database != credentials.datalake:
+            logger.debug(f"Creating folder(s): {database}.{schema}")
             self._create_folders(database, schema, api_parameters)
         return
 
@@ -235,7 +240,7 @@ class DremioConnectionManager(SQLConnectionManager):
     def _create_space(self, database, api_parameters):
         space_json = self._make_new_space_json(database)
         try:
-            create_catalog_api(api_parameters, space_json, False)
+            create_catalog_api(api_parameters, space_json)
         except DremioAlreadyExistsException:
             logger.debug(f"Database {database} already exists. Creating folders only.")
 
@@ -245,9 +250,14 @@ class DremioConnectionManager(SQLConnectionManager):
             temp_path_list.append(folder)
             folder_json = self._make_new_folder_json(temp_path_list)
             try:
-                create_catalog_api(api_parameters, folder_json, False)
+                create_catalog_api(api_parameters, folder_json)
             except DremioAlreadyExistsException:
                 logger.debug(f"Folder {folder} already exists.")
+            except DremioBadRequestException as e:
+               if "Can not create a folder inside a [SOURCE]" in e.message:
+                   logger.debug(f"Ignoring {e}")
+               else:
+                   raise e
 
     def _create_path_list(self, database, schema):
         path = [database]

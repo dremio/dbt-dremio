@@ -18,11 +18,10 @@ from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.utils.util import relation_from_name
 from dbt.tests.util import get_connection
 
-# Currently we return an HTTP error, but need to improve error handling
-# to get a better error message (https://github.com/dremio/dbt-dremio/issues/69)
+
 class TestInvalidGrantsDremio(BaseGrantsDremio, BaseInvalidGrants):
     def grantee_does_not_exist_error(self):
-        return "Can not fetch details for a job that is in [FAILED] state"
+        return "Grant on catalog entity failed. User invalid_user does not exist."
 
     def privilege_does_not_exist_error(self):
-        return "Can not fetch details for a job that is in [FAILED] state"
+        return 'Encountered "fake_privilege"'

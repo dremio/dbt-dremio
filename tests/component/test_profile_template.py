@@ -36,13 +36,19 @@ from dbt.adapters.dremio.credentials import DremioCredentials
 #
 #     These tests assumes there exists a $HOME/.dbt/profiles.yml
 #     file containing these three dbt projects.
+
+
 class TestProfileTemplate:
     # non-OS specific
     PROFILE_DIRECTORY = os.path.expanduser("~") + "/.dbt/"
 
     # These projects must exist in the profile.yml file. All defaults must be selected.
-    _TEST_CLOUD_PROFILE_PROJECT = "test_cloud_options"
-    _TEST_SOFTWARE_USER_PASSWORD_PROFILE_PROJECT = "test_sw_up_options"
+    _TEST_CLOUD_PROFILE_PROJECT = (
+        "test_cloud_options"  # nosec hardcoded_password_string
+    )
+    _TEST_SOFTWARE_USER_PASSWORD_PROFILE_PROJECT = (
+        "test_sw_up_options"  # nosec hardcoded_password_string
+    )
     _TEST_SOFTWARE_PAT_PROFILE_PROJECT = "test_sw_pat_options"
 
     _PASSWORD_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS = {"password": None}
@@ -130,7 +136,6 @@ class TestProfileTemplate:
     def _test_project_profile_options(
         self, test_project: Dict[str, any], test_options: Dict[str, any]
     ) -> None:
-
         assert test_project is not None
 
         for option in test_options:

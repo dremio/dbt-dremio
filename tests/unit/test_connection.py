@@ -11,8 +11,7 @@
 
 import pytest
 from unittest.mock import patch
-from dbt.exceptions import FailedToConnectException
-from dbt.adapters.dremio.credentials import DremioCredentials
+from dbt.exceptions import DbtRuntimeError
 from dbt.adapters.dremio.api.rest.error import DremioRequestTimeoutException
 from dbt.adapters.dremio.connections import DremioConnectionManager
 
@@ -37,11 +36,12 @@ class TestRetryConnection:
         mocked_connection_obj.credentials.use_ssl = False
 
         mocked_post_func.side_effect = DremioRequestTimeoutException(
-            msg="Request timeout: Test", original_exception="408 original exception"
+            msg="Request timeout: Test",
+            original_exception="408 original exception",
         )
 
         # Act
-        with pytest.raises(FailedToConnectException) as exception_info:
+        with pytest.raises(DbtRuntimeError):
             DremioConnectionManager.open(connection=mocked_connection_obj)
 
         # Assert

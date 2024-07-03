@@ -20,22 +20,23 @@ from dbt.adapters.dremio.relation import DremioRelation
 
 @dataclass
 class DremioCredentials(Credentials):
+    database: Optional[str] = None
+    schema: Optional[str] = None
     environment: Optional[str] = None
     UID: Optional[str] = None
     PWD: Optional[str] = None
     pat: Optional[str] = None
     datalake: Optional[str] = None
     root_path: Optional[str] = None
-    database: Optional[str] = None
-    schema: Optional[str] = None
     cloud_project_id: Optional[str] = None
     cloud_host: Optional[str] = None
     software_host: Optional[str] = None
     port: Optional[int] = 9047  # for rest endpoint
     use_ssl: Optional[bool] = True
+    verify_ssl: Optional[bool] = True
 
     _ALIASES = {
-        # Only terms on right-side will be used going forward.
+        # Only terms on left-side will be used going forward.
         "username": "UID",  # backwards compatibility with existing profiles
         "user": "UID",
         "password": "PWD",
@@ -51,6 +52,14 @@ class DremioCredentials(Credentials):
     @property
     def type(self):
         return "dremio"
+
+    @property
+    def unique_field(self):
+        """
+        Hashed and included in anonymous telemetry to track adapter adoption.
+        Pick a field that can uniquely identify one team/organization building with this adapter
+        """
+        return self.software_host if self.cloud_host is None else self.cloud_host
 
     @property
     def aliases(self):

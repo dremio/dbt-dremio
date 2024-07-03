@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro drop_reflection_if_exists(relation, reflection) %}
-  {% if reflection is not none and reflection.type == 'materializedview' %}
+  {% if reflection is not none and reflection.type == 'materialized_view' %}
     {% call statement('drop reflection') -%}
       alter dataset {{ relation }}
         drop reflection {{ reflection.include(database=False, schema=False) }}
@@ -28,7 +28,7 @@ limitations under the License.*/
     Expected one of: {{ accepted_types | join(', ') }}
   {%- endset %}
   {% if raw_reflection_type not in accepted_types %}
-    {% do exceptions.raise_compiler_error(invalid_reflection_type_msg) %}
+    {% do exceptions.CompilationError(invalid_reflection_type_msg) %}
   {% endif %}
   {% do return(raw_reflection_type) %}
 {% endmacro %}

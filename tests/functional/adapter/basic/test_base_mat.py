@@ -36,7 +36,7 @@ schema_base_yml = """
 version: 2
 sources:
   - name: raw
-    database: "dbt_test_source" 
+    database: "dbt_test_source"
     schema: "{{ target.schema }}"
     tables:
       - name: seed
@@ -96,7 +96,6 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         return profile
 
     def test_base(self, project):
-
         # seed command
         results = run_dbt(["seed"])
         # seed result length
@@ -122,7 +121,8 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         # base table rowcount
         relation = relation_from_name(project.adapter, "base")
         result = project.run_sql(
-            f"select count(*) as num_rows from {relation}", fetch="one"
+            f"select count(*) as num_rows from {relation}",  # nosec hardcoded_sql_expressions
+            fetch="one",
         )
         assert result[0] == 10
 
@@ -166,7 +166,13 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
 
         # run_dbt changing materialized_var to incremental
         results = run_dbt(
-            ["run", "-m", "swappable", "--vars", "materialized_var: incremental"]
+            [
+                "run",
+                "-m",
+                "swappable",
+                "--vars",
+                "materialized_var: incremental",
+            ]
         )
         assert len(results) == 1
 

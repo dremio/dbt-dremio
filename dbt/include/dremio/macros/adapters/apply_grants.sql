@@ -1,4 +1,4 @@
-/*Copyright (C) 2022 Dremio Corporation 
+/*Copyright (C) 2022 Dremio Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ limitations under the License.*/
     {%- else -%}
         {%- set relation_without_double_quotes = relation.database ~ '.' ~ relation.schema ~ '.' ~ relation.identifier-%}
     {%- endif %}
-    
+
     {%- if target.cloud_host and not target.software_host -%}
         {%- set privileges_table = 'sys.project.privileges' -%}
     {%- elif target.software_host and not target.cloud_host -%}
         {%- set privileges_table = 'sys.privileges' -%}
     {%- else -%}
-         {% do exceptions.raise_compiler_error("Invalid profile configuration: please only specify one of cloud_host or software_host in profiles.yml") %}
+         {% do exceptions.CompilationError("Invalid profile configuration: please only specify one of cloud_host or software_host in profiles.yml") %}
     {%- endif %}
     SELECT privilege, grantee_id
         FROM {{privileges_table}}
