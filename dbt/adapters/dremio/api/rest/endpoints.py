@@ -35,11 +35,12 @@ from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
 from dbt.adapters.dremio.api.parameters import Parameters
 from dbt.adapters.dremio.api.rest.url_builder import UrlBuilder
 
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
 session = requests.Session()
+
 
 def _get(url, request_headers, details="", ssl_verify=True):
     response = session.get(url, headers=request_headers, verify=ssl_verify)

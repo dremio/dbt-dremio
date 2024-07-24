@@ -1,6 +1,6 @@
 import pytest
 from dbt.tests.util import run_dbt
-from dbt.exceptions import CompilationError
+from dbt_common.exceptions import CompilationError
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 model_sql = """

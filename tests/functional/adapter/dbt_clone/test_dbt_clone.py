@@ -94,7 +94,6 @@ class TestCloneNotPossibleDremio(BaseCloneNotPossible):
         self, unique_schema, dbt_profile_target, profiles_config_update
     ):
         profile = {
-            "config": {"send_anonymous_usage_stats": False},
             "test": {
                 "outputs": {
                     "default": {},
