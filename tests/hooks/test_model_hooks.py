@@ -3,7 +3,7 @@ import pytest
 
 from pathlib import Path
 
-from dbt.exceptions import CompilationError, ParsingError
+from dbt_common.exceptions import CompilationError, ParsingError
 
 from dbt.tests.util import (
     run_dbt,
@@ -51,7 +51,6 @@ def unique_schema(request, prefix) -> str:
 @pytest.fixture(scope="class")
 def dbt_profile_data(unique_schema, dbt_profile_target, profiles_config_update):
     profile = {
-        "config": {"send_anonymous_usage_stats": False},
         "test": {
             "outputs": {
                 "default": {},
@@ -315,7 +314,6 @@ class TestPrePostModelHooksOnSnapshotsDremio(object):
         self, unique_schema, dbt_profile_target, profiles_config_update
     ):
         profile = {
-            "config": {"send_anonymous_usage_stats": False},
             "test": {
                 "outputs": {
                     "default": {},
