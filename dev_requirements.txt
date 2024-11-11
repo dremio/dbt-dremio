@@ -3,7 +3,10 @@ Babel==2.12.1
 betterproto==1.2.5
 certifi==2023.7.22
 charset-normalizer==3.1.0
+dbt-core==1.8.8
 dbt-tests-adapter==1.8.0
+python-dotenv==1.0.1
+pytest-xdist==3.6.1
 exceptiongroup==1.1.1
 future==0.18.3
 grpclib==0.4.3

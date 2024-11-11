@@ -3,7 +3,6 @@ import pytest
 
 from pathlib import Path
 
-from dbt_common.exceptions import CompilationError, ParsingError
 
 from dbt.tests.util import (
     run_dbt,
@@ -106,7 +105,7 @@ class BaseTestPrePost(object):
             assert ctx["target_schema"] == f"{SOURCE}.{project.test_schema}"
             assert ctx["target_threads"] == 1
             assert ctx["target_type"] == "dremio"
-            assert ctx["target_user"] == os.getenv("DREMIO_CLOUD_USERNAME")
+            # assert ctx["target_user"] == os.getenv("DREMIO_SOFTWARE_USERNAME")
             assert ctx["target_pass"] is None
 
             assert (

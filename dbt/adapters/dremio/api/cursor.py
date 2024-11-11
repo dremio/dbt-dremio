@@ -39,10 +39,19 @@ class DremioCursor:
         self._rowcount = -1
         self._job_results = None
         self._table_results: agate.Table = None
+        self._description = None
 
     @property
     def parameters(self):
         return self._parameters
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, value):
+        self._description = value
 
     @property
     def closed(self):
@@ -194,3 +203,5 @@ class DremioCursor:
             self._table_results = agate.Table.from_object(
                 json_rows, column_types=tester
             )
+
+

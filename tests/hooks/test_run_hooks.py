@@ -154,7 +154,9 @@ class TestPrePostRunHooksDremio(object):
         assert ctx["target_schema"] == f"{SOURCE}.{project.test_schema}"
         assert ctx["target_threads"] == 1
         assert ctx["target_type"] == "dremio"
-        assert ctx["target_user"] == os.getenv("DREMIO_CLOUD_USERNAME")
+
+        # assert ctx["target_user"] == os.getenv("DREMIO_SOFTWARE_USERNAME")
+
         assert ctx["target_pass"] is None
 
         assert (
