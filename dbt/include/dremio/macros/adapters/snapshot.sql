@@ -26,6 +26,10 @@ limitations under the License.*/
 
     when not matched
         then insert ({{ insert_cols_csv }})
-        values ({{ insert_cols_csv }})
+        values
+            ({% for column_name in insert_cols -%}
+                DBT_INTERNAL_SOURCE.{{ column_name }}
+                {%- if not loop.last %}, {%- endif %}
+            {%- endfor %})
 
 {% endmacro %}
