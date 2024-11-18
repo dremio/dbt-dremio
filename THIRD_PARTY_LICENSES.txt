@@ -42,6 +42,7 @@
  pyrsistent                0.19.3     MIT License
  pytest                    7.2.2      MIT License
  python-dateutil           2.8.2      Apache Software License; BSD License
+ python-dotenv             1.0.1      BSD License
  python-slugify            8.0.1      MIT License
  pytimeparse               1.1.8      MIT License
  pytz                      2022.7.1   MIT License
