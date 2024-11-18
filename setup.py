@@ -22,7 +22,7 @@ README
 
 package_name = "dbt-dremio"
 
-package_version = "1.7.0"
+package_version = "1.8.0"
 
 description = """The Dremio adapter plugin for dbt"""
 
@@ -37,7 +37,8 @@ setup(
     packages=find_namespace_packages(include=["dbt", "dbt.*"]),
     include_package_data=True,
     install_requires=[
-        "dbt-core>=1.2, <=1.7.13",
+        "dbt-core>=1.8",
+        "dbt-adapters>=1.0.0, <2.0.0",
         "requests>=2.31.0",
     ],
     classifiers=[

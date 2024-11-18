@@ -16,7 +16,7 @@ from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.parameters import Parameters
 from dbt.adapters.dremio.api.rest.endpoints import login
 
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 

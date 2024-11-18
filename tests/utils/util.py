@@ -17,7 +17,7 @@ from typing import List
 from contextlib import contextmanager
 from dbt.tests.util import AnyInteger
 
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
