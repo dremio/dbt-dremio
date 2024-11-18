@@ -20,7 +20,6 @@ limitations under the License.*/
 
 {% endmacro %}
 
-
 {% macro dremio__get_incremental_merge_sql(target, source, unique_key, dest_columns, incremental_predicates=none) -%}
  {%- set predicates = [] if incremental_predicates is none else [] + incremental_predicates -%}
     {%- set dest_cols_csv = get_quoted_csv(dest_columns | map(attribute="name")) -%}
@@ -61,10 +60,23 @@ limitations under the License.*/
         {%- endfor %}
     {% endif %}
 
+
+    {%- set dest_col_names = dest_columns | map(attribute="name") -%}
+    {%- set dest_cols_prefixed = [] -%}
+
+    {% for dc in dest_col_names -%}
+        {% set this_key_match %}
+                    DBT_INTERNAL_SOURCE."{{ dc }}"
+        {% endset %}
+        {% do dest_cols_prefixed.append(this_key_match) %}
+    {%- endfor %}
+
+
     when not matched then insert
         ({{ dest_cols_csv }})
     values
-        ({{ dest_cols_csv }})
+        ({{ dest_cols_prefixed | join(',') }})
+
 
 {% endmacro %}
 
