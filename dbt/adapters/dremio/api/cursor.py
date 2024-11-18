@@ -25,7 +25,7 @@ from dbt.adapters.dremio.api.rest.endpoints import (
 )
 from dbt.adapters.dremio.api.parameters import Parameters
 
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
@@ -126,7 +126,7 @@ class DremioCursor:
 
         while True:
             time.sleep(0.2)
-            
+
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
 

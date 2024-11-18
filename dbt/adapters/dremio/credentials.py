@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dbt.adapters.base import Credentials
+from dbt.adapters.contracts.connection import Credentials
 from dataclasses import dataclass
 from typing import Optional
 from dbt.adapters.dremio.relation import DremioRelation

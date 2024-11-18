@@ -19,8 +19,7 @@ limitations under the License.*/
 
   {%- set exists_as_view = (old_relation is not none and old_relation.is_view) -%}
 
-  {%- set target_relation = api.Relation.create(
-      identifier=identifier, schema=schema, database=database, type='view') -%}
+  {%- set target_relation = this.incorporate(type='view')-%}
 
   {% set grant_config = config.get('grants') %}
 

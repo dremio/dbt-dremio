@@ -29,7 +29,7 @@ from dbt.adapters.capability import (
     Capability,
 )
 from dbt.adapters.sql.impl import DROP_RELATION_MACRO_NAME
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
