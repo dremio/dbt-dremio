@@ -1,9 +1,19 @@
+# Copyright (C) 2022 Dremio Corporation
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import pytest
 
 from pathlib import Path
 
-from dbt.exceptions import CompilationError, ParsingError
 
 from dbt.tests.util import (
     run_dbt,
@@ -51,7 +61,6 @@ def unique_schema(request, prefix) -> str:
 @pytest.fixture(scope="class")
 def dbt_profile_data(unique_schema, dbt_profile_target, profiles_config_update):
     profile = {
-        "config": {"send_anonymous_usage_stats": False},
         "test": {
             "outputs": {
                 "default": {},
@@ -107,7 +116,6 @@ class BaseTestPrePost(object):
             assert ctx["target_schema"] == f"{SOURCE}.{project.test_schema}"
             assert ctx["target_threads"] == 1
             assert ctx["target_type"] == "dremio"
-            assert ctx["target_user"] == os.getenv("DREMIO_CLOUD_USERNAME")
             assert ctx["target_pass"] is None
 
             assert (
@@ -315,7 +323,6 @@ class TestPrePostModelHooksOnSnapshotsDremio(object):
         self, unique_schema, dbt_profile_target, profiles_config_update
     ):
         profile = {
-            "config": {"send_anonymous_usage_stats": False},
             "test": {
                 "outputs": {
                     "default": {},

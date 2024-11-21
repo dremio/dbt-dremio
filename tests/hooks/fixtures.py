@@ -1,7 +1,18 @@
+# Copyright (C) 2022 Dremio Corporation
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from tests.utils.util import SOURCE
 
 MODEL_PRE_HOOK = f"""
-   insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (
+   insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (
         test_state,
         target_dbname,
         target_host,
@@ -29,7 +40,7 @@ MODEL_PRE_HOOK = f"""
 """
 
 MODEL_POST_HOOK = f"""
-   insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (
+   insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (
         test_state,
         target_dbname,
         target_host,
@@ -130,7 +141,7 @@ models__hooks_configured = f"""
 {{{{
     config({{
         "pre_hook": "\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (\
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (\
                 test_state,\
                 target_dbname,\
                 target_host,\
@@ -156,7 +167,7 @@ models__hooks_configured = f"""
                 '{{{{ invocation_id }}}}'\
         )",
         "post-hook": "\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (\
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (\
                 test_state,\
                 target_dbname,\
                 target_host,\
@@ -191,7 +202,7 @@ models__hooks_error = f"""
 {{{{
     config({{
         "pre_hook": "\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (\
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (\
                 test_state,\
                 target_dbname,\
                 target_host,\
@@ -217,7 +228,7 @@ models__hooks_error = f"""
                 '{{{{ invocation_id }}}}'
         )",
         "pre-hook": "\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (\
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (\
                 test_state,\
                 target_dbname,\
                 target_host,\
@@ -243,7 +254,7 @@ models__hooks_error = f"""
                 '{{{{ invocation_id }}}}'
         )",
         "post-hook": "\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (\
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (\
                 test_state,\
                 target_dbname,\
                 target_host,\
@@ -278,7 +289,7 @@ models__hooks_kwargs = f"""
 {{{{
     config(
         pre_hook="\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (\
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (\
                 test_state,\
                 target_dbname,\
                 target_host,\
@@ -304,7 +315,7 @@ models__hooks_kwargs = f"""
                 '{{{{ invocation_id }}}}'\
         )",
         post_hook="\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook (\
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook (\
                 test_state,\
                 target_dbname,\
                 target_host,\
@@ -339,7 +350,7 @@ models__hooked = f"""
 {{{{
     config({{
         "pre_hook": "\
-            insert into {SOURCE}.{{{{this.schema}}}}.on_model_hook select
+            insert into {SOURCE}.{{{{ this.schema }}}}.on_model_hook select
                 test_state,
                 '{{{{ target.dbname }}}}' as target_dbname,\
                 '{{{{ target.host }}}}' as target_host,\

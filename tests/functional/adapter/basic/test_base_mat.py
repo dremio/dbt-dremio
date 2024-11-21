@@ -1,6 +1,3 @@
-import pytest
-from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
-
 # Copyright (C) 2022 Dremio Corporation
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +11,9 @@ from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import pytest
+from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
 
 from tests.utils.util import (
     relation_from_name,
@@ -78,7 +78,6 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
         self, unique_schema, dbt_profile_target, profiles_config_update
     ):
         profile = {
-            "config": {"send_anonymous_usage_stats": False},
             "test": {
                 "outputs": {
                     "default": {},

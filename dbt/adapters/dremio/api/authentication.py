@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Optional
 from abc import abstractmethod
 
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 

@@ -21,7 +21,7 @@ load_dotenv()
 
 
 def pytest_addoption(parser):
-    parser.addoption("--profile", action="store", default="dremio_cloud", type=str)
+    parser.addoption("--profile", action="store", default="dremio_software", type=str)
 
 
 @pytest.fixture(scope="session")

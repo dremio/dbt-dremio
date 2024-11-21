@@ -25,7 +25,7 @@ from dbt.adapters.dremio.api.rest.endpoints import (
 )
 from dbt.adapters.dremio.api.parameters import Parameters
 
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
@@ -39,10 +39,19 @@ class DremioCursor:
         self._rowcount = -1
         self._job_results = None
         self._table_results: agate.Table = None
+        self._description = None
 
     @property
     def parameters(self):
         return self._parameters
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, value):
+        self._description = value
 
     @property
     def closed(self):
@@ -126,7 +135,6 @@ class DremioCursor:
 
         while True:
             time.sleep(0.2)
-            
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
 

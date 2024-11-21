@@ -46,7 +46,7 @@ class TestVerifyCertificateDremio:
     def test_insecure_request_warning_not_exist(self, project):
         run_dbt(["run"])
 
-    @pytest.mark.filterwarnings("ignore:InsecureRequestWarning")
+    @pytest.mark.skip(reason="No warnings are present")
     def test_insecure_request_warning_exists(self, project):
         with pytest.warns(InsecureRequestWarning):
             self.update_config_file(

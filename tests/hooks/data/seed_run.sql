@@ -1,7 +1,7 @@
 
 drop table if exists dbt_test_source.{schema}.on_run_hook;
 
-create table dbt_test_source.{schema}.on_run_hook (
+create table IF NOT EXISTS dbt_test_source.{schema}.on_run_hook (
     test_state       VARCHAR, -- start|end
     target_dbname    VARCHAR,
     target_host      VARCHAR,

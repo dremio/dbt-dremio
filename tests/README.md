@@ -7,11 +7,23 @@ Tests are written using [pytest](https://docs.pytest.org/), with some mocking be
 To run our tests, a test environment must be set up.
 
 1. Install dev requirements using `pip install -r dev_requirements.txt` from the dbt-dremio directory.
-1. First, create a tests/.env file with the following content. Note you will have to fill in the Dremio hostname, username and password.
+1. First, create a tests/.env file with the following content. Note you will have to fill in the Dremio hostname, username and password. For software version of Dremio:
     ```
-    DREMIO_HOST=
-    DREMIO_USERNAME=
-    DREMIO_PASSWORD=
+    DREMIO_SOFTWARE_HOST=
+    DREMIO_SOFTWARE_USERNAME=
+    DREMIO_SOFTWARE_PASSWORD=
+    DREMIO_DATALAKE=dbt_test_source
+    DREMIO_DATABASE=dbt_test
+    DBT_TEST_USER_1=dbt_test_user_1
+    DBT_TEST_USER_2=dbt_test_user_2
+    DBT_TEST_USER_3=dbt_test_user_3
+    ```
+   For cloud version of Dremio:
+    ```
+    DREMIO_CLOUD_HOST=
+    DREMIO_CLOUD_PROJECT_ID=
+    DREMIO_CLOUD_USERNAME=
+    DREMIO_PAT=
     DREMIO_DATALAKE=dbt_test_source
     DREMIO_DATABASE=dbt_test
     DBT_TEST_USER_1=dbt_test_user_1
@@ -19,6 +31,7 @@ To run our tests, a test environment must be set up.
     DBT_TEST_USER_3=dbt_test_user_3
     ```
 1. Create the three users listed above (dbt_test_user_1, dbt_test_user_2, dbt_test_user_3) in the Dremio instance.
+1. Create a bucket in Object storage with a name `dbtdremios3`
 1. Create an object storage source in Dremio called `dbt_test_source`.
     1. An example would be a [gcs object storage source](https://docs.dremio.com/software/data-sources/gcs/).
 1. One of the tests - test_profile_template.py requires creation of three dbt projects in an arbitrary location.

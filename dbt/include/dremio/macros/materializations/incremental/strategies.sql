@@ -60,23 +60,13 @@ limitations under the License.*/
         {%- endfor %}
     {% endif %}
 
-
-    {%- set dest_col_names = dest_columns | map(attribute="name") -%}
-    {%- set dest_cols_prefixed = [] -%}
-
-    {% for dc in dest_col_names -%}
-        {% set this_key_match %}
-                    DBT_INTERNAL_SOURCE."{{ dc }}"
-        {% endset %}
-        {% do dest_cols_prefixed.append(this_key_match) %}
-    {%- endfor %}
-
-
     when not matched then insert
         ({{ dest_cols_csv }})
     values
-        ({{ dest_cols_prefixed | join(',') }})
-
+        ({% for column_name in dest_columns | map(attribute="name") -%}
+            DBT_INTERNAL_SOURCE.{{ column_name }}
+            {%- if not loop.last %}, {%- endif %}
+        {%- endfor %})
 
 {% endmacro %}
 

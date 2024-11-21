@@ -20,12 +20,14 @@ from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
 
+from dbt_common.clients import agate_helper
+
 import time
 import json
 
-import dbt.exceptions
+import dbt_common.exceptions
 from dbt.adapters.sql import SQLConnectionManager
-from dbt.contracts.connection import AdapterResponse
+from dbt.adapters.contracts.connection import AdapterResponse
 
 from dbt.adapters.dremio.api.rest.endpoints import (
     delete_catalog,
@@ -43,7 +45,7 @@ from dbt.adapters.dremio.api.rest.error import (
     DremioBadRequestException,
 )
 
-from dbt.events import AdapterLogger
+from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
@@ -61,13 +63,13 @@ class DremioConnectionManager(SQLConnectionManager):
         except Exception as e:
             logger.debug(f"Error running SQL: {sql}")
             self.release()
-            if isinstance(e, dbt.exceptions.DbtRuntimeError):
+            if isinstance(e, dbt_common.exceptions.DbtRuntimeError):
                 # during a sql query, an internal to dbt exception was raised.
                 # this sounds a lot like a signal handler and probably has
                 # useful information, so raise it without modification.
                 raise
 
-            raise dbt.exceptions.DbtRuntimeError(e)
+            raise dbt_common.exceptions.DbtRuntimeError(e)
 
     @classmethod
     def open(cls, connection):
@@ -184,7 +186,7 @@ class DremioConnectionManager(SQLConnectionManager):
         if fetch:
             table = cursor.table
         else:
-            table = dbt.clients.agate_helper.empty_table()
+            table = agate_helper.empty_table()
 
         return response, table
 
@@ -254,10 +256,10 @@ class DremioConnectionManager(SQLConnectionManager):
             except DremioAlreadyExistsException:
                 logger.debug(f"Folder {folder} already exists.")
             except DremioBadRequestException as e:
-               if "Can not create a folder inside a [SOURCE]" in e.message:
-                   logger.debug(f"Ignoring {e}")
-               else:
-                   raise e
+                if "Can not create a folder inside a [SOURCE]" in e.message:
+                    logger.debug(f"Ignoring {e}")
+                else:
+                    raise e
 
     def _create_path_list(self, database, schema):
         path = [database]
