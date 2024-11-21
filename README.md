@@ -31,6 +31,7 @@ Version 1.7.0 of the dbt-dremio adapter is compatible with dbt-core versions 1.2
 
 -   Open bugs and feature requests can be found at [dbt-dremio's GitHub issues](https://github.com/dremio/dbt-dremio/issues).
 -   Want to report a bug or request a feature? Let us know by on [Slack](https://getdbt.slack.com/archives/C049G61TKBK), or opening [an issue](https://github.com/dremio/dbt-dremio/issues/new)
+-   For direct feedback, you can also email us at [dremio-dbt-feedback@dremio.com](mailto:dremio-dbt-feedback@dremio.com).
 -   Want to help us build dbt-dremio? Check out the [Contributing Guide](https://github.com/dremio/dbt-dremio/blob/main/CONTRIBUTING.md).
 
 ## Code of Conduct
