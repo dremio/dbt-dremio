@@ -135,7 +135,6 @@ class DremioCursor:
 
         while True:
             time.sleep(0.2)
-
             if job_status_state != last_job_state:
                 logger.debug(f"Job State = {job_status_state}")
 
@@ -203,5 +202,3 @@ class DremioCursor:
             self._table_results = agate.Table.from_object(
                 json_rows, column_types=tester
             )
-
-

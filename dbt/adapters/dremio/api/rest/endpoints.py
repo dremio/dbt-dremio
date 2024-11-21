@@ -41,7 +41,6 @@ logger = AdapterLogger("dremio")
 
 session = requests.Session()
 
-
 def _get(url, request_headers, details="", ssl_verify=True):
     response = session.get(url, headers=request_headers, verify=ssl_verify)
     return _check_error(response, details)
