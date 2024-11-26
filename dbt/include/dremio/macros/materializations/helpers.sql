@@ -20,7 +20,7 @@ limitations under the License.*/
     {%- endif -%}
     {{ label }} (
     {%- for item in cols -%}
-      {{ adapter.quote(item) }}
+      {{ item }}
       {%- if not loop.last -%},{%- endif -%}
     {%- endfor -%}
     )
