@@ -1,0 +1,444 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      
+jobs:
+  run-tests:
+    name: Setup and Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Environment Variables
+        run: |
+          echo "DREMIO_SOFTWARE_HOST=localhost" >> $GITHUB_ENV
+          echo "DREMIO_SOFTWARE_USERNAME=dremio" >> $GITHUB_ENV
+          echo "DREMIO_SOFTWARE_PASSWORD=dremio123" >> $GITHUB_ENV
+          echo "DREMIO_DATALAKE=dbt_test_source" >> $GITHUB_ENV
+          echo "DREMIO_DATABASE=dbt_test" >> $GITHUB_ENV
+          echo "DBT_TEST_USER_1=dbt_test_user_1" >> $GITHUB_ENV
+          echo "DBT_TEST_USER_2=dbt_test_user_2" >> $GITHUB_ENV
+          echo "DBT_TEST_USER_3=dbt_test_user_3" >> $GITHUB_ENV
+
+      - name: Create Docker Network
+        run: |
+          docker network create ci-network
+
+      - name: Start MinIO Service
+        run: |
+          docker run -d \
+            --network ci-network \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e "MINIO_ROOT_USER=admin" \
+            -e "MINIO_ROOT_PASSWORD=password" \
+            minio/minio server /data --console-address ":9001"
+
+      - name: Start Dremio Service
+        run: |
+          docker run -d \
+            --network ci-network \
+            --name dremio \
+            -p 31010:31010 \
+            -p 9047:9047 \
+            -e "DREMIO_JAVA_SERVER_EXTRA_OPTS=-Ddebug.addDefaultUser=true" \
+            dremio/dremio-oss
+
+      - name: Install MinIO Client (mc)
+        run: |
+          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/
+
+      - name: Create MinIO bucket
+        run: |
+          for i in {1..12}; do
+            if docker exec minio curl -s http://localhost:9000/minio/health/live; then
+              echo "MinIO is up."
+              break
+            fi
+            echo "Waiting for MinIO to become ready..."
+            sleep 5
+          done
+          if ! docker exec minio curl -s http://localhost:9000/minio/health/live; then
+            echo "MinIO did not become ready in time."
+            exit 1
+          fi
+
+          # Set alias to MinIO
+          mc alias set myminio http://localhost:9000 admin password
+
+          echo "Creating bucket dbtdremios3"
+          mc mb myminio/dbtdremios3
+
+          echo "Setting bucket policy to public"
+          mc policy set public myminio/dbtdremios3
+
+          echo "Listing all buckets to verify"
+          mc ls myminio
+
+      - name: "Create Dremio S3 Source"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+
+          for i in {1..12}; do
+            if docker exec dremio curl -s http://localhost:9047; then
+              echo "Dremio is up."
+              break
+            fi
+            echo "Waiting for Dremio to become ready..."
+            sleep 5
+          done
+          if ! docker exec dremio curl -s http://localhost:9047; then
+            echo "Dremio did not become ready in time."
+            exit 1
+          fi
+
+          echo "Logging into Dremio to obtain auth token..."
+          AUTH_TOKEN=$(curl -s -X POST "http://localhost:9047/apiv2/login" \
+            -H "Content-Type: application/json" \
+            --data "{\"userName\":\"dremio\", \"password\":\"dremio123\"}" | jq -r .token)
+
+          # Check if AUTH_TOKEN is not empty
+          if [ -z "$AUTH_TOKEN" ]; then
+            echo "Failed to obtain Dremio auth token"
+            exit 1
+          fi
+
+          echo "Obtained Dremio auth token: $AUTH_TOKEN"
+
+          echo "Creating the S3 source in Dremio..."
+          curl -s -X PUT "http://localhost:9047/apiv2/source/dbt_test_source" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: _dremio$AUTH_TOKEN" \
+            --data "{\"name\":\"dbt_test_source\",\"config\":{\"credentialType\":\"ACCESS_KEY\",\"accessKey\":\"admin\",\"accessSecret\":\"password\",\"secure\":false,\"externalBucketList\":[],\"enableAsync\":true,\"enableFileStatusCheck\":true,\"rootPath\":\"/\",\"defaultCtasFormat\":\"ICEBERG\",\"propertyList\":[{\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},{\"name\":\"fs.s3a.endpoint\",\"value\":\"minio:9000\"},{\"name\":\"dremio.s3.compat\",\"value\":\"true\"}],\"whitelistedBuckets\":[],\"isCachingEnabled\":false,\"maxCacheSpacePct\":100},\"type\":\"S3\",\"metadataPolicy\":{\"deleteUnavailableDatasets\":true,\"autoPromoteDatasets\":false,\"namesRefreshMillis\":3600000,\"datasetDefinitionRefreshAfterMillis\":3600000,\"datasetDefinitionExpireAfterMillis\":10800000,\"authTTLMillis\":86400000,\"updateMode\":\"PREFETCH_QUERIED\"}}"
+
+          echo "S3 Source created in Dremio"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r dev_requirements.txt
+          pip install .
+
+      - name: Create dbt test users
+        run: |
+          curl 'http://localhost:9047/api/v3/user' \
+          -H "Authorization: _dremio$AUTH_TOKEN" \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"firstName":"dbt","lastName":"user1","name":"dbt_test_user_1","email":"dbt_test_user_1@dremio.com","password":"dremio123"}'
+
+          curl 'http://localhost:9047/api/v3/user' \
+          -H "Authorization: _dremio$AUTH_TOKEN" \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"firstName":"dbt","lastName":"user2","name":"dbt_test_user_2","email":"dbt_test_user_2@dremio.com","password":"dremio123"}'
+
+          curl 'http://localhost:9047/api/v3/user' \
+          -H "Authorization: _dremio$AUTH_TOKEN" \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"firstName":"dbt","lastName":"user3","name":"dbt_test_user_3","email":"dbt_test_user_3@dremio.com","password":"dremio123"}'
+
+          echo "users created"
+
+      - name: Create dbt projects
+        run: |
+          dbt init test_cloud_options <<EOF
+          1
+          3
+          localhost
+
+          dremio
+          dremio123
+
+
+
+
+
+
+
+
+
+          EOF
+
+          dbt init test_sw_up_options <<EOF
+          1
+          2
+          localhost
+
+          dremio
+          dremio123
+
+
+
+
+
+
+
+
+
+          EOF
+
+          dbt init test_sw_pat_options <<EOF
+          1
+          3
+          localhost
+
+          dremio
+          dremio123
+
+
+
+
+
+
+
+
+
+          EOF
+
+          echo "projects created"
+
+      - name: Clean up __pycache__ directories
+        run: |
+          find . -type d -name "__pycache__" -exec rm -r {} +
+
+      - name: Create .env file for tests
+        run: |
+          mkdir -p tests
+          cat <<EOF > tests/.env
+          DREMIO_SOFTWARE_HOST=localhost
+          DREMIO_SOFTWARE_USERNAME=dremio
+          DREMIO_SOFTWARE_PASSWORD=dremio123
+          DREMIO_DATALAKE=dbt_test_source
+          DREMIO_DATABASE=dbt_test
+          DBT_TEST_USER_1=dbt_test_user_1
+          DBT_TEST_USER_2=dbt_test_user_2
+          DBT_TEST_USER_3=dbt_test_user_3
+          EOF
+
+      - name: Create Reports Directory
+        run: |
+          mkdir -p reports
+
+      - name: Run caching tests
+        run: |
+          pytest tests/caching/ | tee reports/caching.txt
+      
+      - name: Run component tests
+        run : |
+          pytest tests/component/ | tee reports/component.txt
+
+      - name: Run functional/adapter/basic tests
+        run: |
+          pytest tests/functional/adapter/basic/ | tee reports/basic.txt
+
+      - name: Run functional/adapter/dbt_clone tests
+        run: |
+          pytest tests/functional/adapter/dbt_clone/ | tee reports/dbt_clone.txt
+
+      - name: Run functional/adapter/dremio_specific tests
+        run: |
+          pytest tests/functional/adapter/dremio_specific/ | tee reports/dremio_specific.txt     
+
+      - name: Run functional/adapter/grants tests
+        run: |
+          pytest tests/functional/adapter/grants/ | tee reports/grants.txt      
+
+      - name: Run functional/adapter/query_comment tests
+        run: |
+          pytest tests/functional/adapter/query_comment/ | tee reports/query_comment.txt
+          
+      - name: Run functional/adapter/relation tests
+        run: |
+          pytest tests/functional/adapter/relation/ | tee reports/relation.txt
+          
+      - name: Run functional/adapter/unit_testing tests
+        run: |
+          pytest tests/functional/adapter/unit_testing/ | tee reports/unit_testing.txt
+
+      - name: Run hooks tests
+        run: |
+          pytest tests/hooks/ | tee reports/hooks.txt
+
+      - name: Run simple_copy tests
+        run: |
+          pytest tests/simple_copy/ | tee reports/simple_copy.txt
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit/ | tee reports/unit.txt
+
+      - name: Upload tests report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-tests-reports
+          path: reports/
+  
+  upload-individual-test-reports:
+    name: Upload Tests Artifacts
+    runs-on: ubuntu-latest
+    needs: run-tests
+
+    steps:
+      - name: Download test reports
+        uses: actions/download-artifact@v3
+        with:
+          name: all-tests-reports
+          path: reports/
+          
+      - name: Upload caching test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: caching-test-report
+          path: reports/caching.txt
+
+      - name: Upload component test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: component-test-report
+          path: reports/component.txt
+
+      - name: Upload functional/adapter/basic test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: basic-test-report
+          path: reports/basic.txt
+
+      - name: Upload functional/adapter/dbt_clone test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dbt_clone-test-report
+          path: reports/dbt_clone.txt
+
+      - name: Upload functional/adapter/dremio_specific test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dremio_specific-test-report
+          path: reports/dremio_specific.txt
+
+      - name: Upload functional/adapter/grants test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: grants-test-report
+          path: reports/grants.txt
+
+      - name: Upload functional/adapter/query_comment test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: query_comment-test-report
+          path: reports/query_comment.txt
+
+      - name: Upload functional/adapter/relation test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: relation-test-report
+          path: reports/relation.txt
+
+      - name: Upload functional/adapter/unit_testing test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit_testing-test-report
+          path: reports/unit_testing.txt
+
+      - name: Upload hooks test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: hooks-test-report
+          path: reports/hooks.txt
+
+      - name: Upload simple_copy test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: simple_copy-test-report
+          path: reports/simple_copy.txt
+
+      - name: Upload unit tests report
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-report
+          path: reports/unit.txt
+
+  verify-failures:
+    name: Verify Expected Test Failures
+    runs-on: ubuntu-latest
+    needs: [run-tests, upload-individual-test-reports]
+
+    steps:
+      - name: Download All Test Reports
+        uses: actions/download-artifact@v3
+        with:
+          name: all-tests-reports
+          path: reports/
+
+      - name: Set Up Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies for Verification
+        run: |
+          pip install jq
+
+      - name: Define Expected Failed Tests
+        run: |
+          cat <<EOF > expected_failures.txt
+          tests/component/test_profile_template.py::TestProfileTemplate::test_cloud_options
+          tests/functional/adapter/dbt_clone/test_dbt_clone.py::TestCloneNotPossibleDremio::test_can_clone_false
+          tests/functional/adapter/dremio_specific/test_drop_temp_table.py::TestDropTempTableDremio::test_drop_temp_table
+          tests/functional/adapter/dremio_specific/test_schema_parsing.py::TestSchemaParsingDremio::test_schema_with_dots
+          tests/functional/adapter/dremio_specific/test_verify_ssl.py::TestVerifyCertificateDremio::test_insecure_request_warning_not_exist
+          tests/functional/adapter/grants/test_incremental_grants.py::TestIncrementalGrantsDremio::test_incremental_grants
+          tests/functional/adapter/grants/test_invalid_grants.py::TestInvalidGrantsDremio::test_invalid_grants
+          tests/functional/adapter/grants/test_model_grants.py::TestViewGrantsDremio::test_view_table_grants
+          tests/functional/adapter/grants/test_model_grants.py::TestTableGrantsDremio::test_view_table_grants
+          tests/functional/adapter/grants/test_seed_grants.py::TestSeedGrantsDremio::test_seed_grants
+          tests/functional/adapter/grants/test_snapshot_grants.py::TestSnapshotGrantsDremio::test_snapshot_grants
+          tests/functional/adapter/relation/test_get_relation_last_modified.py::TestGetLastRelationModified::test_get_last_relation_modified
+          tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestingTypes::test_unit_test_data_type
+          tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestCaseInsensitivity::test_case_insensitivity
+          tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestInvalidInput::test_invalid_input
+          tests/hooks/test_model_hooks.py::TestPrePostModelHooksOnSnapshotsDremio::test_hooks_on_snapshots
+          tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigDremio::test_pre_and_post_model_hooks_model
+          tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigWithCountDremio::test_pre_and_post_model_hooks_model_and_project
+          tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigKwargsDremio::test_pre_and_post_model_hooks_model
+          tests/hooks/test_model_hooks.py::TestPrePostSnapshotHooksInConfigKwargsDremio::test_hooks_on_snapshots
+          tests/hooks/test_run_hooks.py::TestPrePostRunHooksDremio::test_pre_and_post_run_hooks
+          tests/hooks/test_run_hooks.py::TestPrePostRunHooksDremio::test_pre_and_post_seed_hooks
+          EOF
+
+      - name: Extract Actual Failed Tests
+        run: |
+          shopt -s globstar
+          grep "FAILED" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
+
+      - name: Sort Expected Failures
+        run: sort expected_failures.txt > expected_failures_sorted.txt
+
+      - name: Compare Actual Failures with Expected Failures
+        run: |
+          echo "Expected Failures:"
+          cat expected_failures_sorted.txt
+          echo ""
+          echo "Actual Failures:"
+          cat actual_failures_sorted.txt
+          echo ""
+
+          # Identify unexpected failures
+          unexpected_failures=$(comm -13 expected_failures_sorted.txt actual_failures_sorted.txt)
+
+          if [ -n "$unexpected_failures" ]; then
+            echo "Unexpected test failures detected:"
+            echo "$unexpected_failures"
+            exit 1
+          else
+            echo "All failed tests are expected."
+          fi
