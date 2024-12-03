@@ -229,53 +229,26 @@ jobs:
         run: |
           mkdir -p reports
 
-      - name: Run caching tests
+      - name: Run tests
         run: |
-          pytest tests/caching/ | tee reports/caching.txt
-      
-      - name: Run component tests
-        run : |
-          pytest tests/component/ | tee reports/component.txt
+          #!/bin/bash
+          set -e
 
-      - name: Run functional/adapter/basic tests
-        run: |
-          pytest tests/functional/adapter/basic/ | tee reports/basic.txt
+          echo "Starting tests"
 
-      - name: Run functional/adapter/dbt_clone tests
-        run: |
-          pytest tests/functional/adapter/dbt_clone/ | tee reports/dbt_clone.txt
+          test_dirs=$(find tests/ -type f \( -name 'test_*.py' -o -name '*_test.py' \) -exec dirname {} \; | sort -u)
 
-      - name: Run functional/adapter/dremio_specific tests
-        run: |
-          pytest tests/functional/adapter/dremio_specific/ | tee reports/dremio_specific.txt     
+          echo "$test_dirs"
 
-      - name: Run functional/adapter/grants tests
-        run: |
-          pytest tests/functional/adapter/grants/ | tee reports/grants.txt      
+          for dir in $test_dirs; do
+            echo "Running tests in directory: $dir"
+            # Generate a safe report filename
+            report_file="reports/$(echo "$dir" | tr '/' '_').txt"
+            echo "Saving report to: $report_file"
+            pytest "$dir" | tee "$report_file"
+          done
 
-      - name: Run functional/adapter/query_comment tests
-        run: |
-          pytest tests/functional/adapter/query_comment/ | tee reports/query_comment.txt
-          
-      - name: Run functional/adapter/relation tests
-        run: |
-          pytest tests/functional/adapter/relation/ | tee reports/relation.txt
-          
-      - name: Run functional/adapter/unit_testing tests
-        run: |
-          pytest tests/functional/adapter/unit_testing/ | tee reports/unit_testing.txt
-
-      - name: Run hooks tests
-        run: |
-          pytest tests/hooks/ | tee reports/hooks.txt
-
-      - name: Run simple_copy tests
-        run: |
-          pytest tests/simple_copy/ | tee reports/simple_copy.txt
-
-      - name: Run unit tests
-        run: |
-          pytest tests/unit/ | tee reports/unit.txt
+          echo "All tests executed."
 
       - name: Upload tests report as artifact
         uses: actions/upload-artifact@v3
@@ -295,77 +268,11 @@ jobs:
           name: all-tests-reports
           path: reports/
           
-      - name: Upload caching test report
+      - name: Upload individual test reports
         uses: actions/upload-artifact@v3
         with:
-          name: caching-test-report
-          path: reports/caching.txt
-
-      - name: Upload component test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: component-test-report
-          path: reports/component.txt
-
-      - name: Upload functional/adapter/basic test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: basic-test-report
-          path: reports/basic.txt
-
-      - name: Upload functional/adapter/dbt_clone test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: dbt_clone-test-report
-          path: reports/dbt_clone.txt
-
-      - name: Upload functional/adapter/dremio_specific test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: dremio_specific-test-report
-          path: reports/dremio_specific.txt
-
-      - name: Upload functional/adapter/grants test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: grants-test-report
-          path: reports/grants.txt
-
-      - name: Upload functional/adapter/query_comment test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: query_comment-test-report
-          path: reports/query_comment.txt
-
-      - name: Upload functional/adapter/relation test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: relation-test-report
-          path: reports/relation.txt
-
-      - name: Upload functional/adapter/unit_testing test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: unit_testing-test-report
-          path: reports/unit_testing.txt
-
-      - name: Upload hooks test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: hooks-test-report
-          path: reports/hooks.txt
-
-      - name: Upload simple_copy test report
-        uses: actions/upload-artifact@v3
-        with:
-          name: simple_copy-test-report
-          path: reports/simple_copy.txt
-
-      - name: Upload unit tests report
-        uses: actions/upload-artifact@v3
-        with:
-          name: unit-test-report
-          path: reports/unit.txt
+          name: individual-test-reports
+          path: reports/*.txt
 
   verify-failures:
     name: Verify Expected Test Failures
@@ -373,6 +280,9 @@ jobs:
     needs: [run-tests, upload-individual-test-reports]
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
       - name: Download All Test Reports
         uses: actions/download-artifact@v3
         with:
@@ -384,44 +294,13 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install Dependencies for Verification
-        run: |
-          pip install jq
-
-      - name: Define Expected Failed Tests
-        run: |
-          cat <<EOF > expected_failures.txt
-          tests/component/test_profile_template.py::TestProfileTemplate::test_cloud_options
-          tests/functional/adapter/dbt_clone/test_dbt_clone.py::TestCloneNotPossibleDremio::test_can_clone_false
-          tests/functional/adapter/dremio_specific/test_drop_temp_table.py::TestDropTempTableDremio::test_drop_temp_table
-          tests/functional/adapter/dremio_specific/test_schema_parsing.py::TestSchemaParsingDremio::test_schema_with_dots
-          tests/functional/adapter/dremio_specific/test_verify_ssl.py::TestVerifyCertificateDremio::test_insecure_request_warning_not_exist
-          tests/functional/adapter/grants/test_incremental_grants.py::TestIncrementalGrantsDremio::test_incremental_grants
-          tests/functional/adapter/grants/test_invalid_grants.py::TestInvalidGrantsDremio::test_invalid_grants
-          tests/functional/adapter/grants/test_model_grants.py::TestViewGrantsDremio::test_view_table_grants
-          tests/functional/adapter/grants/test_model_grants.py::TestTableGrantsDremio::test_view_table_grants
-          tests/functional/adapter/grants/test_seed_grants.py::TestSeedGrantsDremio::test_seed_grants
-          tests/functional/adapter/grants/test_snapshot_grants.py::TestSnapshotGrantsDremio::test_snapshot_grants
-          tests/functional/adapter/relation/test_get_relation_last_modified.py::TestGetLastRelationModified::test_get_last_relation_modified
-          tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestingTypes::test_unit_test_data_type
-          tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestCaseInsensitivity::test_case_insensitivity
-          tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestInvalidInput::test_invalid_input
-          tests/hooks/test_model_hooks.py::TestPrePostModelHooksOnSnapshotsDremio::test_hooks_on_snapshots
-          tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigDremio::test_pre_and_post_model_hooks_model
-          tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigWithCountDremio::test_pre_and_post_model_hooks_model_and_project
-          tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigKwargsDremio::test_pre_and_post_model_hooks_model
-          tests/hooks/test_model_hooks.py::TestPrePostSnapshotHooksInConfigKwargsDremio::test_hooks_on_snapshots
-          tests/hooks/test_run_hooks.py::TestPrePostRunHooksDremio::test_pre_and_post_run_hooks
-          tests/hooks/test_run_hooks.py::TestPrePostRunHooksDremio::test_pre_and_post_seed_hooks
-          EOF
-
       - name: Extract Actual Failed Tests
         run: |
           shopt -s globstar
           grep "FAILED" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
 
       - name: Sort Expected Failures
-        run: sort expected_failures.txt > expected_failures_sorted.txt
+        run: sort .github/expected_failures.txt > expected_failures_sorted.txt
 
       - name: Compare Actual Failures with Expected Failures
         run: |
@@ -435,10 +314,27 @@ jobs:
           # Identify unexpected failures
           unexpected_failures=$(comm -13 expected_failures_sorted.txt actual_failures_sorted.txt)
 
+          # Identify missing expected failures
+          missing_failures=$(comm -23 expected_failures_sorted.txt actual_failures_sorted.txt)
+
+          exit_code=0
+
           if [ -n "$unexpected_failures" ]; then
             echo "Unexpected test failures detected:"
             echo "$unexpected_failures"
-            exit 1
-          else
-            echo "All failed tests are expected."
+            exit_code=1
           fi
+
+          if [ -n "$missing_failures" ]; then
+            echo "Expected test failures that did not occur (they passed):"
+            echo "$missing_failures"
+            exit_code=1
+          fi
+
+          if [ $exit_code -eq 0 ]; then
+            echo "All failed tests are expected, and all expected failures have occurred."
+          else
+            echo "Verification failed: There are unexpected or missing test failures."
+          fi
+
+          exit $exit_code
