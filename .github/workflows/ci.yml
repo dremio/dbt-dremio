@@ -63,10 +63,10 @@ jobs:
           sudo mv mc /usr/local/bin/
 
       - name: Create MinIO bucket
-        run: bash scripts/create_minio_bucket.sh
+        run: bash .github/scripts/create_minio_bucket.sh
 
       - name: Create Dremio S3 Source
-        run: bash scripts/create_dremio_s3_source.sh
+        run: bash .github/scripts/create_dremio_s3_source.sh
 
       - name: Install Dependencies
         uses: actions/setup-python@v4
@@ -86,10 +86,10 @@ jobs:
           pip install .
 
       - name: Create dbt test users
-        run: bash scripts/create_dbt_test_users.sh
+        run: bash .github/scripts/create_dbt_test_users.sh
 
       - name: Create dbt projects
-        run: bash scripts/create_dbt_projects.sh
+        run: bash .github/scripts/create_dbt_projects.sh
 
       - name: Clean up __pycache__ directories
         run: |
@@ -114,7 +114,7 @@ jobs:
           mkdir -p reports
 
       - name: Run tests
-        run: bash scripts/run_tests.sh
+        run: bash .github/scripts/run_tests.sh
 
       - name: Upload tests report as artifact
         uses: actions/upload-artifact@v3
