@@ -3,7 +3,6 @@ set -e
 
 echo "Creating dbt test users in Dremio..."
 
-# Obtain Dremio auth token (assuming AUTH_TOKEN is already exported or accessible)
 if [ -z "$AUTH_TOKEN" ]; then
   echo "AUTH_TOKEN is not set. Exiting."
   exit 1

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+: "${MINIO_ROOT_USER:?Need to set MINIO_ROOT_USER}"
+: "${MINIO_ROOT_PASSWORD:?Need to set MINIO_ROOT_PASSWORD}"
+
 echo "Starting MinIO service..."
 
 docker run -d \

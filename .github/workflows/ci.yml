@@ -40,31 +40,13 @@ jobs:
           docker network create ci-network || echo "Network already exists"
 
       - name: Start MinIO Service
-        run: |
-          docker run -d \
-            --network ci-network \
-            --name minio \
-            -p 9000:9000 \
-            -p 9001:9001 \
-            -e "MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}" \
-            -e "MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}" \
-            minio/minio server /data --console-address ":9001"
+        run: bash .github/scripts/start_minio.sh
 
       - name: Start Dremio Service
-        run: |
-          docker run -d \
-            --network ci-network \
-            --name dremio \
-            -p 31010:31010 \
-            -p 9047:9047 \
-            -e "DREMIO_JAVA_SERVER_EXTRA_OPTS=-Ddebug.addDefaultUser=true" \
-            dremio/dremio-oss
+        run: bash .github/scripts/start_dremio.sh
 
       - name: Install MinIO Client (mc)
-        run: |
-          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/
+        run: bash .github/scripts/install_minio_client.sh
 
       - name: Create MinIO bucket
         run: bash .github/scripts/create_minio_bucket.sh
@@ -76,6 +58,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -83,6 +66,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
+
       - name: Install Python Dependencies
         run: |
           pip install --upgrade pip
@@ -100,22 +84,7 @@ jobs:
           find . -type d -name "__pycache__" -exec rm -r {} +
 
       - name: Create .env file for tests
-        run: |
-          mkdir -p tests
-          cat <<EOF > tests/.env
-          DREMIO_SOFTWARE_HOST=localhost
-          DREMIO_SOFTWARE_USERNAME=${{ secrets.DREMIO_SOFTWARE_USERNAME }}
-          DREMIO_SOFTWARE_PASSWORD=${{ secrets.DREMIO_SOFTWARE_PASSWORD }}
-          DREMIO_DATALAKE=dbt_test_source
-          DREMIO_DATABASE=dbt_test
-          DBT_TEST_USER_1=dbt_test_user_1
-          DBT_TEST_USER_2=dbt_test_user_2
-          DBT_TEST_USER_3=dbt_test_user_3
-          EOF
-
-      - name: Create Reports Directory
-        run: |
-          mkdir -p reports
+        run: bash .github/scripts/create_env_file.sh
 
       - name: Run tests
         run: bash .github/scripts/run_tests.sh

@@ -1,9 +1,16 @@
 #!/bin/bash
 set -e
 
+: "${RETRY_COUNT:?Need to set RETRY_COUNT}"
+: "${DREMIO_HEALTH_URL:?Need to set DREMIO_HEALTH_URL}"
+: "${SLEEP_INTERVAL:?Need to set SLEEP_INTERVAL}"
+: "${DREMIO_SOFTWARE_USERNAME:?Need to set DREMIO_SOFTWARE_USERNAME}"
+: "${DREMIO_SOFTWARE_PASSWORD:?Need to set DREMIO_SOFTWARE_PASSWORD}"
+: "${MINIO_ROOT_USER:?Need to set MINIO_ROOT_USER}"
+: "${MINIO_ROOT_PASSWORD:?Need to set MINIO_ROOT_PASSWORD}"
+
 echo "Creating Dremio S3 Source..."
 
-# Wait for Dremio to be healthy
 for i in $(seq 1 $RETRY_COUNT); do
   if curl -s $DREMIO_HEALTH_URL; then
     echo "Dremio is up."

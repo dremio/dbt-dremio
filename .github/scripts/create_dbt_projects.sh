@@ -3,7 +3,6 @@ set -e
 
 echo "Creating dbt projects..."
 
-# Function to initialize a dbt project
 init_dbt_project() {
   local project_name=$1
   local profile_selection=$2
@@ -33,7 +32,6 @@ EOF
   echo "dbt project '$project_name' created."
 }
 
-# Initialize each dbt project
 init_dbt_project "test_cloud_options" 1 3 "localhost" "dremio" "dremio123"
 init_dbt_project "test_sw_up_options" 1 2 "localhost" "dremio" "dremio123"
 init_dbt_project "test_sw_pat_options" 1 3 "localhost" "dremio" "dremio123"

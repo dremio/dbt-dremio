@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+: "${DREMIO_SOFTWARE_USERNAME:?Need to set DREMIO_SOFTWARE_USERNAME}"
+: "${DREMIO_SOFTWARE_PASSWORD:?Need to set DREMIO_SOFTWARE_PASSWORD}"
+
 echo "Creating .env file for tests..."
 
 mkdir -p tests

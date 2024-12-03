@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# Ensure required environment variables are set
 : "${RETRY_COUNT:?Need to set RETRY_COUNT}"
 : "${SLEEP_INTERVAL:?Need to set SLEEP_INTERVAL}"
 : "${MINIO_HEALTH_URL:?Need to set MINIO_HEALTH_URL}"

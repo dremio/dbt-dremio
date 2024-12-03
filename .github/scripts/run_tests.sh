@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
+mkdir -p reports
+
 echo "Starting tests..."
 
-# Discover test directories
 test_dirs=$(find tests/ -type f \( -name 'test_*.py' -o -name '*_test.py' \) -exec dirname {} \; | sort -u)
 
 echo "Test directories found:"
