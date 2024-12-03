@@ -34,6 +34,10 @@ class UrlBuilder:
     SOFTWARE_CATALOG_ENDPOINT = "/api/v3/catalog"
     CLOUD_CATALOG_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/catalog"
 
+    DREMIO_WIKIS_ENDPOINT = "/collaboration/wiki"
+
+    DREMIO_TAGS_ENDPOINT = "/collaboration/tag"
+
     SOFTWARE_REFLECTIONS_ENDPOINT = "/api/v3/reflection"
     CLOUD_REFLECTIONS_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/reflection"
 
@@ -145,6 +149,15 @@ class UrlBuilder:
         joined_path_str = "/".join(quoted_path_list).replace('"', "")
         endpoint = f"/by-path/{joined_path_str}"
         return url_path + endpoint
+    
+    # dbt docs integration within Dremio wikis and tags
+    @classmethod
+    def wikis_management_url(cls, parameters: Parameters, object_id: str) -> str:
+        return cls.catalog_url(parameters) + f"/{object_id}{UrlBuilder.DREMIO_WIKIS_ENDPOINT}"
+    
+    @classmethod
+    def tags_management_url(cls, parameters: Parameters, dataset_id: str) -> str:
+        return cls.catalog_url(parameters) + f"/{dataset_id}{UrlBuilder.DREMIO_TAGS_ENDPOINT}"
 
     @classmethod
     def create_reflection_url(cls, parameters: Parameters):

@@ -3,6 +3,7 @@
 ## Changes
 
 -   Added [DremioRestClient](dbt/adapters/dremio/api/rest/client.py) to isolate all Dremio API calls inside one class
+<<<<<<< HEAD
 - [#256](https://github.com/dremio/dbt-dremio/pull/256) Reflections are now handled through the Rest API
   - Non-admin users are now able to use reflections
   - It is now possible to set a custom name for reflections
@@ -15,6 +16,9 @@
   - Computations default to `SUM, COUNT` if mapped measure is numeric, `COUNT` if not
   - `reflections_enabled` adapter option has been renamed to `reflections_metadata_enabled` (requires user privileges to run in dremio)
 -   Removing duplicated macros array_append, array_concat as Dremio already has SQL functions analogues.
+=======
+
+>>>>>>> 2a84e48 (Wikis and tags feature implementation)
 ## Dependency
 
 -   [#222](https://github.com/dremio/dbt-dremio/issues/222) Upgrade dbt-core to 1.8.8 and dbt-tests-adapter to 1.8.0
