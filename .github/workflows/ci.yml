@@ -17,6 +17,10 @@ jobs:
       SLEEP_INTERVAL: 5 # Sleep duration in seconds between retries
       MINIO_HEALTH_URL: http://localhost:9000/minio/health/live
       DREMIO_HEALTH_URL: http://localhost:9047
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+      DREMIO_SOFTWARE_USERNAME: ${{ secrets.DREMIO_SOFTWARE_USERNAME }}
+      DREMIO_SOFTWARE_PASSWORD: ${{ secrets.DREMIO_SOFTWARE_PASSWORD }}
 
     steps:
       - name: Check out repository
