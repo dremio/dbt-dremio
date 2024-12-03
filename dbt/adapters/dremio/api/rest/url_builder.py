@@ -34,6 +34,8 @@ class UrlBuilder:
     SOFTWARE_CATALOG_ENDPOINT = "/api/v3/catalog"
     CLOUD_CATALOG_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/catalog"
 
+    DREMIO_WIKIS_ENDPOINT = "/collaboration/wiki"
+
     # https://docs.dremio.com/software/rest-api/jobs/get-job/
     OFFSET_DEFAULT = 0
     LIMIT_DEFAULT = 100
@@ -139,3 +141,8 @@ class UrlBuilder:
         joined_path_str = "/".join(quoted_path_list).replace('"', "")
         endpoint = f"/by-path/{joined_path_str}"
         return url_path + endpoint
+    
+    # dbt docs integration within Dremio wikis
+    @classmethod
+    def wiki_management_url(cls, parameters: Parameters, object_id: str) -> str:
+        return cls.catalog_url(parameters) + f"/{object_id}{UrlBuilder.DREMIO_WIKIS_ENDPOINT}"

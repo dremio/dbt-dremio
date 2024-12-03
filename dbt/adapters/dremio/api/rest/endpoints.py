@@ -251,3 +251,40 @@ def delete_catalog(api_parameters, cid):
         api_parameters.authentication.get_headers(),
         ssl_verify=api_parameters.authentication.verify_ssl,
     )
+
+
+# dbt docs integration within Dremio wikis
+def create_wiki(api_parameters: Parameters, object_id: str, text: str):
+    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    return _post(
+        url,
+        api_parameters.authentication.get_headers(),
+        json={"text": text},
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def retrieve_wiki(api_parameters: Parameters, object_id: str):
+    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    return _get(
+        url,
+        api_parameters.authentication.get_headers(),
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def update_wiki(api_parameters: Parameters, object_id: str, text: str, version: int):
+    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    return _post(
+        url,
+        api_parameters.authentication.get_headers(),
+        json={"text": text, "version": version},
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def delete_wiki(api_parameters: Parameters, object_id: str, version: int):
+    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    return _post(
+        url,
+        api_parameters.authentication.get_headers(),
+        json={"text": "", "version": version},
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
