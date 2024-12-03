@@ -12,6 +12,11 @@ jobs:
   run-tests:
     name: Setup and Run Tests
     runs-on: ubuntu-latest
+    env:
+      RETRY_COUNT: 12 # number of retries for health checks
+      SLEEP_INTERVAL: 5 # Sleep duration in seconds between retries
+      MINIO_HEALTH_URL: http://localhost:9000/minio/health/live
+      DREMIO_HEALTH_URL: http://localhost:9047
 
     steps:
       - name: Check out repository
@@ -61,15 +66,15 @@ jobs:
 
       - name: Create MinIO bucket
         run: |
-          for i in {1..12}; do
-            if docker exec minio curl -s http://localhost:9000/minio/health/live; then
+          for i in $(seq 1 $RETRY_COUNT); do
+            if docker exec minio curl -s $MINIO_HEALTH_URL; then
               echo "MinIO is up."
               break
             fi
             echo "Waiting for MinIO to become ready..."
             sleep 5
           done
-          if ! docker exec minio curl -s http://localhost:9000/minio/health/live; then
+          if ! docker exec minio curl -s $MINIO_HEALTH_URL; then
             echo "MinIO did not become ready in time."
             exit 1
           fi
@@ -91,15 +96,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl jq
 
-          for i in {1..12}; do
-            if docker exec dremio curl -s http://localhost:9047; then
+          for i in $(seq 1 $RETRY_COUNT); do
+            if docker exec dremio curl -s $DREMIO_HEALTH_URL; then
               echo "Dremio is up."
               break
             fi
             echo "Waiting for Dremio to become ready..."
             sleep 5
           done
-          if ! docker exec dremio curl -s http://localhost:9047; then
+          if ! docker exec dremio curl -s $DREMIO_HEALTH_URL; then
             echo "Dremio did not become ready in time."
             exit 1
           fi
@@ -317,6 +322,7 @@ jobs:
           # Identify missing expected failures
           missing_failures=$(comm -23 expected_failures_sorted.txt actual_failures_sorted.txt)
 
+          # Initialize exit code
           exit_code=0
 
           if [ -n "$unexpected_failures" ]; then
