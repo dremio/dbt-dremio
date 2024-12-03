@@ -33,6 +33,7 @@ if [ -z "$AUTH_TOKEN" ] || [ "$AUTH_TOKEN" == "null" ]; then
 fi
 
 echo "Obtained Dremio auth token."
+echo "::add-mask::$AUTH_TOKEN"
 echo "AUTH_TOKEN=${AUTH_TOKEN}" >> $GITHUB_ENV
 
 # Create the S3 source in Dremio
