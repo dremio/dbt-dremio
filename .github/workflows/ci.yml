@@ -1,0 +1,346 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      
+jobs:
+  run-tests:
+    name: Setup and Run Tests
+    runs-on: ubuntu-latest
+    env:
+      RETRY_COUNT: 12 # number of retries for health checks
+      SLEEP_INTERVAL: 5 # Sleep duration in seconds between retries
+      MINIO_HEALTH_URL: http://localhost:9000/minio/health/live
+      DREMIO_HEALTH_URL: http://localhost:9047
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Environment Variables
+        run: |
+          echo "DREMIO_SOFTWARE_HOST=localhost" >> $GITHUB_ENV
+          echo "DREMIO_SOFTWARE_USERNAME=dremio" >> $GITHUB_ENV
+          echo "DREMIO_SOFTWARE_PASSWORD=dremio123" >> $GITHUB_ENV
+          echo "DREMIO_DATALAKE=dbt_test_source" >> $GITHUB_ENV
+          echo "DREMIO_DATABASE=dbt_test" >> $GITHUB_ENV
+          echo "DBT_TEST_USER_1=dbt_test_user_1" >> $GITHUB_ENV
+          echo "DBT_TEST_USER_2=dbt_test_user_2" >> $GITHUB_ENV
+          echo "DBT_TEST_USER_3=dbt_test_user_3" >> $GITHUB_ENV
+
+      - name: Create Docker Network
+        run: |
+          docker network create ci-network
+
+      - name: Start MinIO Service
+        run: |
+          docker run -d \
+            --network ci-network \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e "MINIO_ROOT_USER=admin" \
+            -e "MINIO_ROOT_PASSWORD=password" \
+            minio/minio server /data --console-address ":9001"
+
+      - name: Start Dremio Service
+        run: |
+          docker run -d \
+            --network ci-network \
+            --name dremio \
+            -p 31010:31010 \
+            -p 9047:9047 \
+            -e "DREMIO_JAVA_SERVER_EXTRA_OPTS=-Ddebug.addDefaultUser=true" \
+            dremio/dremio-oss
+
+      - name: Install MinIO Client (mc)
+        run: |
+          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          sudo mv mc /usr/local/bin/
+
+      - name: Create MinIO bucket
+        run: |
+          for i in $(seq 1 $RETRY_COUNT); do
+            if docker exec minio curl -s $MINIO_HEALTH_URL; then
+              echo "MinIO is up."
+              break
+            fi
+            echo "Waiting for MinIO to become ready..."
+            sleep 5
+          done
+          if ! docker exec minio curl -s $MINIO_HEALTH_URL; then
+            echo "MinIO did not become ready in time."
+            exit 1
+          fi
+
+          # Set alias to MinIO
+          mc alias set myminio http://localhost:9000 admin password
+
+          echo "Creating bucket dbtdremios3"
+          mc mb myminio/dbtdremios3
+
+          echo "Setting bucket policy to public"
+          mc policy set public myminio/dbtdremios3
+
+          echo "Listing all buckets to verify"
+          mc ls myminio
+
+      - name: "Create Dremio S3 Source"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+
+          for i in $(seq 1 $RETRY_COUNT); do
+            if docker exec dremio curl -s $DREMIO_HEALTH_URL; then
+              echo "Dremio is up."
+              break
+            fi
+            echo "Waiting for Dremio to become ready..."
+            sleep 5
+          done
+          if ! docker exec dremio curl -s $DREMIO_HEALTH_URL; then
+            echo "Dremio did not become ready in time."
+            exit 1
+          fi
+
+          echo "Logging into Dremio to obtain auth token..."
+          AUTH_TOKEN=$(curl -s -X POST "http://localhost:9047/apiv2/login" \
+            -H "Content-Type: application/json" \
+            --data "{\"userName\":\"dremio\", \"password\":\"dremio123\"}" | jq -r .token)
+
+          # Check if AUTH_TOKEN is not empty
+          if [ -z "$AUTH_TOKEN" ]; then
+            echo "Failed to obtain Dremio auth token"
+            exit 1
+          fi
+
+          echo "Obtained Dremio auth token: $AUTH_TOKEN"
+
+          echo "Creating the S3 source in Dremio..."
+          curl -s -X PUT "http://localhost:9047/apiv2/source/dbt_test_source" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: _dremio$AUTH_TOKEN" \
+            --data "{\"name\":\"dbt_test_source\",\"config\":{\"credentialType\":\"ACCESS_KEY\",\"accessKey\":\"admin\",\"accessSecret\":\"password\",\"secure\":false,\"externalBucketList\":[],\"enableAsync\":true,\"enableFileStatusCheck\":true,\"rootPath\":\"/\",\"defaultCtasFormat\":\"ICEBERG\",\"propertyList\":[{\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},{\"name\":\"fs.s3a.endpoint\",\"value\":\"minio:9000\"},{\"name\":\"dremio.s3.compat\",\"value\":\"true\"}],\"whitelistedBuckets\":[],\"isCachingEnabled\":false,\"maxCacheSpacePct\":100},\"type\":\"S3\",\"metadataPolicy\":{\"deleteUnavailableDatasets\":true,\"autoPromoteDatasets\":false,\"namesRefreshMillis\":3600000,\"datasetDefinitionRefreshAfterMillis\":3600000,\"datasetDefinitionExpireAfterMillis\":10800000,\"authTTLMillis\":86400000,\"updateMode\":\"PREFETCH_QUERIED\"}}"
+
+          echo "S3 Source created in Dremio"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r dev_requirements.txt
+          pip install .
+
+      - name: Create dbt test users
+        run: |
+          curl 'http://localhost:9047/api/v3/user' \
+          -H "Authorization: _dremio$AUTH_TOKEN" \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"firstName":"dbt","lastName":"user1","name":"dbt_test_user_1","email":"dbt_test_user_1@dremio.com","password":"dremio123"}'
+
+          curl 'http://localhost:9047/api/v3/user' \
+          -H "Authorization: _dremio$AUTH_TOKEN" \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"firstName":"dbt","lastName":"user2","name":"dbt_test_user_2","email":"dbt_test_user_2@dremio.com","password":"dremio123"}'
+
+          curl 'http://localhost:9047/api/v3/user' \
+          -H "Authorization: _dremio$AUTH_TOKEN" \
+          -H 'Content-Type: application/json' \
+          --data-raw '{"firstName":"dbt","lastName":"user3","name":"dbt_test_user_3","email":"dbt_test_user_3@dremio.com","password":"dremio123"}'
+
+          echo "users created"
+
+      - name: Create dbt projects
+        run: |
+          dbt init test_cloud_options <<EOF
+          1
+          3
+          localhost
+
+          dremio
+          dremio123
+
+
+
+
+
+
+
+
+
+          EOF
+
+          dbt init test_sw_up_options <<EOF
+          1
+          2
+          localhost
+
+          dremio
+          dremio123
+
+
+
+
+
+
+
+
+
+          EOF
+
+          dbt init test_sw_pat_options <<EOF
+          1
+          3
+          localhost
+
+          dremio
+          dremio123
+
+
+
+
+
+
+
+
+
+          EOF
+
+          echo "projects created"
+
+      - name: Clean up __pycache__ directories
+        run: |
+          find . -type d -name "__pycache__" -exec rm -r {} +
+
+      - name: Create .env file for tests
+        run: |
+          mkdir -p tests
+          cat <<EOF > tests/.env
+          DREMIO_SOFTWARE_HOST=localhost
+          DREMIO_SOFTWARE_USERNAME=dremio
+          DREMIO_SOFTWARE_PASSWORD=dremio123
+          DREMIO_DATALAKE=dbt_test_source
+          DREMIO_DATABASE=dbt_test
+          DBT_TEST_USER_1=dbt_test_user_1
+          DBT_TEST_USER_2=dbt_test_user_2
+          DBT_TEST_USER_3=dbt_test_user_3
+          EOF
+
+      - name: Create Reports Directory
+        run: |
+          mkdir -p reports
+
+      - name: Run tests
+        run: |
+          #!/bin/bash
+          set -e
+
+          echo "Starting tests"
+
+          test_dirs=$(find tests/ -type f \( -name 'test_*.py' -o -name '*_test.py' \) -exec dirname {} \; | sort -u)
+
+          echo "$test_dirs"
+
+          for dir in $test_dirs; do
+            echo "Running tests in directory: $dir"
+            # Generate a safe report filename
+            report_file="reports/$(echo "$dir" | tr '/' '_').txt"
+            echo "Saving report to: $report_file"
+            pytest "$dir" | tee "$report_file"
+          done
+
+          echo "All tests executed."
+
+      - name: Upload tests report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-tests-reports
+          path: reports/
+  
+  upload-individual-test-reports:
+    name: Upload Tests Artifacts
+    runs-on: ubuntu-latest
+    needs: run-tests
+
+    steps:
+      - name: Download test reports
+        uses: actions/download-artifact@v3
+        with:
+          name: all-tests-reports
+          path: reports/
+          
+      - name: Upload individual test reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: individual-test-reports
+          path: reports/*.txt
+
+  verify-failures:
+    name: Verify Expected Test Failures
+    runs-on: ubuntu-latest
+    needs: [run-tests, upload-individual-test-reports]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Download All Test Reports
+        uses: actions/download-artifact@v3
+        with:
+          name: all-tests-reports
+          path: reports/
+
+      - name: Set Up Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Extract Actual Failed Tests
+        run: |
+          shopt -s globstar
+          grep "FAILED" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
+
+      - name: Sort Expected Failures
+        run: sort .github/expected_failures.txt > expected_failures_sorted.txt
+
+      - name: Compare Actual Failures with Expected Failures
+        run: |
+          echo "Expected Failures:"
+          cat expected_failures_sorted.txt
+          echo ""
+          echo "Actual Failures:"
+          cat actual_failures_sorted.txt
+          echo ""
+
+          # Identify unexpected failures
+          unexpected_failures=$(comm -13 expected_failures_sorted.txt actual_failures_sorted.txt)
+
+          # Identify missing expected failures
+          missing_failures=$(comm -23 expected_failures_sorted.txt actual_failures_sorted.txt)
+
+          # Initialize exit code
+          exit_code=0
+
+          if [ -n "$unexpected_failures" ]; then
+            echo "Unexpected test failures detected:"
+            echo "$unexpected_failures"
+            exit_code=1
+          fi
+
+          if [ -n "$missing_failures" ]; then
+            echo "Expected test failures that did not occur (they passed):"
+            echo "$missing_failures"
+            exit_code=1
+          fi
+
+          if [ $exit_code -eq 0 ]; then
+            echo "All failed tests are expected, and all expected failures have occurred."
+          else
+            echo "Verification failed: There are unexpected or missing test failures."
+          fi
+
+          exit $exit_code
