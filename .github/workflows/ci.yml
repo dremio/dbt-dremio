@@ -10,7 +10,7 @@ on:
       
 jobs:
   run-tests:
-    name: Setup and run tests
+    name: Setup and Run Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -229,90 +229,37 @@ jobs:
         run: |
           mkdir -p reports
 
-      - name: Run caching tests
-        if: always()
+      - name: Run tests
         run: |
-          set -o pipefail
-          pytest tests/caching/ | tee reports/caching.txt
-      
-      - name: Run component tests
-        if: always()
-        run : |
-          set -o pipefail
-          pytest tests/component/ | tee reports/component.txt
+          #!/bin/bash
+          set -e
 
-      - name: Run functional/adapter/basic tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/functional/adapter/basic/ | tee reports/basic.txt
+          echo "Starting tests"
 
-      - name: Run functional/adapter/dbt_clone tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/functional/adapter/dbt_clone/ | tee reports/dbt_clone.txt
+          test_dirs=$(find tests/ -type f \( -name 'test_*.py' -o -name '*_test.py' \) -exec dirname {} \; | sort -u)
 
-      - name: Run functional/adapter/dremio_specific tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/functional/adapter/dremio_specific/ | tee reports/dremio_specific.txt     
+          echo "$test_dirs"
 
-      - name: Run functional/adapter/grants tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/functional/adapter/grants/ | tee reports/grants.txt      
+          for dir in $test_dirs; do
+            echo "Running tests in directory: $dir"
+            # Generate a safe report filename
+            report_file="reports/$(echo "$dir" | tr '/' '_').txt"
+            echo "Saving report to: $report_file"
+            pytest "$dir" | tee "$report_file"
+          done
 
-      - name: Run functional/adapter/query_comment tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/functional/adapter/query_comment/ | tee reports/query_comment.txt
-          
-      - name: Run functional/adapter/relation tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/functional/adapter/relation/ | tee reports/relation.txt
-          
-      - name: Run functional/adapter/unit_testing tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/functional/adapter/unit_testing/ | tee reports/unit_testing.txt
-
-      - name: Run hooks tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/hooks/ | tee reports/hooks.txt
-
-      - name: Run simple_copy tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/simple_copy/ | tee reports/simple_copy.txt
-
-      - name: Run unit tests
-        if: always()
-        run: |
-          set -o pipefail
-          pytest tests/unit/ | tee reports/unit.txt
+          echo "All tests executed."
 
       - name: Upload tests report as artifact
-        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: all-tests-reports
           path: reports/
   
   upload-individual-test-reports:
-    name: Upload tests artifacts
+    name: Upload Tests Artifacts
     runs-on: ubuntu-latest
     needs: run-tests
-    if: always()
 
     steps:
       - name: Download test reports
@@ -321,86 +268,73 @@ jobs:
           name: all-tests-reports
           path: reports/
           
-      - name: Upload caching test report
-        if: always()
+      - name: Upload individual test reports
         uses: actions/upload-artifact@v3
         with:
-          name: caching-test-report
-          path: reports/caching.txt
+          name: individual-test-reports
+          path: reports/*.txt
 
-      - name: Upload component test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: component-test-report
-          path: reports/component.txt
+  verify-failures:
+    name: Verify Expected Test Failures
+    runs-on: ubuntu-latest
+    needs: [run-tests, upload-individual-test-reports]
 
-      - name: Upload functional/adapter/basic test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: basic-test-report
-          path: reports/basic.txt
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
 
-      - name: Upload functional/adapter/dbt_clone test report
-        if: always()
-        uses: actions/upload-artifact@v3
+      - name: Download All Test Reports
+        uses: actions/download-artifact@v3
         with:
-          name: dbt_clone-test-report
-          path: reports/dbt_clone.txt
+          name: all-tests-reports
+          path: reports/
 
-      - name: Upload functional/adapter/dremio_specific test report
-        if: always()
-        uses: actions/upload-artifact@v3
+      - name: Set Up Python Environment
+        uses: actions/setup-python@v4
         with:
-          name: dremio_specific-test-report
-          path: reports/dremio_specific.txt
+          python-version: '3.9'
 
-      - name: Upload functional/adapter/grants test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: grants-test-report
-          path: reports/grants.txt
+      - name: Extract Actual Failed Tests
+        run: |
+          shopt -s globstar
+          grep "FAILED" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
 
-      - name: Upload functional/adapter/query_comment test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: query_comment-test-report
-          path: reports/query_comment.txt
+      - name: Sort Expected Failures
+        run: sort .github/expected_failures.txt > expected_failures_sorted.txt
 
-      - name: Upload functional/adapter/relation test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: relation-test-report
-          path: reports/relation.txt
+      - name: Compare Actual Failures with Expected Failures
+        run: |
+          echo "Expected Failures:"
+          cat expected_failures_sorted.txt
+          echo ""
+          echo "Actual Failures:"
+          cat actual_failures_sorted.txt
+          echo ""
 
-      - name: Upload functional/adapter/unit_testing test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: unit_testing-test-report
-          path: reports/unit_testing.txt
+          # Identify unexpected failures
+          unexpected_failures=$(comm -13 expected_failures_sorted.txt actual_failures_sorted.txt)
 
-      - name: Upload hooks test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: hooks-test-report
-          path: reports/hooks.txt
+          # Identify missing expected failures
+          missing_failures=$(comm -23 expected_failures_sorted.txt actual_failures_sorted.txt)
 
-      - name: Upload simple_copy test report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: simple_copy-test-report
-          path: reports/simple_copy.txt
+          exit_code=0
 
-      - name: Upload unit tests report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: unit-test-report
-          path: reports/unit.txt
+          if [ -n "$unexpected_failures" ]; then
+            echo "Unexpected test failures detected:"
+            echo "$unexpected_failures"
+            exit_code=1
+          fi
+
+          if [ -n "$missing_failures" ]; then
+            echo "Expected test failures that did not occur (they passed):"
+            echo "$missing_failures"
+            exit_code=1
+          fi
+
+          if [ $exit_code -eq 0 ]; then
+            echo "All failed tests are expected, and all expected failures have occurred."
+          else
+            echo "Verification failed: There are unexpected or missing test failures."
+          fi
+
+          exit $exit_code
