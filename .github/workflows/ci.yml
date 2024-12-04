@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  pull_request_target:
+    types: [opened, synchronize, reopened]
 
 jobs:
   run-tests:
@@ -29,8 +28,10 @@ jobs:
       DBT_TEST_USER_3: dbt_test_user_3
 
     steps:
-      - name: Check out repository
+      - name: Check out PR
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Create Docker Network
         run: |
