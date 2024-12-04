@@ -4,8 +4,9 @@ on:
   push:
     branches:
       - main
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+  pull_request:
+    branches:
+      - main
 
 jobs:
   run-tests:
@@ -16,10 +17,10 @@ jobs:
       SLEEP_INTERVAL: 5 # Sleep duration in seconds between retries
       MINIO_HEALTH_URL: http://localhost:9000/minio/health/live
       DREMIO_HEALTH_URL: http://localhost:9047
-      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
-      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
-      DREMIO_SOFTWARE_USERNAME: ${{ secrets.DREMIO_SOFTWARE_USERNAME }}
-      DREMIO_SOFTWARE_PASSWORD: ${{ secrets.DREMIO_SOFTWARE_PASSWORD }}
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+      DREMIO_SOFTWARE_USERNAME: dremio
+      DREMIO_SOFTWARE_PASSWORD: dremio123
       DREMIO_SOFTWARE_HOST: localhost
       DREMIO_DATALAKE: dbt_test_source
       DREMIO_DATABASE: dbt_test
@@ -28,10 +29,8 @@ jobs:
       DBT_TEST_USER_3: dbt_test_user_3
 
     steps:
-      - name: Check out PR
+      - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Create Docker Network
         run: |
