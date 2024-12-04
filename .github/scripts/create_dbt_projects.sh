@@ -11,6 +11,8 @@ init_dbt_project() {
   local username=$5
   local password=$6
 
+  # indentation and empty lines are on purpose, simulating required user input
+
   dbt init "$project_name" <<EOF
 $profile_selection
 $target_selection
