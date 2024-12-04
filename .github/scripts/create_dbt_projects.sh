@@ -18,7 +18,15 @@ $host
 
 $username
 $password
-\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+
+
+
+
+
+
+
+
 EOF
 
   echo "dbt project '$project_name' created."
