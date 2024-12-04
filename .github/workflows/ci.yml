@@ -59,14 +59,6 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
       - name: Install Python Dependencies
         run: |
           pip install --upgrade pip
@@ -90,7 +82,7 @@ jobs:
         run: bash .github/scripts/run_tests.sh
 
       - name: Upload tests report as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: all-tests-reports
           path: reports/
@@ -108,7 +100,7 @@ jobs:
           path: reports/
           
       - name: Upload individual test reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: individual-test-reports
           path: reports/*.txt
