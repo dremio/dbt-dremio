@@ -82,7 +82,7 @@ jobs:
         run: bash .github/scripts/run_tests.sh
 
       - name: Upload tests report as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: all-tests-reports
           path: reports/
@@ -100,7 +100,7 @@ jobs:
           path: reports/
           
       - name: Upload individual test reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: individual-test-reports
           path: reports/*.txt
