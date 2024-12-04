@@ -37,3 +37,4 @@ Version 1.8.0 of the dbt-dremio adapter is compatible with dbt-core versions 1.8
 ## Code of Conduct
 
 Everyone interacting in the dbt-dremio project's codebases, issue trackers, chat rooms, and mailing lists is expected to follow the [dbt-dremio Code of Conduct](https://github.com/dremio/dbt-dremio/blob/main/CODE_OF_CONDUCT.md).
+
