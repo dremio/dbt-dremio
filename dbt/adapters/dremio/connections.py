@@ -33,6 +33,7 @@ from dbt.adapters.dremio.api.rest.endpoints import (
     create_wiki,
     retrieve_wiki,
     delete_wiki,
+    update_wiki,
     delete_catalog,
     create_catalog_api,
     get_catalog_item,
@@ -192,13 +193,14 @@ class DremioConnectionManager(SQLConnectionManager):
         else:
             table = agate_helper.empty_table()
 
-        # dbt docs integration with dremio wikis
-        # execute function is being called multiple times,
-        # so temporarily ensure these requests are only ran once
-        if self.run:
-            dummy_text = "Testspace Wiki"
-            self.docs_integration_with_wikis(dummy_text)
-            self.run = False
+        # FIXME
+        # # dbt docs integration with dremio wikis
+        # # execute function is being called multiple times,
+        # # so temporarily ensure these requests are only ran once
+        # if self.run:
+        #     dummy_text = "Testspace Wiki"
+        #     self.docs_integration_with_wikis(dummy_text)
+        #     self.run = False
         return response, table
 
     def drop_catalog(self, database, schema):
@@ -250,8 +252,8 @@ class DremioConnectionManager(SQLConnectionManager):
         api_parameters = connection.handle.get_parameters()
 
         # Create / retrieve wiki from dbt_demo space
-        logger.info(create_wiki(api_parameters, "cfe70206-6c89-41e7-9a9d-83fd127cce3c", text))
-        # logger.info(retrieve_wiki(api_parameters, "98d08259-9293-4dcc-b1e1-c6c4cda7a73c"))
+        # logger.info(create_wiki(api_parameters, "cfe70206-6c89-41e7-9a9d-83fd127cce3c", text))
+        logger.info(update_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b", text, 4))
         # logger.info(retrieve_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b"))
         # logger.info(delete_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b", 3))
 

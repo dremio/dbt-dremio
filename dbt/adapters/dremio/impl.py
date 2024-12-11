@@ -20,6 +20,7 @@ from typing import Dict
 
 from typing import List
 from typing import Optional
+from dbt.adapters.base.meta import available
 from dbt.adapters.base.relation import BaseRelation
 
 from dbt.adapters.capability import (
@@ -176,6 +177,11 @@ class DremioAdapter(SQLAdapter):
             raise
         finally:
             conn.transaction_open = False
+
+    # dbt docs integration with Dremio wikis
+    @available
+    def docs_integration_with_wikis(self, text: str) -> None:
+        self.connections.docs_integration_with_wikis(text)
 
 
 COLUMNS_EQUAL_SQL = """
