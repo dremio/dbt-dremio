@@ -180,8 +180,8 @@ class DremioAdapter(SQLAdapter):
 
     # dbt docs integration with Dremio wikis
     @available
-    def docs_integration_with_wikis(self, text: str) -> None:
-        self.connections.docs_integration_with_wikis(text)
+    def docs_integration_with_wikis(self, relation: DremioRelation, text: str) -> None:
+        self.connections.docs_integration_with_wikis(relation, text)
 
 
 COLUMNS_EQUAL_SQL = """

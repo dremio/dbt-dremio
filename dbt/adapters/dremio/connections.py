@@ -245,16 +245,27 @@ class DremioConnectionManager(SQLConnectionManager):
         return
     
     # dbt docs integration with Dremio wikis
-    def docs_integration_with_wikis(self, text: str):
+    def docs_integration_with_wikis(self, relation, text: str):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
-        # credentials = connection.credentials
         api_parameters = connection.handle.get_parameters()
+        database = relation.database
+        schema = relation.schema
+        path = self._create_path_list(database,schema)
+        identifier = relation.identifier
+        path.append(identifier)
 
-        # Create / retrieve wiki from dbt_demo space
-        # logger.info(create_wiki(api_parameters, "cfe70206-6c89-41e7-9a9d-83fd127cce3c", text))
-        logger.info(update_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b", text, 4))
-        # logger.info(retrieve_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b"))
+        catalog_info = get_catalog_item(
+            api_parameters,
+            catalog_id=None,
+            catalog_path=path,
+        )
+
+        object_id = catalog_info.get("id")
+
+        logger.info(create_wiki(api_parameters, object_id, text))
+        # logger.info(update_wiki(api_parameters, object_id, text, 4))
+        logger.info(retrieve_wiki(api_parameters, object_id))
         # logger.info(delete_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b", 3))
 
 
@@ -290,6 +301,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def _create_path_list(self, database, schema):
         path = [database]
-        folders = schema.split(".")
-        path.extend(folders)
+        if schema != 'no_schema':
+            folders = schema.split(".")
+            path.extend(folders)
         return path

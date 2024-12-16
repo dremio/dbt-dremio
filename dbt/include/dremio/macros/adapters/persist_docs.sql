@@ -14,6 +14,6 @@
 
 {% macro dremio__persist_docs(relation, model, for_relation, for_columns) -%}
   {% if for_relation and config.persist_relation_docs() and model.description %}
-    {% do adapter.docs_integration_with_wikis(model.description) %}
+    {% do adapter.docs_integration_with_wikis(relation, model.description) %}
   {% endif %}
 {% endmacro %}
