@@ -66,6 +66,26 @@ def _post(
     return _check_error(response, details)
 
 
+def _put(
+    url,
+    request_headers=None,
+    json=None,
+    details="",
+    ssl_verify=True,
+    timeout=None,
+):
+    if isinstance(json, str):
+        json = jsonlib.loads(json)
+    response = session.put(
+        url,
+        headers=request_headers,
+        timeout=timeout,
+        verify=ssl_verify,
+        json=json,
+    )
+    return _check_error(response, details)
+
+
 def _delete(url, request_headers, details="", ssl_verify=True):
     response = session.delete(url, headers=request_headers, verify=ssl_verify)
     return _check_error(response, details)
@@ -149,7 +169,6 @@ def _check_error(response, details=""):
 
 
 def login(api_parameters: Parameters, timeout=10):
-
     if isinstance(api_parameters.authentication, DremioPatAuthentication):
         return api_parameters
 
@@ -249,5 +268,31 @@ def delete_catalog(api_parameters, cid):
     return _delete(
         url,
         api_parameters.authentication.get_headers(),
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def get_reflection(api_parameters, dataset_id):
+    url = UrlBuilder.get_reflection_url(api_parameters, dataset_id)
+    return _get(
+        url,
+        api_parameters.authentication.get_headers(),
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def create_reflection(api_parameters: Parameters, name: str, type: str, payload):
+    url = UrlBuilder.create_reflection_url(api_parameters)
+    return _post(
+        url,
+        api_parameters.authentication.get_headers(),
+        json=payload,
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def update_reflection(api_parameters: Parameters, dataset_id: str, payload):
+    url = UrlBuilder.update_reflection_url(api_parameters, dataset_id)
+    return _put(
+        url,
+        api_parameters.authentication.get_headers(),
+        json=payload,
         ssl_verify=api_parameters.authentication.verify_ssl,
     )

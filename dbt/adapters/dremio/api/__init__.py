@@ -14,6 +14,7 @@
 
 # __init__.py
 from .rest.endpoints import (
+    create_reflection,
     delete_catalog,
     sql_endpoint,
     job_status,
