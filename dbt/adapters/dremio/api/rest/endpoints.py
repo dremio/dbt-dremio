@@ -253,9 +253,9 @@ def delete_catalog(api_parameters, cid):
     )
 
 
-# dbt docs integration within Dremio wikis
+# dbt docs integration within Dremio wikis and tags
 def create_wiki(api_parameters: Parameters, object_id: str, text: str):
-    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    url = UrlBuilder.wikis_management_url(api_parameters, object_id)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
@@ -264,7 +264,7 @@ def create_wiki(api_parameters: Parameters, object_id: str, text: str):
     )
 
 def retrieve_wiki(api_parameters: Parameters, object_id: str):
-    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    url = UrlBuilder.wikis_management_url(api_parameters, object_id)
     return _get(
         url,
         api_parameters.authentication.get_headers(),
@@ -272,7 +272,7 @@ def retrieve_wiki(api_parameters: Parameters, object_id: str):
     )
 
 def update_wiki(api_parameters: Parameters, object_id: str, text: str, version: int):
-    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    url = UrlBuilder.wikis_management_url(api_parameters, object_id)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
@@ -281,10 +281,45 @@ def update_wiki(api_parameters: Parameters, object_id: str, text: str, version: 
     )
 
 def delete_wiki(api_parameters: Parameters, object_id: str, version: int):
-    url = UrlBuilder.wiki_management_url(api_parameters, object_id)
+    url = UrlBuilder.wikis_management_url(api_parameters, object_id)
     return _post(
         url,
         api_parameters.authentication.get_headers(),
         json={"text": "", "version": version},
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def create_tags(api_parameters: Parameters, dataset_id: str, tags: list[str]):
+    url = UrlBuilder.tags_management_url(api_parameters, dataset_id)
+    return _post(
+        url,
+        api_parameters.authentication.get_headers(),
+        json={"tags": tags},
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def retrieve_tags(api_parameters: Parameters, dataset_id: str):
+    url = UrlBuilder.tags_management_url(api_parameters, dataset_id)
+    return _get(
+        url,
+        api_parameters.authentication.get_headers(),
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def update_tags(api_parameters: Parameters, dataset_id: str, tags: list[str], version: str):
+    url = UrlBuilder.wikis_management_url(api_parameters, dataset_id)
+    return _post(
+        url,
+        api_parameters.authentication.get_headers(),
+        json={"tags": tags, "version": version},
+        ssl_verify=api_parameters.authentication.verify_ssl,
+    )
+
+def delete_tags(api_parameters: Parameters, dataset_id: str, version: int):
+    url = UrlBuilder.wikis_management_url(api_parameters, dataset_id)
+    return _post(
+        url,
+        api_parameters.authentication.get_headers(),
+        json={"tags": [], "version": version},
         ssl_verify=api_parameters.authentication.verify_ssl,
     )

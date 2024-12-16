@@ -178,10 +178,14 @@ class DremioAdapter(SQLAdapter):
         finally:
             conn.transaction_open = False
 
-    # dbt docs integration with Dremio wikis
+    # dbt docs integration with Dremio wikis and tags
     @available
     def docs_integration_with_wikis(self, relation: DremioRelation, text: str) -> None:
         self.connections.docs_integration_with_wikis(relation, text)
+
+    @available
+    def docs_integration_with_tags(self, relation: DremioRelation, tags: list[str]) -> None:
+        self.connections.docs_integration_with_tags(relation, tags)
 
 
 COLUMNS_EQUAL_SQL = """

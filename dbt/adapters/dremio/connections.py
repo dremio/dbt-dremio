@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 from contextlib import contextmanager
 
 from dbt.adapters.dremio.api.cursor import DremioCursor
@@ -34,6 +34,8 @@ from dbt.adapters.dremio.api.rest.endpoints import (
     retrieve_wiki,
     delete_wiki,
     update_wiki,
+    create_tags,
+    retrieve_tags,
     delete_catalog,
     create_catalog_api,
     get_catalog_item,
@@ -244,7 +246,7 @@ class DremioConnectionManager(SQLConnectionManager):
             self._create_folders(database, schema, api_parameters)
         return
     
-    # dbt docs integration with Dremio wikis
+    # dbt docs integration with Dremio wikis and tags
     def docs_integration_with_wikis(self, relation, text: str):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
@@ -263,11 +265,32 @@ class DremioConnectionManager(SQLConnectionManager):
 
         object_id = catalog_info.get("id")
 
-        logger.info(create_wiki(api_parameters, object_id, text))
+        # logger.info(create_wiki(api_parameters, object_id, text))
         # logger.info(update_wiki(api_parameters, object_id, text, 4))
         logger.info(retrieve_wiki(api_parameters, object_id))
         # logger.info(delete_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b", 3))
 
+    def docs_integration_with_tags(self, relation, tags: Union[str,list[str]]):
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        api_parameters = connection.handle.get_parameters()
+        database = relation.database
+        schema = relation.schema
+        path = self._create_path_list(database,schema)
+        identifier = relation.identifier
+        path.append(identifier)
+
+        catalog_info = get_catalog_item(
+            api_parameters,
+            catalog_id=None,
+            catalog_path=path,
+        )
+
+        object_id = catalog_info.get("id")
+        if isinstance(tags, str):
+            tags = [tags]
+        logger.info(create_tags(api_parameters, object_id, tags))
+        logger.info(retrieve_tags(api_parameters, object_id))
 
     def _make_new_space_json(self, name) -> json:
         python_dict = {"entityType": "space", "name": name}

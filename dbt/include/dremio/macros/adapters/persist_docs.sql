@@ -13,7 +13,12 @@
 -- {% endmacro %}
 
 {% macro dremio__persist_docs(relation, model, for_relation, for_columns) -%}
-  {% if for_relation and config.persist_relation_docs() and model.description %}
-    {% do adapter.docs_integration_with_wikis(relation, model.description) %}
+  {% if for_relation and config.persist_relation_docs() %}
+    {% if model.description %}
+      {% do adapter.docs_integration_with_wikis(relation, model.description) %}
+    {% endif %}
+    {% if model.tags %}
+      {% do adapter.docs_integration_with_tags(relation, model.tags) %}
+    {% endif %}
   {% endif %}
 {% endmacro %}
