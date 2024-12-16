@@ -34,6 +34,12 @@ class UrlBuilder:
     SOFTWARE_CATALOG_ENDPOINT = "/api/v3/catalog"
     CLOUD_CATALOG_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/catalog"
 
+    SOFTWARE_REFLECTIONS_ENDPOINT = "/api/v3/reflection"
+    CLOUD_REFLECTIONS_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/reflection"
+
+    SOFTWARE_DATASET_ENDPOIT = "/api/v3/dataset"
+    CLOUD_DATASET_ENDPOINT = CLOUD_PROJECT_ENDPOINT + "/{}/dataset"
+
     # https://docs.dremio.com/software/rest-api/jobs/get-job/
     OFFSET_DEFAULT = 0
     LIMIT_DEFAULT = 100
@@ -56,10 +62,10 @@ class UrlBuilder:
     def job_status_url(cls, parameters: Parameters, job_id):
         if type(parameters) is CloudParameters:
             return (
-                parameters.base_url
-                + UrlBuilder.CLOUD_JOB_ENDPOINT.format(parameters.cloud_project_id)
-                + "/"
-                + job_id
+                    parameters.base_url
+                    + UrlBuilder.CLOUD_JOB_ENDPOINT.format(parameters.cloud_project_id)
+                    + "/"
+                    + job_id
             )
         return parameters.base_url + UrlBuilder.SOFTWARE_JOB_ENDPOINT + "/" + job_id
 
@@ -75,11 +81,11 @@ class UrlBuilder:
 
     @classmethod
     def job_results_url(
-        cls,
-        parameters: Parameters,
-        job_id,
-        offset=OFFSET_DEFAULT,
-        limit=LIMIT_DEFAULT,
+            cls,
+            parameters: Parameters,
+            job_id,
+            offset=OFFSET_DEFAULT,
+            limit=LIMIT_DEFAULT,
     ):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
@@ -138,4 +144,42 @@ class UrlBuilder:
         # Converts list to string separated by '/'
         joined_path_str = "/".join(quoted_path_list).replace('"', "")
         endpoint = f"/by-path/{joined_path_str}"
+        return url_path + endpoint
+
+    @classmethod
+    def create_reflection_url(cls, parameters: Parameters):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_REFLECTIONS_ENDPOINT.format(
+                parameters.cloud_project_id
+            )
+        else:
+            url_path += UrlBuilder.SOFTWARE_REFLECTIONS_ENDPOINT
+
+        return url_path
+
+    @classmethod
+    def update_reflection_url(cls, parameters: Parameters, dataset_id):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_REFLECTIONS_ENDPOINT.format(
+                parameters.cloud_project_id
+            )
+        else:
+            url_path += UrlBuilder.SOFTWARE_REFLECTIONS_ENDPOINT
+
+        endpoint = "/{}".format(dataset_id)
+        return url_path + endpoint
+
+    @classmethod
+    def get_reflection_url(cls, parameters: Parameters, dataset_id):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_DATASET_ENDPOINT.format(
+                parameters.cloud_project_id
+            )
+        else:
+            url_path += UrlBuilder.SOFTWARE_DATASET_ENDPOIT
+
+        endpoint = "/{}/reflection".format(dataset_id)
         return url_path + endpoint

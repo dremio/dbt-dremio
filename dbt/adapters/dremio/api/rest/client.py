@@ -15,12 +15,11 @@
 # limitations under the License.
 
 
-
 import requests
 
 from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
 from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.rest.utils import _post, _get, _delete
+from dbt.adapters.dremio.api.rest.utils import _post, _get, _put, _delete
 from dbt.adapters.dremio.api.rest.url_builder import UrlBuilder
 
 from dbt.adapters.events.logging import AdapterLogger
@@ -131,5 +130,31 @@ class DremioRestClient:
         return _delete(
             url,
             self._parameters.authentication.get_headers(),
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def get_reflections(self, dataset_id):
+        url = UrlBuilder.get_reflection_url(self._parameters, dataset_id)
+        return _get(
+            url,
+            self._parameters.authentication.get_headers(),
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def create_reflection(self, payload):
+        url = UrlBuilder.create_reflection_url(self._parameters)
+        return _post(
+            url,
+            self._parameters.authentication.get_headers(),
+            json=payload,
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def update_reflection(self, reflection_id, payload):
+        url = UrlBuilder.update_reflection_url(self._parameters, reflection_id)
+        return _put(
+            url,
+            self._parameters.authentication.get_headers(),
+            json=payload,
             ssl_verify=self._parameters.authentication.verify_ssl,
         )

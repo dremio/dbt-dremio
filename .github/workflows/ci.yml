@@ -48,8 +48,8 @@ jobs:
       - name: Create MinIO bucket
         run: bash .github/scripts/create_minio_bucket.sh
 
-      - name: Create Dremio S3 Source
-        run: bash .github/scripts/create_dremio_s3_source.sh
+      - name: Create and Format Sources
+        run: bash .github/scripts/create_and_format_sources.sh
 
       - name: Install Dependencies
         uses: actions/setup-python@v4

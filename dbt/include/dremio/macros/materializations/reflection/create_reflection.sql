@@ -37,85 +37,18 @@ ADD EXTERNAL REFLECTION name
 USING target
 #}
 
-{%- macro create_reflection(reflection_type, anchor, reflection, external_target=none,
-  display=none, dimensions=none, by_day_dimensions=none, measures=none) %}
-  alter dataset {{ anchor }}
-    create {{ reflection_type }} reflection {{ reflection.include(database=False, schema=False) }}
-    using
-    {%- if reflection_type == 'raw' %}
-      {{ display_clause(display) }}
-    {%- elif reflection_type == 'aggregate' %}
-      {{ dimensions_clause(dimensions=dimensions, by_day_dimensions=by_day_dimensions) }}
-      {{ measures_clause(measures) }}
-    {%- else -%}
-      {{ external_target }}
-    {% endif -%}
-    {%- if reflection_type in ['raw', 'aggregate'] %}
-      {{ partition_method() }} {{ config_cols("partition by") }}
-      {{ config_cols("localsort by") }}
-      {{ config_cols("distribute by") }}
-      {{ arrow_cache_clause() }}
-    {%- endif -%}
-{% endmacro -%}
+{%- macro create_reflection(reflection_name, reflection_type, anchor,
+  display=none, dimensions=none, date_dimensions=none, measures=none, computations=none, partition_by=none, partition_transform=none, partition_method=none, distribute_by=none, localsort_by=none, arrow_cache=false) %}
 
-{%- macro display_clause(display=none) %}
-  {%- set cols = config.get('display', validator=validation.any[list, basestring]) or display -%}
-  {%- if cols is not none %}
-    {%- if cols is string -%}
-      {%- set cols = [cols] -%}
-    {%- endif -%}
-    display (
-    {%- for item in cols -%}
-      {{ adapter.quote(item) }}
-      {%- if not loop.last -%},{%- endif -%}
-    {%- endfor -%}
-    )
-  {%- endif %}
-{% endmacro -%}
-
-{%- macro dimensions_clause(dimensions=none, by_day_dimensions=none) %}
-  {%- set cols = config.get('dimensions', validator=validation.any[list, basestring]) or dimensions -%}
-  {%- set by_day_cols = config.get('by_day_dimensions', validator=validation.any[list, basestring]) or by_day_dimensions -%}
-  {%- if cols is not none %}
-    {%- if cols is string -%}
-      {%- set cols = [cols] -%}
-    {%- endif -%}
-    {%- if by_day_cols is string -%}
-      {%- set by_day_cols = [by_day_cols] -%}
-    {%- endif -%}
-    dimensions (
-    {%- for item in cols -%}
-      {{ adapter.quote(item) ~ (' by day' if item in by_day_cols else "") }}
-      {%- if not loop.last -%},{%- endif -%}
-    {%- endfor -%}
-    )
-  {%- endif %}
-{% endmacro -%}
-
-{%- macro measures_clause(measures=none) %}
-  {%- set cols = config.get('measures', validator=validation.any[list, basestring]) or measures -%}
-  {%- set comp_cols = config.get('computations', validator=validation.any[list, basestring]) or [] -%}
-  {%- if cols is not none %}
-    {%- if cols is string -%}
-      {%- set cols = [cols] -%}
-    {%- endif -%}
-    {%- if comp_cols is string -%}
-      {%- set comp_cols = [comp_cols] -%}
-    {%- endif -%}
-    measures (
-    {%- for item in cols -%}
-      {%- set computations = (' (' ~ comp_cols[loop.index0] ~ ')')
-      if loop.index0 < comp_cols | length and comp_cols[loop.index0] is not none else '' -%}
-      {{ adapter.quote(item) ~ computations }}
-      {%- if not loop.last -%},{%- endif -%}
-    {%- endfor -%}
-    )
-  {%- endif %}
-{% endmacro -%}
-
-{%- macro arrow_cache_clause() -%}
-  {%- set arrow_cache = config.get('arrow_cache', validator=validation.any[boolean]) -%}
-  {%- if arrow_cache is not none and arrow_cache -%}
-    arrow cache
+  {%- if reflection_type == 'raw' %}
+    {% set reflection_type = 'RAW' %}
+  {%- elif reflection_type in ['aggregate', 'aggregation'] %}
+    {% set reflection_type = 'AGGREGATION' %}
+  {%- else -%}
+    {% do exceptions.CompilationError("invalid reflection type") %}
   {%- endif -%}
+
+  {% do adapter.create_reflection(reflection_name, reflection_type, anchor, display, dimensions, date_dimensions, measures, computations, partition_by, partition_transform, partition_method, distribute_by, localsort_by, arrow_cache) %}
+
+  SELECT 1
 {% endmacro -%}
