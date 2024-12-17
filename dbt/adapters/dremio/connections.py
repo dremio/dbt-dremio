@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 from contextlib import contextmanager
 
 from dbt.adapters.dremio.api.cursor import DremioCursor
@@ -30,6 +30,14 @@ from dbt.adapters.sql import SQLConnectionManager
 from dbt.adapters.contracts.connection import AdapterResponse
 
 from dbt.adapters.dremio.api.rest.endpoints import (
+    create_wiki,
+    retrieve_wiki,
+    delete_wiki,
+    update_wiki,
+    create_tags,
+    retrieve_tags,
+    delete_tags,
+    update_tags,
     delete_catalog,
     create_catalog_api,
     get_catalog_item,
@@ -49,12 +57,13 @@ from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
-
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
     DEFAULT_CONNECTION_RETRIES = 5
 
     retries = DEFAULT_CONNECTION_RETRIES
+
+    run = True
 
     @contextmanager
     def exception_handler(self, sql):
@@ -230,6 +239,79 @@ class DremioConnectionManager(SQLConnectionManager):
             logger.debug(f"Creating folder(s): {database}.{schema}")
             self._create_folders(database, schema, api_parameters)
         return
+    
+    # dbt docs integration with Dremio wikis and tags
+    def docs_integration_with_wikis(self, relation, text: str):
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        api_parameters = connection.handle.get_parameters()
+        database = relation.database
+        schema = relation.schema
+
+        path = self._create_path_list(database,schema)
+        identifier = relation.identifier
+        path.append(identifier)
+        try:
+            catalog_info = get_catalog_item(
+                api_parameters,
+                catalog_id=None,
+                catalog_path=path,
+            )
+        except DremioNotFoundException:
+            logger.debug("Catalog not found. Returning")
+            return
+
+        object_id = catalog_info.get("id")
+        stored_wiki = retrieve_wiki(api_parameters, object_id)
+        wiki_content = stored_wiki.get("text")
+        wiki_version = stored_wiki.get("version", None)
+
+        if wiki_version == None:
+            logger.info(f"Creating wiki for {'.'.join(path)}")
+            logger.info(create_wiki(api_parameters, object_id, text))
+        elif wiki_content != text:
+            if text == "": # text is empty, delete wiki
+                logger.info(f"Deleting wiki for {'.'.join(path)}")
+                logger.info(delete_wiki(api_parameters, object_id, wiki_version))
+            else:
+                logger.info(f"Updating wiki for {'.'.join(path)}")
+                logger.info(update_wiki(api_parameters, object_id, text, wiki_version))
+
+    def docs_integration_with_tags(self, relation, tags: Union[str,list[str]]):
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        api_parameters = connection.handle.get_parameters()
+        database = relation.database
+        schema = relation.schema
+
+        path = self._create_path_list(database,schema)
+        identifier = relation.identifier
+        path.append(identifier)
+        try:
+            catalog_info = get_catalog_item(
+                api_parameters,
+                catalog_id=None,
+                catalog_path=path,
+            )
+        except DremioNotFoundException:
+            logger.debug("Catalog not found. Returning")
+            return
+
+        object_id = catalog_info.get("id")
+        stored_tags = retrieve_tags(api_parameters, object_id)
+        tags_list = stored_tags.get("tags")
+        tags_version = stored_tags.get("version", None)
+
+        if tags_version == None:
+            logger.info(f"Creating tags for {'.'.join(path)}")
+            logger.info(create_tags(api_parameters, object_id, tags))
+        elif tags_list != tags:
+            if tags == []: # tags is empty, delete tags
+                logger.info(f"Deleting tags for {'.'.join(path)}")
+                logger.info(delete_tags(api_parameters, object_id, tags_version))
+            else:
+                logger.info(f"Updating tags for {'.'.join(path)}")
+                logger.info(update_tags(api_parameters, object_id, tags, tags_version))
 
     def _make_new_space_json(self, name) -> json:
         python_dict = {"entityType": "space", "name": name}
@@ -263,6 +345,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def _create_path_list(self, database, schema):
         path = [database]
-        folders = schema.split(".")
-        path.extend(folders)
+        if schema != 'no_schema':
+            folders = schema.split(".")
+            path.extend(folders)
         return path
