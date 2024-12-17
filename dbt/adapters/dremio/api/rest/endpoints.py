@@ -289,6 +289,7 @@ def delete_wiki(api_parameters: Parameters, object_id: str, version: int):
         ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
+
 def create_tags(api_parameters: Parameters, dataset_id: str, tags: list[str]):
     url = UrlBuilder.tags_management_url(api_parameters, dataset_id)
     return _post(
@@ -315,7 +316,7 @@ def update_tags(api_parameters: Parameters, dataset_id: str, tags: list[str], ve
         ssl_verify=api_parameters.authentication.verify_ssl,
     )
 
-def delete_tags(api_parameters: Parameters, dataset_id: str, version: int):
+def delete_tags(api_parameters: Parameters, dataset_id: str, version: str):
     url = UrlBuilder.wikis_management_url(api_parameters, dataset_id)
     return _post(
         url,

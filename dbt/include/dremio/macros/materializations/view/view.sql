@@ -23,6 +23,8 @@ limitations under the License.*/
 
   {% set grant_config = config.get('grants') %}
 
+  {% do persist_docs(target_relation, model) %}
+
   {{ run_hooks(pre_hooks) }}
 
   -- If there's a table with the same name and we weren't told to full refresh,

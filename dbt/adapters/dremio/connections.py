@@ -36,6 +36,8 @@ from dbt.adapters.dremio.api.rest.endpoints import (
     update_wiki,
     create_tags,
     retrieve_tags,
+    delete_tags,
+    update_tags,
     delete_catalog,
     create_catalog_api,
     get_catalog_item,
@@ -195,14 +197,6 @@ class DremioConnectionManager(SQLConnectionManager):
         else:
             table = agate_helper.empty_table()
 
-        # FIXME
-        # # dbt docs integration with dremio wikis
-        # # execute function is being called multiple times,
-        # # so temporarily ensure these requests are only ran once
-        # if self.run:
-        #     dummy_text = "Testspace Wiki"
-        #     self.docs_integration_with_wikis(dummy_text)
-        #     self.run = False
         return response, table
 
     def drop_catalog(self, database, schema):
@@ -253,22 +247,35 @@ class DremioConnectionManager(SQLConnectionManager):
         api_parameters = connection.handle.get_parameters()
         database = relation.database
         schema = relation.schema
+
         path = self._create_path_list(database,schema)
         identifier = relation.identifier
         path.append(identifier)
-
-        catalog_info = get_catalog_item(
-            api_parameters,
-            catalog_id=None,
-            catalog_path=path,
-        )
+        try:
+            catalog_info = get_catalog_item(
+                api_parameters,
+                catalog_id=None,
+                catalog_path=path,
+            )
+        except DremioNotFoundException:
+            logger.debug("Catalog not found. Returning")
+            return
 
         object_id = catalog_info.get("id")
+        stored_wiki = retrieve_wiki(api_parameters, object_id)
+        wiki_content = stored_wiki.get("text")
+        wiki_version = stored_wiki.get("version", None)
 
-        # logger.info(create_wiki(api_parameters, object_id, text))
-        # logger.info(update_wiki(api_parameters, object_id, text, 4))
-        logger.info(retrieve_wiki(api_parameters, object_id))
-        # logger.info(delete_wiki(api_parameters, "130e0ac8-420a-4e83-86a1-c1b3e8e0251b", 3))
+        if wiki_version == None:
+            logger.info(f"Creating wiki for {'.'.join(path)}")
+            logger.info(create_wiki(api_parameters, object_id, text))
+        elif wiki_content != text:
+            if text == "": # text is empty, delete wiki
+                logger.info(f"Deleting wiki for {'.'.join(path)}")
+                logger.info(delete_wiki(api_parameters, object_id, wiki_version))
+            else:
+                logger.info(f"Updating wiki for {'.'.join(path)}")
+                logger.info(update_wiki(api_parameters, object_id, text, wiki_version))
 
     def docs_integration_with_tags(self, relation, tags: Union[str,list[str]]):
         thread_connection = self.get_thread_connection()
@@ -276,21 +283,35 @@ class DremioConnectionManager(SQLConnectionManager):
         api_parameters = connection.handle.get_parameters()
         database = relation.database
         schema = relation.schema
+
         path = self._create_path_list(database,schema)
         identifier = relation.identifier
         path.append(identifier)
-
-        catalog_info = get_catalog_item(
-            api_parameters,
-            catalog_id=None,
-            catalog_path=path,
-        )
+        try:
+            catalog_info = get_catalog_item(
+                api_parameters,
+                catalog_id=None,
+                catalog_path=path,
+            )
+        except DremioNotFoundException:
+            logger.debug("Catalog not found. Returning")
+            return
 
         object_id = catalog_info.get("id")
-        if isinstance(tags, str):
-            tags = [tags]
-        logger.info(create_tags(api_parameters, object_id, tags))
-        logger.info(retrieve_tags(api_parameters, object_id))
+        stored_tags = retrieve_tags(api_parameters, object_id)
+        tags_list = stored_tags.get("tags")
+        tags_version = stored_tags.get("version", None)
+
+        if tags_version == None:
+            logger.info(f"Creating tags for {'.'.join(path)}")
+            logger.info(create_tags(api_parameters, object_id, tags))
+        elif tags_list != tags:
+            if tags == []: # tags is empty, delete tags
+                logger.info(f"Deleting tags for {'.'.join(path)}")
+                logger.info(delete_tags(api_parameters, object_id, tags_version))
+            else:
+                logger.info(f"Updating tags for {'.'.join(path)}")
+                logger.info(update_tags(api_parameters, object_id, tags, tags_version))
 
     def _make_new_space_json(self, name) -> json:
         python_dict = {"entityType": "space", "name": name}
