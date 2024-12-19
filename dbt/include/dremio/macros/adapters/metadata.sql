@@ -136,16 +136,11 @@ limitations under the License.*/
 {%- endmacro -%}
 
 {% macro dremio__get_catalog_relations_result_sql(relations) %}
-    {%- if var('dremio:reflections_enabled', default=false) %}
-        {{get_catalog_reflections(relations)}}
-    {% else %}    
-
       select *
       from t
       join columns on (t.table_schema = columns.table_schema
           and t.table_name = columns.table_name)
       order by "column_index"
-    {% endif %}
 {%- endmacro -%}
 
 {% macro get_catalog_reflections(relations) %}
@@ -241,49 +236,6 @@ limitations under the License.*/
   {%- set schema_name = database
         + (('.' + schema) if schema != 'no_schema' else '') -%}
   {% call statement('list_relations_without_caching', fetch_result=True) -%}
-
-    {%- if var('dremio:reflections_enabled', default=false) -%}
-
-      with cte1 as (
-        select
-          dataset_name
-          ,reflection_name
-          ,type
-          ,case when substr(dataset_name, 1, 1) = '"'
-          then strpos(dataset_name, '".') + 1
-          else strpos(dataset_name, '.')
-          end as first_dot
-          ,length(dataset_name) -
-          case when substr(dataset_name, length(dataset_name)) = '"'
-          then strpos(reverse(dataset_name), '".')
-          else strpos(reverse(dataset_name), '.') - 1
-          end as last_dot
-          ,length(dataset_name) as length
-        {%- if target.cloud_host and not target.software_host %}
-          from sys.project.reflections
-        {%- elif target.software_host and not target.cloud_host %}
-          from sys.reflections
-        {%- endif %}
-      )
-      , cte2 as (
-        select
-          replace(substr(dataset_name, 1, first_dot - 1), '"', '') as table_catalog
-          ,reflection_name as table_name
-          ,replace(case when first_dot < last_dot
-          then substr(dataset_name, first_dot + 1, last_dot - first_dot - 1)
-          else 'no_schema' end, '"', '') as table_schema
-          ,'materialized_view' as table_type
-        from cte1
-      )
-      select table_catalog, table_name, table_schema, table_type
-      from cte2
-      where ilike(table_catalog, '{{ database }}')
-      and ilike(table_schema, '{{ schema }}')
-
-      union all
-
-    {%- endif %}
-
       select (case when position('.' in table_schema) > 0
               then substring(table_schema, 1, position('.' in table_schema) - 1)
               else table_schema
