@@ -20,6 +20,7 @@ from typing import Dict
 
 from typing import List
 from typing import Optional
+from dbt.adapters.base.meta import available
 from dbt.adapters.base.relation import BaseRelation
 
 from dbt.adapters.capability import (
@@ -176,6 +177,10 @@ class DremioAdapter(SQLAdapter):
             raise
         finally:
             conn.transaction_open = False
+
+    @available
+    def dbt_reflection_integration(self, name: str, type: str, anchor, display, dimensions, date_dimensions, measures, computations, partition_by, partition_method, localsort_by) -> None:
+        self.connections.dbt_reflection_integration(name, type, anchor, display, dimensions, date_dimensions, measures, computations, partition_by, partition_method, localsort_by)
 
 
 COLUMNS_EQUAL_SQL = """

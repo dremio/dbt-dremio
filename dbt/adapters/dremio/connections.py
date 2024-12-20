@@ -30,6 +30,9 @@ from dbt.adapters.sql import SQLConnectionManager
 from dbt.adapters.contracts.connection import AdapterResponse
 
 from dbt.adapters.dremio.api.rest.endpoints import (
+    create_reflection,
+    update_reflection,
+    get_reflection,
     delete_catalog,
     create_catalog_api,
     get_catalog_item,
@@ -133,7 +136,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     # Auto_begin may not be relevant with the rest_api
     def add_query(
-        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False, fetch=False
+            self, sql, auto_begin=True, bindings=None, abridge_sql_log=False, fetch=False
     ):
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
@@ -174,11 +177,11 @@ class DremioConnectionManager(SQLConnectionManager):
         return AdapterResponse(_message=message, rows_affected=rows)
 
     def execute(
-        self,
-        sql: str,
-        auto_begin: bool = False,
-        fetch: bool = False,
-        limit: Optional[int] = None,
+            self,
+            sql: str,
+            auto_begin: bool = False,
+            fetch: bool = False,
+            limit: Optional[int] = None,
     ) -> Tuple[AdapterResponse, agate.Table]:
         sql = self._add_query_comment(sql)
         _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
@@ -231,6 +234,76 @@ class DremioConnectionManager(SQLConnectionManager):
             self._create_folders(database, schema, api_parameters)
         return
 
+    def dbt_reflection_integration(self, name: str, type: str, anchor, display, dimensions, date_dimensions, measures,
+                                   computations, partition_by, partition_method, localsort_by):
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        api_parameters = connection.handle.get_parameters()
+
+        database = anchor.database
+        schema = anchor.schema
+        path = self._create_path_list(database, schema)
+        identifier = anchor.identifier
+
+        path.append(identifier)
+
+        catalog_info = get_catalog_item(
+            api_parameters,
+            catalog_id=None,
+            catalog_path=path,
+        )
+
+        dataset_id = catalog_info.get("id")
+
+        payload = {
+            "type": type,
+            "name": name,
+            "datasetId": dataset_id,
+            "enabled": True,
+            "arrowCachingEnabled": False,
+            "partitionDistributionStrategy": partition_method.upper(),
+            "entityType": "reflection"
+        }
+
+        if display:
+            payload["displayFields"] = [{"name": field} for field in display]
+
+        if dimensions:
+            if not date_dimensions:
+                date_dimensions = []
+
+            payload["dimensionFields"] = [
+                {"name": dimension} if dimension not in date_dimensions else {"name": dimension, "granularity": "DATE"}
+                for dimension in dimensions]
+
+        if measures and computations:
+            payload["measureFields"] = [{"name": measure, "measureTypeList": computation.split(',')} for
+                                        measure, computation in zip(measures, computations)]
+
+        if partition_by:
+            payload["partitionFields"] = [{"name": partition} for partition in partition_by]
+
+        if localsort_by:
+            payload["sortFields"] = [{"name": sort} for sort in localsort_by]
+
+        dataset_info = get_reflection(api_parameters, dataset_id)
+        reflections_info = dataset_info.get("data")
+
+        updated = False
+        for reflection in reflections_info:
+            if reflection.get("name") == name:
+                logger.debug(f"Reflection {name} already exists. Updating it")
+                payload["tag"] = reflection.get("tag")
+                logger.info(
+                    update_reflection(api_parameters, reflection.get("id"), payload))
+                updated = True
+                break
+
+        if not updated:
+            logger.debug(f"Reflection {name} does not exist. Creating it")
+            logger.info(
+                create_reflection(api_parameters, name, type, payload))
+
     def _make_new_space_json(self, name) -> json:
         python_dict = {"entityType": "space", "name": name}
         return json.dumps(python_dict)
@@ -263,6 +336,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def _create_path_list(self, database, schema):
         path = [database]
-        folders = schema.split(".")
-        path.extend(folders)
+        if schema != 'no_schema':
+            folders = schema.split(".")
+            path.extend(folders)
         return path

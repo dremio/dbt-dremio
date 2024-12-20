@@ -17,13 +17,22 @@ limitations under the License.*/
     {% do exceptions.CompilationError("reflections are disabled, set 'dremio:reflections_enabled' variable to true to enable them") %}
   {%- endif -%}
 
+  {% set reflection_name = config.get('name', validator=validation.any[basetring]) or 'Unnamed Reflection' %}
   {% set raw_reflection_type = config.get('reflection_type', validator=validation.any[basestring]) or 'raw' %}
   {% set raw_anchor = config.get('anchor', validator=validation.any[list, basestring]) %}
   {% set raw_external_target = config.get('external_target', validator=validation.any[list, basestring]) %}
   {% set identifier = model['alias'] %}
   {%- set display = config.get('display', validator=validation.any[list, basestring]) -%}
   {%- set dimensions = config.get('dimensions', validator=validation.any[list, basestring]) -%}
+  {%- set date_dimensions = config.get('date_dimensions', validator=validation.any[list, basestring]) -%}
   {%- set measures = config.get('measures', validator=validation.any[list, basestring]) -%}
+  {%- set computations = config.get('computations', validator=validation.any[list, basestring]) -%}
+  {%- set partition_by = config.get('partition_by', validator=validation.any[basestring]) -%}
+  {%- set partition_method = config.get('partition_method', validator=validation.any[basestring]) or 'striped' -%}
+  {%- set localsort_by = config.get('localsort_by', validator=validation.any[basestring]) -%}
+
+
+  {% set relation = this %}
 
   {% if model.refs | length + model.sources | length == 1 %}
     {% if model.refs | length == 1 %}
@@ -60,28 +69,30 @@ limitations under the License.*/
 
   {%- set reflection_type = dbt_dremio_validate_get_reflection_type(raw_reflection_type) -%}
   {% if (reflection_type == 'raw' and display is none)
-    or (reflection_type == 'aggregate' and (dimensions is none or measures is none)) %}
+    or (reflection_type in ['aggregate', 'aggregation'] and (dimensions is none or measures is none)) %}
     {% set columns = adapter.get_columns_in_relation(anchor) %}
     {% if reflection_type == 'raw' %}
       {% set display = columns | map(attribute='name') | list %}
-    {% elif reflection_type == 'aggregate' %}
+    {% elif reflection_type in ['aggregate', 'aggregation'] %}
       {% if dimensions is none %}
         {% set dimensions = columns | rejectattr('dtype', 'in', ['decimal', 'float', 'double']) | map(attribute='name') | list %}
-        {% set by_day_dimensions = columns | selectattr('dtype', 'in', ['timestamp']) | map(attribute='name') | list %}
+        {% set date_dimensions = columns | selectattr('dtype', 'in', ['timestamp']) | map(attribute='name') | list %}
       {% endif %}
       {% if measures is none %}
         {% set measures = columns | selectattr('dtype', 'in', ['decimal', 'float', 'double']) | map(attribute='name') | list %}
+      {% endif %}
+      {% if computations is none %}
+        {{ log("computations is null") }}
       {% endif %}
     {% endif %}
   {% endif %}
 
   {{ run_hooks(pre_hooks) }}
 
-  {{ drop_reflection_if_exists(anchor, old_relation) }}
   -- build model
   {% call statement('main') -%}
-    {{ create_reflection(reflection_type, anchor, target_relation, external_target,
-      display=display, dimensions=dimensions, by_day_dimensions=by_day_dimensions, measures=measures) }}
+    {{ create_reflection(reflection_name, reflection_type, anchor,
+      display=display, dimensions=dimensions, date_dimensions=date_dimensions, measures=measures, computations=computations, partition_by=partition_by, partition_method=partition_method, localsort_by=localsort_by) }}
   {%- endcall %}
 
   {{ run_hooks(post_hooks) }}
