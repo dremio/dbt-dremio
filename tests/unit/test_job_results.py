@@ -61,7 +61,7 @@ class TestJobResults:
         ],
     }
 
-    @patch("dbt.adapters.dremio.api.cursor.job_results")
+    @patch("dbt.adapters.dremio.api.rest.client.DremioRestClient.job_results")
     def test_job_result_pagination(self, mocked_job_results_func):
         # Arrange
         ROW_LIMIT = 2
