@@ -17,7 +17,7 @@ from dbt.adapters.dremio.connections import DremioConnectionManager
 
 
 class TestRetryConnection:
-    @patch("dbt.adapters.dremio.api.rest.endpoints._post")
+    @patch("dbt.adapters.dremio.api.rest.utils._post")
     @patch("dbt.adapters.contracts.connection.Connection")
     # When you nest patch decorators the mocks are passed in to the decorated function in bottom up order.
     def test_connection_retry(
