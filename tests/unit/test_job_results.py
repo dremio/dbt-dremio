@@ -15,6 +15,7 @@ from unittest.mock import patch
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.parameters import Parameters
 from dbt.adapters.dremio.api.authentication import DremioAuthentication
+from dbt.adapters.dremio.api.rest.client import DremioRestClient
 
 
 class TestJobResults:
@@ -60,14 +61,14 @@ class TestJobResults:
         ],
     }
 
-    @patch("dbt.adapters.dremio.api.cursor.job_results")
+    @patch("dbt.adapters.dremio.api.rest.client.DremioRestClient.job_results")
     def test_job_result_pagination(self, mocked_job_results_func):
         # Arrange
         ROW_LIMIT = 2
         JOB_RESULT_TOTAL_CALLS = ceil(
             self.mocked_job_results_dict[0]["rowCount"] / ROW_LIMIT
         )
-        dremio_cursor_obj = DremioCursor(Parameters("base_url", DremioAuthentication()))
+        dremio_cursor_obj = DremioCursor(DremioRestClient(Parameters("base_url", DremioAuthentication())))
         mocked_job_results_func.side_effect = self.mocked_job_results_dict
 
         # Act

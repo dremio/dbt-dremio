@@ -14,7 +14,7 @@
 
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.rest.endpoints import login
+from dbt.adapters.dremio.api.rest.client import DremioRestClient
 
 from dbt.adapters.events.logging import AdapterLogger
 
@@ -23,19 +23,19 @@ logger = AdapterLogger("dremio")
 
 class DremioHandle:
     def __init__(self, parameters: Parameters):
-        self._parameters = parameters
+        self._rest_client = DremioRestClient(parameters)
         self._cursor = None
         self.closed = False
 
-    def get_parameters(self):
-        return self._parameters
+    def get_client(self):
+        return self._rest_client
 
     def cursor(self):
         if self.closed:
             raise Exception("HandleClosed")
         if self._cursor is None or self._cursor.closed:
-            self._parameters = login(self._parameters)
-            self._cursor = DremioCursor(self._parameters)
+            self._rest_client.start()
+            self._cursor = DremioCursor(self._rest_client)
         return self._cursor
 
     def close(self):

@@ -29,11 +29,8 @@ import dbt_common.exceptions
 from dbt.adapters.sql import SQLConnectionManager
 from dbt.adapters.contracts.connection import AdapterResponse
 
-from dbt.adapters.dremio.api.rest.endpoints import (
-    delete_catalog,
-    create_catalog_api,
-    get_catalog_item,
-)
+from dbt.adapters.dremio.api.rest.client import DremioRestClient
+
 from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
     DremioNotFoundException,
@@ -133,17 +130,20 @@ class DremioConnectionManager(SQLConnectionManager):
 
     # Auto_begin may not be relevant with the rest_api
     def add_query(
-        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False, fetch=False
+        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False,
+        fetch=False
     ):
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
             self.begin()
 
-        logger.debug(f'Using {self.TYPE} connection "{connection.name}". fetch={fetch}')
+        logger.debug(
+            f'Using {self.TYPE} connection "{connection.name}". fetch={fetch}')
 
         with self.exception_handler(sql):
             if abridge_sql_log:
-                logger.debug("On {}: {}....".format(connection.name, sql[0:512]))
+                logger.debug(
+                    "On {}: {}....".format(connection.name, sql[0:512]))
             else:
                 logger.debug("On {}: {}".format(connection.name, sql))
 
@@ -196,13 +196,12 @@ class DremioConnectionManager(SQLConnectionManager):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         credentials = connection.credentials
-        api_parameters = connection.handle.get_parameters()
+        rest_client = connection.handle.get_client()
 
         path_list = self._create_path_list(database, schema)
         if database != credentials.datalake:
             try:
-                catalog_info = get_catalog_item(
-                    api_parameters,
+                catalog_info = rest_client.get_catalog_item(
                     catalog_id=None,
                     catalog_path=path_list,
                 )
@@ -210,13 +209,13 @@ class DremioConnectionManager(SQLConnectionManager):
                 logger.debug("Catalog not found. Returning")
                 return
 
-            delete_catalog(api_parameters, catalog_info["id"])
+            rest_client.delete_catalog(catalog_info["id"])
 
     def create_catalog(self, relation):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         credentials = connection.credentials
-        api_parameters = connection.handle.get_parameters()
+        rest_client = connection.handle.get_client()
         database = relation.database
         schema = relation.schema
 
@@ -224,11 +223,11 @@ class DremioConnectionManager(SQLConnectionManager):
             logger.debug("Database is default: creating folders only")
         else:
             logger.debug(f"Creating space: {database}")
-            self._create_space(database, api_parameters)
+            self._create_space(database, rest_client)
 
         if database != credentials.datalake:
             logger.debug(f"Creating folder(s): {database}.{schema}")
-            self._create_folders(database, schema, api_parameters)
+            self._create_folders(database, schema, rest_client)
         return
 
     def _make_new_space_json(self, name) -> json:
@@ -239,20 +238,21 @@ class DremioConnectionManager(SQLConnectionManager):
         python_dict = {"entityType": "folder", "path": path}
         return json.dumps(python_dict)
 
-    def _create_space(self, database, api_parameters):
+    def _create_space(self, database, rest_client: DremioRestClient):
         space_json = self._make_new_space_json(database)
         try:
-            create_catalog_api(api_parameters, space_json)
+            rest_client.create_catalog_api(space_json)
         except DremioAlreadyExistsException:
-            logger.debug(f"Database {database} already exists. Creating folders only.")
+            logger.debug(
+                f"Database {database} already exists. Creating folders only.")
 
-    def _create_folders(self, database, schema, api_parameters):
+    def _create_folders(self, database, schema, rest_client: DremioRestClient):
         temp_path_list = [database]
         for folder in schema.split("."):
             temp_path_list.append(folder)
             folder_json = self._make_new_folder_json(temp_path_list)
             try:
-                create_catalog_api(api_parameters, folder_json)
+                rest_client.create_catalog_api(folder_json)
             except DremioAlreadyExistsException:
                 logger.debug(f"Folder {folder} already exists.")
             except DremioBadRequestException as e:

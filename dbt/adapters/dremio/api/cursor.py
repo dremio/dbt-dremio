@@ -17,13 +17,7 @@ import time
 
 import agate
 
-from dbt.adapters.dremio.api.rest.endpoints import (
-    sql_endpoint,
-    job_status,
-    job_results,
-    job_cancel_api,
-)
-from dbt.adapters.dremio.api.parameters import Parameters
+from dbt.adapters.dremio.api.rest.client import DremioRestClient
 
 from dbt.adapters.events.logging import AdapterLogger
 
@@ -31,8 +25,8 @@ logger = AdapterLogger("dremio")
 
 
 class DremioCursor:
-    def __init__(self, api_parameters: Parameters):
-        self._parameters = api_parameters
+    def __init__(self, rest_client: DremioRestClient):
+        self._rest_client = rest_client
 
         self._closed = False
         self._job_id = None
@@ -40,10 +34,6 @@ class DremioCursor:
         self._job_results = None
         self._table_results: agate.Table = None
         self._description = None
-
-    @property
-    def parameters(self):
-        return self._parameters
 
     @property
     def description(self):
@@ -80,7 +70,7 @@ class DremioCursor:
     def job_cancel(self):
         # cancels current job
         logger.debug(f"Cancelling job {self._job_id}")
-        return job_cancel_api(self._parameters, self._job_id)
+        return self._rest_client.job_cancel_api(self._job_id)
 
     def close(self):
         if self.closed:
@@ -94,7 +84,7 @@ class DremioCursor:
         if bindings is None:
             self._initialize()
 
-            json_payload = sql_endpoint(self._parameters, sql, context=None)
+            json_payload = self._rest_client.sql_endpoint(sql, context=None)
 
             self._job_id = json_payload["id"]
 
@@ -130,7 +120,7 @@ class DremioCursor:
         job_id = self._job_id
 
         last_job_state = ""
-        job_status_response = job_status(self._parameters, job_id)
+        job_status_response = self._rest_client.job_status(job_id)
         job_status_state = job_status_response["jobState"]
 
         while True:
@@ -145,7 +135,7 @@ class DremioCursor:
             if job_status_state == "COMPLETED" or job_status_state == "CANCELLED":
                 break
             last_job_state = job_status_state
-            job_status_response = job_status(self._parameters, job_id)
+            job_status_response = self._rest_client.job_status(job_id)
             job_status_state = job_status_response["jobState"]
 
         # this is done as job status does not return a rowCount if there are no rows affected (even in completed job_state)
@@ -161,8 +151,7 @@ class DremioCursor:
 
     def _populate_job_results(self, row_limit=500):
         if self._job_results == None:
-            combined_job_results = job_results(
-                self._parameters,
+            combined_job_results = self._rest_client.job_results(
                 self._job_id,
                 offset=0,
                 limit=row_limit,
@@ -177,8 +166,7 @@ class DremioCursor:
 
             while current_row_count < total_row_count:
                 combined_job_results["rows"].extend(
-                    job_results(
-                        self._parameters,
+                    self._rest_client.job_results(
                         self._job_id,
                         offset=current_row_count,
                         limit=row_limit,

@@ -31,15 +31,13 @@ import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
 
-from dbt.adapters.dremio.api.authentication import DremioPatAuthentication
-from dbt.adapters.dremio.api.parameters import Parameters
-from dbt.adapters.dremio.api.rest.url_builder import UrlBuilder
 
 from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
 session = requests.Session()
+
 
 def _get(url, request_headers, details="", ssl_verify=True):
     response = session.get(url, headers=request_headers, verify=ssl_verify)
@@ -116,11 +114,14 @@ def _check_error(response, details=""):
         except:  # NOQA
             return response.text
     if code == 400:
-        raise DremioBadRequestException("Bad request:" + details, error, response)
+        raise DremioBadRequestException("Bad request:" + details, error,
+                                        response)
     if code == 401:
-        raise DremioUnauthorizedException("Unauthorized:" + details, error, response)
+        raise DremioUnauthorizedException("Unauthorized:" + details, error,
+                                          response)
     if code == 403:
-        raise DremioPermissionException("No permission:" + details, error, response)
+        raise DremioPermissionException("No permission:" + details, error,
+                                        response)
     if code == 404:
         raise DremioNotFoundException("Not found:" + details, error, response)
     if code == 408:
@@ -128,7 +129,8 @@ def _check_error(response, details=""):
             "Request timeout:" + details, error, response
         )
     if code == 409:
-        raise DremioAlreadyExistsException("Already exists:" + details, error, response)
+        raise DremioAlreadyExistsException("Already exists:" + details, error,
+                                           response)
     if code == 429:
         raise DremioTooManyRequestsException(
             "Too many requests:" + details, error, response
@@ -148,106 +150,3 @@ def _check_error(response, details=""):
     raise DremioException("Unknown error", error)
 
 
-def login(api_parameters: Parameters, timeout=10):
-
-    if isinstance(api_parameters.authentication, DremioPatAuthentication):
-        return api_parameters
-
-    url = UrlBuilder.login_url(api_parameters)
-    response = _post(
-        url,
-        json={
-            "userName": api_parameters.authentication.username,
-            "password": api_parameters.authentication.password,
-        },
-        timeout=timeout,
-        ssl_verify=api_parameters.authentication.verify_ssl,
-    )
-
-    api_parameters.authentication.token = response["token"]
-
-    return api_parameters
-
-
-def sql_endpoint(api_parameters: Parameters, query, context=None):
-    url = UrlBuilder.sql_url(api_parameters)
-    return _post(
-        url,
-        api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.authentication.verify_ssl,
-        json={"sql": query, "context": context},
-    )
-
-
-def job_status(api_parameters: Parameters, job_id):
-    url = UrlBuilder.job_status_url(api_parameters, job_id)
-    return _get(
-        url,
-        api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.authentication.verify_ssl,
-    )
-
-
-def job_cancel_api(api_parameters: Parameters, job_id):
-    url = UrlBuilder.job_cancel_url(api_parameters, job_id)
-    return _post(
-        url,
-        api_parameters.authentication.get_headers(),
-        json=None,
-        ssl_verify=api_parameters.authentication.verify_ssl,
-    )
-
-
-def job_results(api_parameters: Parameters, job_id, offset=0, limit=100):
-    url = UrlBuilder.job_results_url(
-        api_parameters,
-        job_id,
-        offset,
-        limit,
-    )
-    return _get(
-        url,
-        api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.authentication.verify_ssl,
-    )
-
-
-def create_catalog_api(api_parameters, json):
-    url = UrlBuilder.catalog_url(api_parameters)
-    return _post(
-        url,
-        api_parameters.authentication.get_headers(),
-        json=json,
-        ssl_verify=api_parameters.authentication.verify_ssl,
-    )
-
-
-def get_catalog_item(api_parameters, catalog_id=None, catalog_path=None):
-    if catalog_id is None and catalog_path is None:
-        raise TypeError("both id and path can't be None for a catalog_item call")
-
-    # Will use path if both id and path are specified
-    if catalog_path:
-        url = UrlBuilder.catalog_item_by_path_url(
-            api_parameters,
-            catalog_path,
-        )
-    else:
-        url = UrlBuilder.catalog_item_by_id_url(
-            api_parameters,
-            catalog_id,
-        )
-    return _get(
-        url,
-        api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.authentication.verify_ssl,
-    )
-
-
-def delete_catalog(api_parameters, cid):
-    url = UrlBuilder.delete_catalog_url(api_parameters, cid)
-    return _delete(
-        url,
-        api_parameters.authentication.get_headers(),
-        ssl_verify=api_parameters.authentication.verify_ssl,
-    )

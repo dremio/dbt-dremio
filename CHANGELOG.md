@@ -2,6 +2,8 @@
 
 ## Changes
 
+-   Added [DremioRestClient](dbt/adapters/dremio/api/rest/client.py) to isolate all Dremio API calls inside one class
+
 ## Dependency
 
 -   [#222](https://github.com/dremio/dbt-dremio/issues/222) Upgrade dbt-core to 1.8.8 and dbt-tests-adapter to 1.8.0
