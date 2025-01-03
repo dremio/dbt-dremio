@@ -59,8 +59,11 @@ limitations under the License.*/
     to {{ type }} {{ adapter.quote(name) }}
 {%- endmacro -%}
 
-{%- macro default__get_revoke_sql(relation, privilege, grantees) -%}
-    revoke {{ privilege }} on {{ relation.type }} {{ relation }} from user {{adapter.quote(grantees[0])}}
+{%- macro dremio__get_revoke_sql(relation, privilege, grantees) -%}
+    {%- set type, name = dremio__split_grantee(grantees[0]) %}
+
+    revoke {{ privilege }} on {{ relation.type }} {{ relation }}
+    from {{ type }} {{ adapter.quote(name) }}
 {%- endmacro -%}
 
 {% macro dremio__call_dcl_statements(dcl_statement_list) %}
