@@ -51,3 +51,27 @@ curl -s -X PUT "http://localhost:9047/apiv2/source/dbt_test_source" \
   --data "{\"name\":\"dbt_test_source\",\"config\":{\"credentialType\":\"ACCESS_KEY\",\"accessKey\":\"$MINIO_ROOT_USER\",\"accessSecret\":\"$MINIO_ROOT_PASSWORD\",\"secure\":false,\"externalBucketList\":[],\"enableAsync\":true,\"enableFileStatusCheck\":true,\"rootPath\":\"/\",\"defaultCtasFormat\":\"ICEBERG\",\"propertyList\":[{\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},{\"name\":\"fs.s3a.endpoint\",\"value\":\"minio:9000\"},{\"name\":\"dremio.s3.compat\",\"value\":\"true\"}],\"whitelistedBuckets\":[],\"isCachingEnabled\":false,\"maxCacheSpacePct\":100},\"type\":\"S3\",\"metadataPolicy\":{\"deleteUnavailableDatasets\":true,\"autoPromoteDatasets\":false,\"namesRefreshMillis\":3600000,\"datasetDefinitionRefreshAfterMillis\":3600000,\"datasetDefinitionExpireAfterMillis\":10800000,\"authTTLMillis\":86400000,\"updateMode\":\"PREFETCH_QUERIED\"}}"
 
 echo "S3 Source created in Dremio."
+
+echo "Creating the Samples source in Dremio..."
+curl -s -X PUT  "http://localhost:9047/apiv2/source/Samples" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: _dremio$AUTH_TOKEN" \
+  --data-raw "{\"name\":\"Samples\",\"config\":{\"externalBucketList\":[\"samples.dremio.com\"],\"credentialType\":\"NONE\",\"secure\":false,\"propertyList\":[]},\"name\":\"Samples\",\"accelerationRefreshPeriod\":3600000,\"accelerationGracePeriod\":10800000,\"accelerationNeverRefresh\":true,\"accelerationNeverExpire\":true,\"accelerationActivePolicyType\":\"PERIOD\",\"accelerationRefreshSchedule\":\"0 0 8 * * *\",\"accelerationRefreshOnDataChanges\":false,\"type\":\"S3\"}"
+
+echo "Samples source created in Dremio."
+
+echo "Formatting SF_incidents2016..."
+curl -s -X PUT "http://localhost:9047/apiv2/source/Samples/file_format/samples.dremio.com/SF_incidents2016.json" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: _dremio$AUTH_TOKEN" \
+  --data-raw "{\"type\":\"JSON\"}"
+
+echo "SF_incidents2016 formatted in Dremio."
+
+echo "Formatting NYC-taxi-trips..."
+curl -s -X PUT "http://localhost:9047/apiv2/source/Samples/folder_format/samples.dremio.com/NYC-taxi-trips" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: _dremio$AUTH_TOKEN" \
+  --data-raw "{\"ignoreOtherFileFormats\":false,\"type\":\"Parquet\"}"
+
+echo "NYC-taxi-trips formatted in Dremio."

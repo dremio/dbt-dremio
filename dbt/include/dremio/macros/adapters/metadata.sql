@@ -136,16 +136,11 @@ limitations under the License.*/
 {%- endmacro -%}
 
 {% macro dremio__get_catalog_relations_result_sql(relations) %}
-    {%- if var('dremio:reflections_enabled', default=false) %}
-        {{get_catalog_reflections(relations)}}
-    {% else %}    
-
-      select *
-      from t
-      join columns on (t.table_schema = columns.table_schema
-          and t.table_name = columns.table_name)
-      order by "column_index"
-    {% endif %}
+    select *
+    from t
+    join columns on (t.table_schema = columns.table_schema
+        and t.table_name = columns.table_name)
+    order by "column_index"
 {%- endmacro -%}
 
 {% macro get_catalog_reflections(relations) %}
@@ -242,7 +237,7 @@ limitations under the License.*/
         + (('.' + schema) if schema != 'no_schema' else '') -%}
   {% call statement('list_relations_without_caching', fetch_result=True) -%}
 
-    {%- if var('dremio:reflections_enabled', default=false) -%}
+    {%- if var('dremio:reflections_metadata_enabled', default=false) -%}
 
       with cte1 as (
         select

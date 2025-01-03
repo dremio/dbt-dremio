@@ -20,6 +20,7 @@ from typing import Dict
 
 from typing import List
 from typing import Optional
+from dbt.adapters.base.meta import available
 from dbt.adapters.base.relation import BaseRelation
 
 from dbt.adapters.capability import (
@@ -91,16 +92,16 @@ class DremioAdapter(SQLAdapter):
             self.connections.drop_catalog(database, schema)
 
     def timestamp_add_sql(
-        self, add_to: str, number: int = 1, interval: str = "hour"
+            self, add_to: str, number: int = 1, interval: str = "hour"
     ) -> str:
         return f"DATE_ADD({add_to}, CAST({number} AS INTERVAL {interval}))"
 
     def get_rows_different_sql(
-        self,
-        relation_a: BaseRelation,
-        relation_b: BaseRelation,
-        column_names: Optional[List[str]] = ["*"],
-        except_operator: str = "EXCEPT",
+            self,
+            relation_a: BaseRelation,
+            relation_b: BaseRelation,
+            column_names: Optional[List[str]] = ["*"],
+            except_operator: str = "EXCEPT",
     ) -> str:
         """Generate SQL for a query that returns a single row with a two
         columns: the number of rows that are different between the two
@@ -176,6 +177,15 @@ class DremioAdapter(SQLAdapter):
             raise
         finally:
             conn.transaction_open = False
+
+    @available
+    def create_reflection(self, name: str, type: str, anchor: DremioRelation, display: List[str], dimensions: List[str],
+                          date_dimensions: List[str], measures: List[str], computations: List[str],
+                          partition_by: List[str], partition_transform: List[str], partition_method: str,
+                          distribute_by: List[str], localsort_by: List[str], arrow_cache: bool) -> None:
+        self.connections.create_reflection(name, type, anchor, display, dimensions, date_dimensions, measures,
+                                           computations, partition_by, partition_transform, partition_method,
+                                           distribute_by, localsort_by, arrow_cache)
 
 
 COLUMNS_EQUAL_SQL = """

@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 from contextlib import contextmanager
 
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
+from dbt.adapters.dremio.relation import DremioRelation
 
 from dbt_common.clients import agate_helper
 
@@ -130,8 +131,8 @@ class DremioConnectionManager(SQLConnectionManager):
 
     # Auto_begin may not be relevant with the rest_api
     def add_query(
-        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False,
-        fetch=False
+            self, sql, auto_begin=True, bindings=None, abridge_sql_log=False,
+            fetch=False
     ):
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
@@ -174,11 +175,11 @@ class DremioConnectionManager(SQLConnectionManager):
         return AdapterResponse(_message=message, rows_affected=rows)
 
     def execute(
-        self,
-        sql: str,
-        auto_begin: bool = False,
-        fetch: bool = False,
-        limit: Optional[int] = None,
+            self,
+            sql: str,
+            auto_begin: bool = False,
+            fetch: bool = False,
+            limit: Optional[int] = None,
     ) -> Tuple[AdapterResponse, agate.Table]:
         sql = self._add_query_comment(sql)
         _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
@@ -230,6 +231,102 @@ class DremioConnectionManager(SQLConnectionManager):
             self._create_folders(database, schema, rest_client)
         return
 
+    def create_reflection(self, name: str, type: str, anchor: DremioRelation, display: List[str], dimensions: List[str],
+                          date_dimensions: List[str], measures: List[str],
+                          computations: List[str], partition_by: List[str], partition_transform: List[str],
+                          partition_method: str, distribute_by: List[str], localsort_by: List[str],
+                          arrow_cache: bool) -> None:
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        rest_client = connection.handle.get_client()
+
+        database = anchor.database
+        schema = anchor.schema
+        path = self._create_path_list(database, schema)
+        identifier = anchor.identifier
+
+        path.append(identifier)
+
+        catalog_info = rest_client.get_catalog_item(
+            catalog_id=None,
+            catalog_path=path,
+        )
+
+        dataset_id = catalog_info.get("id")
+
+        payload = {
+            "type": type,
+            "name": name,
+            "datasetId": dataset_id,
+            "enabled": True,
+            "arrowCachingEnabled": arrow_cache,
+            "partitionDistributionStrategy": partition_method.upper(),
+            "entityType": "reflection"
+        }
+
+        if display:
+            payload["displayFields"] = [{"name": field} for field in display]
+
+        if dimensions:
+            payload["dimensionFields"] = [{"name": dimension} for dimension in dimensions]
+
+        if date_dimensions:
+            payload["dateFields"] = [{"name": date_dimension, "granularity": "DATE"} for date_dimension in
+                                     date_dimensions]
+
+        if measures and computations:
+            payload["measureFields"] = [{"name": measure, "measureTypeList": computation.split(',')} for
+                                        measure, computation in zip(measures, computations)]
+
+        if partition_by:
+            if not partition_transform:
+                partition_transform = ["IDENTITY"] * len(partition_by)
+
+            partition_fields = []
+            for partition, transform in zip(partition_by, partition_transform):
+                transform = transform.upper()
+                partition_field = {"name": partition, "transform": None}
+
+                if transform in ["YEAR", "MONTH", "DAY", "HOUR", "IDENTITY"]:
+                    partition_field["transform"] = {"type": transform}
+                elif transform.startswith("BUCKET"):
+                    bucket_count = int(transform.split("(")[1].split(")")[0])
+                    partition_field["transform"] = {
+                        "type": "BUCKET",
+                        "bucketTransform": {"bucketCount": bucket_count},
+                    }
+                elif transform.startswith("TRUNCATE"):
+                    truncate_length = int(transform.split("(")[1].split(")")[0])
+                    partition_field["transform"] = {
+                        "type": "TRUNCATE",
+                        "truncateTransform": {"truncateLength": truncate_length},
+                    }
+                partition_fields.append(partition_field)
+
+            payload["partitionFields"] = partition_fields
+
+        if distribute_by:
+            payload["distributionFields"] = [{"name": distribute} for distribute in distribute_by]
+
+        if localsort_by:
+            payload["sortFields"] = [{"name": sort} for sort in localsort_by]
+
+        dataset_info = rest_client.get_reflections(dataset_id)
+        reflections_info = dataset_info.get("data")
+
+        updated = False
+        for reflection in reflections_info:
+            if reflection.get("name") == name:
+                logger.debug(f"Reflection {name} already exists. Updating it")
+                payload["tag"] = reflection.get("tag")
+                rest_client.update_reflection(reflection.get("id"), payload)
+                updated = True
+                break
+
+        if not updated:
+            logger.debug(f"Reflection {name} does not exist. Creating it")
+            rest_client.create_reflection(payload)
+
     def _make_new_space_json(self, name) -> json:
         python_dict = {"entityType": "space", "name": name}
         return json.dumps(python_dict)
@@ -263,6 +360,7 @@ class DremioConnectionManager(SQLConnectionManager):
 
     def _create_path_list(self, database, schema):
         path = [database]
-        folders = schema.split(".")
-        path.extend(folders)
+        if schema != 'no_schema':
+            folders = schema.split(".")
+            path.extend(folders)
         return path
