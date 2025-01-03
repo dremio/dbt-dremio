@@ -16,6 +16,23 @@ limitations under the License.*/
     {{ return(False) }}
 {%- endmacro -%}
 
+{%- macro dremio__split_grantee(grantee) -%}
+    {%- set splitted = grantee.split(':') %}
+    {%- if splitted | length == 2 %}
+        {%- set type = splitted[0] %}
+        {%- if type in ['user', 'role'] %}
+            {%- set name = splitted[1] %}
+        {%- else %}
+            {% do exceptions.CompilationError("Invalid prefix. Use either user or role") %}
+        {%- endif %}
+    {%- else %}
+        {%- set type = 'user' %}
+        {%- set name = grantee %}
+    {%- endif %}
+
+    {{ return((type, name)) }}
+{%- endmacro -%}
+
 {% macro dremio__get_show_grant_sql(relation) %}
     {%- if relation.type == 'table' -%}
         {%- set relation_without_double_quotes = target.datalake ~ '.' ~ target.root_path ~ '.' ~ relation.identifier-%}
@@ -36,7 +53,10 @@ limitations under the License.*/
 {% endmacro %}
 
 {%- macro dremio__get_grant_sql(relation, privilege, grantees) -%}
-    grant {{ privilege }} on {{relation.type}} {{ relation }} to user {{adapter.quote(grantees[0])}}
+    {%- set type, name = dremio__split_grantee(grantees[0]) %}
+
+    grant {{ privilege }} on {{ relation.type }} {{ relation }}
+    to {{ type }} {{ adapter.quote(name) }}
 {%- endmacro -%}
 
 {%- macro default__get_revoke_sql(relation, privilege, grantees) -%}
