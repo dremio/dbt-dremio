@@ -17,6 +17,5 @@ from dbt.tests.adapter.utils.test_array_append import BaseArrayAppend
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
-@pytest.mark.skip(reason="Dremio does not currently support Array Append.")
 class TestArrayAppend(BaseArrayAppend):
     pass
