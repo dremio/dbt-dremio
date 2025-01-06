@@ -3,6 +3,7 @@
 ## Changes
 
 -   Added [DremioRestClient](dbt/adapters/dremio/api/rest/client.py) to isolate all Dremio API calls inside one class
+-   Removing duplicated macros array_append, array_concat as Dremio already has SQL functions analogues.
 
 ## Dependency
 
