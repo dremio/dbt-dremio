@@ -3,8 +3,18 @@
 ## Changes
 
 -   Added [DremioRestClient](dbt/adapters/dremio/api/rest/client.py) to isolate all Dremio API calls inside one class
+- [#256](https://github.com/dremio/dbt-dremio/pull/256) Reflections are now handled through the Rest API
+  - Non-admin users are now able to use reflections
+  - It is now possible to set a custom name for reflections
+  - If a reflection already exists in the dataset with the same name defined in the model, it will be updated instead of creating a new one
+  - New `date_dimensions` parameter was added to the reflection materialization, to set fields that have a `DATE` granularity
+  - Added Distribution Fields under `distribute_by`
+  - Added partition transformations under `partition_transform`
+    - Defaults to Original/Identity if not defined
+    - `year/month/day/hour/bucket(n)/truncate(n)`
+  - Computations default to `SUM, COUNT` if mapped measure is numeric, `COUNT` if not
+  - `reflections_enabled` adapter option has been renamed to `reflections_metadata_enabled` (requires user privileges to run in dremio)
 -   Removing duplicated macros array_append, array_concat as Dremio already has SQL functions analogues.
-
 ## Dependency
 
 -   [#222](https://github.com/dremio/dbt-dremio/issues/222) Upgrade dbt-core to 1.8.8 and dbt-tests-adapter to 1.8.0

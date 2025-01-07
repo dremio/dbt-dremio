@@ -31,7 +31,6 @@ import requests
 import json as jsonlib
 from requests.exceptions import HTTPError
 
-
 from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
@@ -45,12 +44,12 @@ def _get(url, request_headers, details="", ssl_verify=True):
 
 
 def _post(
-    url,
-    request_headers=None,
-    json=None,
-    details="",
-    ssl_verify=True,
-    timeout=None,
+        url,
+        request_headers=None,
+        json=None,
+        details="",
+        ssl_verify=True,
+        timeout=None,
 ):
     if isinstance(json, str):
         json = jsonlib.loads(json)
@@ -60,6 +59,13 @@ def _post(
         timeout=timeout,
         verify=ssl_verify,
         json=json,
+    )
+    return _check_error(response, details)
+
+
+def _put(url, request_headers, json=None, details="", ssl_verify=True):
+    response = session.put(
+        url, headers=request_headers, verify=ssl_verify, json=json
     )
     return _check_error(response, details)
 
@@ -148,5 +154,3 @@ def _check_error(response, details=""):
             "Gateway Timeout:" + details, error, response
         )
     raise DremioException("Unknown error", error)
-
-

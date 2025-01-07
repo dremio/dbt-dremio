@@ -12,23 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-{% macro drop_reflection_if_exists(relation, reflection) %}
-  {% if reflection is not none and reflection.type == 'materialized_view' %}
-    {% call statement('drop reflection') -%}
-      alter dataset {{ relation }}
-        drop reflection {{ reflection.include(database=False, schema=False) }}
-    {%- endcall %}
-  {% endif %}
-{% endmacro %}
-
 {% macro dbt_dremio_validate_get_reflection_type(raw_reflection_type) %}
-  {% set accepted_types = ['raw', 'aggregate', 'external'] %}
+  {% set accepted_types = ['raw', 'aggregate', 'aggregation', 'external'] %}
   {% set invalid_reflection_type_msg -%}
     Invalid reflection type provided: {{ raw_reflection_type }}
     Expected one of: {{ accepted_types | join(', ') }}
   {%- endset %}
   {% if raw_reflection_type not in accepted_types %}
     {% do exceptions.CompilationError(invalid_reflection_type_msg) %}
+  {% endif %}
+  {% if raw_reflection_type in ['aggregate', 'aggregation'] %}
+    {% do return('aggregate') %}
   {% endif %}
   {% do return(raw_reflection_type) %}
 {% endmacro %}
