@@ -162,8 +162,6 @@ class TestReflectionsDremio:
         return path
 
     def _get_reflection(self, project, client, identifier, expected_name):
-        client.start()
-
         database = project.database
         schema = project.test_schema
         path = self._create_path_list(database, schema)

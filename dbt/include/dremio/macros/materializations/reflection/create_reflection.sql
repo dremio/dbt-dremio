@@ -42,7 +42,7 @@ USING target
 
   {%- if reflection_type == 'raw' %}
     {% set reflection_type = 'RAW' %}
-  {%- elif reflection_type in ['aggregate', 'aggregation'] %}
+  {%- elif reflection_type == 'aggregate' %}
     {% set reflection_type = 'AGGREGATION' %}
   {%- else -%}
     {% do exceptions.CompilationError("invalid reflection type") %}

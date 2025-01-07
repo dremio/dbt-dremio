@@ -74,11 +74,11 @@ limitations under the License.*/
 
   {%- set reflection_type = dbt_dremio_validate_get_reflection_type(raw_reflection_type) -%}
   {% if (reflection_type == 'raw' and display is none)
-    or (reflection_type in ['aggregate', 'aggregation'] and (dimensions is none or measures is none or computations is none or partition_transform is none)) %}
+    or (reflection_type == 'aggregate' and (dimensions is none or measures is none or computations is none or partition_transform is none)) %}
     {% set columns = adapter.get_columns_in_relation(anchor) %}
     {% if reflection_type == 'raw' %}
       {% set display = columns | map(attribute='name') | list %}
-    {% elif reflection_type in ['aggregate', 'aggregation'] %}
+    {% elif reflection_type == 'aggregate' %}
       {% if dimensions is none %}
         {% set dimensions = columns | rejectattr('dtype', 'in', ['decimal', 'float', 'double']) | map(attribute='name') | list %}
         {% set date_dimensions = columns | selectattr('dtype', 'in', ['timestamp']) | map(attribute='name') | list %}

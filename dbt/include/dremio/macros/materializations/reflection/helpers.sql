@@ -21,5 +21,8 @@ limitations under the License.*/
   {% if raw_reflection_type not in accepted_types %}
     {% do exceptions.CompilationError(invalid_reflection_type_msg) %}
   {% endif %}
+  {% if raw_reflection_type in ['aggregate', 'aggregation'] %}
+    {% do return('aggregate') %}
+  {% endif %}
   {% do return(raw_reflection_type) %}
 {% endmacro %}
