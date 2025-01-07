@@ -232,7 +232,8 @@ class DremioConnectionManager(SQLConnectionManager):
             self._create_folders(database, schema, rest_client)
         return
 
-    def create_reflection(self, name: str, reflection_type: str, anchor: DremioRelation, display: List[str], dimensions: List[str],
+    def create_reflection(self, name: str, reflection_type: str, anchor: DremioRelation, display: List[str],
+                          dimensions: List[str],
                           date_dimensions: List[str], measures: List[str],
                           computations: List[str], partition_by: List[str], partition_transform: List[str],
                           partition_method: str, distribute_by: List[str], localsort_by: List[str],
@@ -255,7 +256,9 @@ class DremioConnectionManager(SQLConnectionManager):
 
         dataset_id = catalog_info.get("id")
 
-        payload = ReflectionEntity(name, reflection_type, dataset_id, display, dimensions, date_dimensions, measures, computations, partition_by, partition_transform, partition_method, distribute_by, localsort_by, arrow_cache).build_payload()
+        payload = ReflectionEntity(name, reflection_type, dataset_id, display, dimensions, date_dimensions, measures,
+                                   computations, partition_by, partition_transform, partition_method, distribute_by,
+                                   localsort_by, arrow_cache).build_payload()
 
         dataset_info = rest_client.get_reflections(dataset_id)
         reflections_info = dataset_info.get("data")

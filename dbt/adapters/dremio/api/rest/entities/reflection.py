@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class TransformType(Enum):
     YEAR = "YEAR"
     MONTH = "MONTH"
@@ -25,11 +26,11 @@ class TransformType(Enum):
 
     def to_transform(self, raw_str):
         if self in (
-            TransformType.YEAR,
-            TransformType.MONTH,
-            TransformType.DAY,
-            TransformType.HOUR,
-            TransformType.IDENTITY
+                TransformType.YEAR,
+                TransformType.MONTH,
+                TransformType.DAY,
+                TransformType.HOUR,
+                TransformType.IDENTITY
         ):
             return {"type": self.value}
 
@@ -49,8 +50,12 @@ class TransformType(Enum):
 
         return {"type": TransformType.IDENTITY.value}
 
+
+# https://docs.dremio.com/24.3.x/reference/api/reflections/
 class ReflectionEntity:
-    def __init__(self, name, reflection_type, dataset_id, display_fields, dimensions, date_dimensions, measures, computations, partition_by, partition_transform, partition_method, distribute_by, localsort_by, arrow_cache):
+    def __init__(self, name, reflection_type, dataset_id, display_fields, dimensions, date_dimensions, measures,
+                 computations, partition_by, partition_transform, partition_method, distribute_by, localsort_by,
+                 arrow_cache):
         self.__name = name
         self.__type = reflection_type
         self.__dataset_id = dataset_id
