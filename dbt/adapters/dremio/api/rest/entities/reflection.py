@@ -51,7 +51,7 @@ class TransformType(Enum):
         return {"type": TransformType.IDENTITY.value}
 
 
-# https://docs.dremio.com/24.3.x/reference/api/reflections/
+# https://docs.dremio.com/current/reference/api/reflections/
 class ReflectionEntity:
     def __init__(self, name, reflection_type, dataset_id, display_fields, dimensions, date_dimensions, measures,
                  computations, partition_by, partition_transform, partition_method, distribute_by, localsort_by,
