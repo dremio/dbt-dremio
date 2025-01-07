@@ -11,10 +11,10 @@
   - Added Distribution Fields under `distribute_by`
   - Added partition transformations under `partition_transform`
     - Defaults to Original/Identity if not defined
-    - year/month/day/hour/bucket(n), truncate(n)
+    - `year/month/day/hour/bucket(n)/truncate(n)`
   - Computations default to `SUM, COUNT` if mapped measure is numeric, `COUNT` if not
   - `reflections_enabled` adapter option has been renamed to `reflections_metadata_enabled` (requires user privileges to run in dremio)
-  - 
+-   Removing duplicated macros array_append, array_concat as Dremio already has SQL functions analogues.
 ## Dependency
 
 -   [#222](https://github.com/dremio/dbt-dremio/issues/222) Upgrade dbt-core to 1.8.8 and dbt-tests-adapter to 1.8.0
