@@ -133,6 +133,7 @@ class TestReflectionsDremio:
         credentials = adapter.connections.profile.credentials
         parameters = ParametersBuilder.build(credentials)
         client = DremioRestClient(parameters.get_parameters())
+        client.start()
 
         return client
 

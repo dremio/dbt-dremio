@@ -31,26 +31,29 @@ session = requests.Session()
 
 class DremioRestClient:
     def __init__(self, api_parameters: Parameters):
-        self._parameters = self.__login(api_parameters)
+        self._parameters = api_parameters
 
-    def __login(self, api_parameters, timeout=10):
-        if isinstance(api_parameters.authentication, DremioPatAuthentication):
-            return api_parameters
+    def start(self):
+        self._parameters = self.__login()
 
-        url = UrlBuilder.login_url(api_parameters)
+    def __login(self, timeout=10):
+        if isinstance(self._parameters.authentication, DremioPatAuthentication):
+            return self._parameters
+
+        url = UrlBuilder.login_url(self._parameters)
         response = _post(
             url,
             json={
-                "userName": api_parameters.authentication.username,
-                "password": api_parameters.authentication.password,
+                "userName": self._parameters.authentication.username,
+                "password": self._parameters.authentication.password,
             },
             timeout=timeout,
-            ssl_verify=api_parameters.authentication.verify_ssl,
+            ssl_verify=self._parameters.authentication.verify_ssl,
         )
 
-        api_parameters.authentication.token = response["token"]
+        self._parameters.authentication.token = response["token"]
 
-        return api_parameters
+        return self._parameters
 
     def sql_endpoint(self, query, context=None):
         url = UrlBuilder.sql_url(self._parameters)

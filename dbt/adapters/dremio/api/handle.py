@@ -34,6 +34,7 @@ class DremioHandle:
         if self.closed:
             raise Exception("HandleClosed")
         if self._cursor is None or self._cursor.closed:
+            self._rest_client.start()
             self._cursor = DremioCursor(self._rest_client)
         return self._cursor
 
