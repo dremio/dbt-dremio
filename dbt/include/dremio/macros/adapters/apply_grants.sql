@@ -47,7 +47,7 @@ limitations under the License.*/
     {%- else -%}
          {% do exceptions.CompilationError("Invalid profile configuration: please only specify one of cloud_host or software_host in profiles.yml") %}
     {%- endif %}
-    SELECT privilege, grantee_id
+    SELECT privilege, grantee_type, grantee_id
         FROM {{privileges_table}}
         WHERE object_id='{{ relation_without_double_quotes }}'
 {% endmacro %}
