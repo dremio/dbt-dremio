@@ -16,6 +16,9 @@
   - `reflections_enabled` adapter option has been renamed to `reflections_metadata_enabled` (requires user privileges to run in dremio)
 -   Removing duplicated macros array_append, array_concat as Dremio already has SQL functions analogues.
 - [#250](https://github.com/dremio/dbt-dremio/pull/250) Possibility to integrate wikis and tags by enabling `relation` option from `persist_docs` configuration
+  - New macro `dremio__persist_docs` created
+  - Views also perform `persist_docs` macro
+  - Integration via REST API
 
 ## Dependency
 

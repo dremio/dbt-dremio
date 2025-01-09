@@ -180,12 +180,12 @@ class DremioAdapter(SQLAdapter):
 
     # dbt docs integration with Dremio wikis and tags
     @available
-    def docs_integration_with_wikis(self, relation: DremioRelation, text: str) -> None:
-        self.connections.docs_integration_with_wikis(relation, text)
+    def process_wikis(self, relation: DremioRelation, text: str) -> None:
+        self.connections.process_wikis(relation, text)
 
     @available
-    def docs_integration_with_tags(self, relation: DremioRelation, tags: list[str]) -> None:
-        self.connections.docs_integration_with_tags(relation, tags)
+    def process_tags(self, relation: DremioRelation, tags: list[str]) -> None:
+        self.connections.process_tags(relation, tags)
 
     @available
     def create_reflection(self, name: str, type: str, anchor: DremioRelation, display: List[str], dimensions: List[str],

@@ -275,14 +275,14 @@ class TestPersistDocs(BasePersistDocs):
     def test_has_comments_pglike(self, project):
         pass
 
-    def test_table_wikis_and_tags(self, project, client):
+    def test_table_model_create_wikis_and_tags(self, project, client):
         run_dbt(["run", "--select", "table_model"])
         object_id = self._get_relation_id(project, client, "table_model")
         wiki = client.retrieve_wiki(object_id)
         tags = client.retrieve_tags(object_id)
         self._assert_table_wikis_and_tags(wiki, tags)
 
-    def test_view_wikis_and_tags(self, project, client, models):
+    def test_view_model_create_wikis_and_tags(self, project, client):
         # Create + Get
         run_dbt(["run", "--select", "view_model"])
         object_id = self._get_relation_id(project, client, "view_model")
@@ -290,13 +290,18 @@ class TestPersistDocs(BasePersistDocs):
         tags = client.retrieve_tags(object_id)
         self._assert_view_wikis_and_tags(wiki, tags)
 
-        # No changes, version should be the same
+    def test_view_model_wikis_and_tags_remain_when_no_changes(self, project, client):
+        # No changes in wikis / tags , version should be the same
         run_dbt(["run", "--select", "view_model"])
         object_id = self._get_relation_id(project, client, "view_model")
         wiki = client.retrieve_wiki(object_id)
         tags = client.retrieve_tags(object_id)
         self._assert_view_wikis_and_tags(wiki, tags)
 
+    def test_view_model_update_wikis_and_tags(self, project, client):
+        # Previous tags
+        object_id = self._get_relation_id(project, client, "view_model")
+        tags = client.retrieve_tags(object_id)
         # Update
         write_file(_PROPERTIES__UPDATING_VIEW_SCHEMA_YML, project.project_root, "models", "schema.yml")
         run_dbt(["run", "--select", "view_model"])
@@ -305,6 +310,10 @@ class TestPersistDocs(BasePersistDocs):
         updated_tags = client.retrieve_tags(object_id)
         self._assert_view_wikis_and_tags_update(updated_wiki, updated_tags, tags["version"])
 
+    def test_view_model_delete_wikis_and_tags(self, project, client):
+        # Previous tags
+        object_id = self._get_relation_id(project, client, "view_model")
+        tags = client.retrieve_tags(object_id)
         # Delete
         write_file(_PROPERTIES__DELETING_VIEW_SCHEMA_YML, project.project_root, "models", "schema.yml")
         run_dbt(["run", "--select", "view_model"])

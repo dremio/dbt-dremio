@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Optional, Union, List
+from typing import Tuple, Optional, List
 from contextlib import contextmanager
 
 from dbt.adapters.dremio.api.cursor import DremioCursor
@@ -232,7 +232,7 @@ class DremioConnectionManager(SQLConnectionManager):
         return
     
     # dbt docs integration with Dremio wikis and tags
-    def docs_integration_with_wikis(self, relation, text: str):
+    def process_wikis(self, relation, text: str):
         logger.debug("Integrating wikis")
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
@@ -257,18 +257,24 @@ class DremioConnectionManager(SQLConnectionManager):
         wiki_content = stored_wiki.get("text")
         wiki_version = stored_wiki.get("version", None)
 
-        if wiki_version == None:
+        if wiki_version is None:
             logger.debug(f"Creating wiki for {'.'.join(path)}")
-            logger.debug(rest_client.create_wiki(object_id, text))
-        elif wiki_content != text:
+            result = rest_client.create_wiki(object_id, text)
+            logger.debug(result)
+            return
+        
+        if wiki_content != text:
             if text == "": # text is empty, delete wiki
                 logger.debug(f"Deleting wiki for {'.'.join(path)}")
-                logger.debug(rest_client.delete_wiki(object_id, wiki_version))
-            else:
-                logger.debug(f"Updating wiki for {'.'.join(path)}")
-                logger.debug(rest_client.update_wiki(object_id, text, wiki_version))
+                result = rest_client.delete_wiki(object_id, wiki_version)
+                logger.debug(result)
+                return
+            
+            logger.debug(f"Updating wiki for {'.'.join(path)}")
+            result = rest_client.update_wiki(object_id, text, wiki_version)
+            logger.debug(result)
 
-    def docs_integration_with_tags(self, relation, tags: Union[str,list[str]]):
+    def process_tags(self, relation, tags: list[str]):
         logger.debug("Integrating tags")
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
@@ -293,16 +299,23 @@ class DremioConnectionManager(SQLConnectionManager):
         tags_list = stored_tags.get("tags")
         tags_version = stored_tags.get("version", None)
 
-        if tags_version == None:
+        if tags_version is None:
             logger.debug(f"Creating tags for {'.'.join(path)}")
-            logger.debug(rest_client.create_tags(object_id, tags))
-        elif tags_list != tags:
-            if tags == []: # tags is empty, delete tags
+            result = rest_client.create_tags(object_id, tags)
+            logger.debug(result)
+            return
+
+        if tags_list != tags:
+            if tags == []:  # tags is empty, delete tags
                 logger.debug(f"Deleting tags for {'.'.join(path)}")
-                logger.debug(rest_client.delete_tags(object_id, tags_version))
-            else:
-                logger.debug(f"Updating tags for {'.'.join(path)}")
-                logger.debug(rest_client.update_tags(object_id, tags, tags_version))
+                result = rest_client.delete_tags(object_id, tags_version)
+                logger.debug(result)
+                return
+
+            logger.debug(f"Updating tags for {'.'.join(path)}")
+            result = rest_client.update_tags(object_id, tags, tags_version)
+            logger.debug(result)
+
 
     def create_reflection(self, name: str, reflection_type: str, anchor: DremioRelation, display: List[str],
                           dimensions: List[str],
