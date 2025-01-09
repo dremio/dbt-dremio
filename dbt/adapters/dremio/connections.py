@@ -54,8 +54,6 @@ class DremioConnectionManager(SQLConnectionManager):
 
     retries = DEFAULT_CONNECTION_RETRIES
 
-    run = True
-
     @contextmanager
     def exception_handler(self, sql):
         try:
