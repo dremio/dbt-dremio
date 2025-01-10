@@ -15,7 +15,6 @@
 # limitations under the License.
 
 
-
 import requests
 
 from dbt.adapters.dremio.api.authentication import DremioPatAuthentication

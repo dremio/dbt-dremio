@@ -216,6 +216,8 @@ class TestPersistDocs(BasePersistDocs):
             profile.update(profiles_config_update)
         return profile
     
+    # Overriding this fixture to set autouse to be False so we are able to perform
+    # run_dbt accordingly in each of the following tests
     @pytest.fixture(scope="class", autouse=False)
     def setUp(self, project):
         run_dbt(["seed"])
@@ -271,7 +273,8 @@ class TestPersistDocs(BasePersistDocs):
         )
         return catalog_info.get("id")
     
-    # Overriding the original test, to be ignored
+    # Overriding the original test, to be ignored because it was testing 
+    # the original persist_docs behavior, which does not apply anymore
     def test_has_comments_pglike(self, project):
         pass
 
