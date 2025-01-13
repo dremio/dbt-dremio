@@ -48,7 +48,6 @@ from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
-
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
     DEFAULT_CONNECTION_RETRIES = 5
@@ -132,8 +131,8 @@ class DremioConnectionManager(SQLConnectionManager):
 
     # Auto_begin may not be relevant with the rest_api
     def add_query(
-            self, sql, auto_begin=True, bindings=None, abridge_sql_log=False,
-            fetch=False
+        self, sql, auto_begin=True, bindings=None, abridge_sql_log=False,
+        fetch=False
     ):
         connection = self.get_thread_connection()
         if auto_begin and connection.transaction_open is False:
@@ -231,6 +230,92 @@ class DremioConnectionManager(SQLConnectionManager):
             logger.debug(f"Creating folder(s): {database}.{schema}")
             self._create_folders(database, schema, rest_client)
         return
+    
+    # dbt docs integration with Dremio wikis and tags
+    def process_wikis(self, relation, text: str):
+        logger.debug("Integrating wikis")
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        rest_client = connection.handle.get_client()
+        database = relation.database
+        schema = relation.schema
+
+        path = self._create_path_list(database,schema)
+        identifier = relation.identifier
+        path.append(identifier)
+        try:
+            catalog_info = rest_client.get_catalog_item(
+                catalog_id=None,
+                catalog_path=path,
+            )
+        except DremioNotFoundException:
+            logger.debug("Catalog not found. Returning")
+            return
+
+        object_id = catalog_info.get("id")
+        stored_wiki = rest_client.retrieve_wiki(object_id)
+        wiki_content = stored_wiki.get("text")
+        wiki_version = stored_wiki.get("version", None)
+
+        if wiki_version is None:
+            logger.debug(f"Creating wiki for {'.'.join(path)}")
+            result = rest_client.create_wiki(object_id, text)
+            logger.debug(result)
+            return
+        
+        if wiki_content != text:
+            if text == "": # text is empty, delete wiki
+                logger.debug(f"Deleting wiki for {'.'.join(path)}")
+                result = rest_client.delete_wiki(object_id, wiki_version)
+                logger.debug(result)
+                return
+            
+            logger.debug(f"Updating wiki for {'.'.join(path)}")
+            result = rest_client.update_wiki(object_id, text, wiki_version)
+            logger.debug(result)
+
+    def process_tags(self, relation, tags: list[str]):
+        logger.debug("Integrating tags")
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        rest_client = connection.handle.get_client()
+        database = relation.database
+        schema = relation.schema
+
+        path = self._create_path_list(database,schema)
+        identifier = relation.identifier
+        path.append(identifier)
+        try:
+            catalog_info = rest_client.get_catalog_item(
+                catalog_id=None,
+                catalog_path=path,
+            )
+        except DremioNotFoundException:
+            logger.debug("Catalog not found. Returning")
+            return
+
+        object_id = catalog_info.get("id")
+        stored_tags = rest_client.retrieve_tags(object_id)
+        tags_list = stored_tags.get("tags")
+        tags_version = stored_tags.get("version", None)
+
+        if tags_version is None:
+            logger.debug(f"Creating tags for {'.'.join(path)}")
+            result = rest_client.create_tags(object_id, tags)
+            logger.debug(result)
+            return
+
+        if tags_list != tags:
+            if tags == []:  # tags is empty, delete tags
+                logger.debug(f"Deleting tags for {'.'.join(path)}")
+                result = rest_client.delete_tags(object_id, tags_version)
+                logger.debug(result)
+                return
+
+            logger.debug(f"Updating tags for {'.'.join(path)}")
+            result = rest_client.update_tags(object_id, tags, tags_version)
+            logger.debug(result)
+
 
     def create_reflection(self, name: str, reflection_type: str, anchor: DremioRelation, display: List[str],
                           dimensions: List[str],

@@ -178,6 +178,15 @@ class DremioAdapter(SQLAdapter):
         finally:
             conn.transaction_open = False
 
+    # dbt docs integration with Dremio wikis and tags
+    @available
+    def process_wikis(self, relation: DremioRelation, text: str) -> None:
+        self.connections.process_wikis(relation, text)
+
+    @available
+    def process_tags(self, relation: DremioRelation, tags: list[str]) -> None:
+        self.connections.process_tags(relation, tags)
+
     @available
     def create_reflection(self, name: str, type: str, anchor: DremioRelation, display: List[str], dimensions: List[str],
                           date_dimensions: List[str], measures: List[str], computations: List[str],

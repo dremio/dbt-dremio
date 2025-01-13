@@ -132,6 +132,79 @@ class DremioRestClient:
             self._parameters.authentication.get_headers(),
             ssl_verify=self._parameters.authentication.verify_ssl,
         )
+    
+    # dbt docs integration within Dremio wikis and tags
+    def create_wiki(self, object_id: str, text: str):
+        url = UrlBuilder.wikis_management_url(self._parameters, object_id)
+        return _post(
+            url,
+            self._parameters.authentication.get_headers(),
+            json={"text": text},
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def retrieve_wiki(self, object_id: str):
+        url = UrlBuilder.wikis_management_url(self._parameters, object_id)
+        return _get(
+            url,
+            self._parameters.authentication.get_headers(),
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def update_wiki(self, object_id: str, text: str, version: int):
+        url = UrlBuilder.wikis_management_url(self._parameters, object_id)
+        return _post(
+            url,
+            self._parameters.authentication.get_headers(),
+            json={"text": text, "version": version},
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def delete_wiki(self, object_id: str, version: int):
+        url = UrlBuilder.wikis_management_url(self._parameters, object_id)
+        return _post(
+            url,
+            self._parameters.authentication.get_headers(),
+            json={"text": "", "version": version},
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+
+    def create_tags(self, dataset_id: str, tags: list[str]):
+        url = UrlBuilder.tags_management_url(self._parameters, dataset_id)
+        return _post(
+            url,
+            self._parameters.authentication.get_headers(),
+            json={"tags": tags},
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def retrieve_tags(self, dataset_id: str):
+        url = UrlBuilder.tags_management_url(self._parameters, dataset_id)
+        return _get(
+            url,
+            self._parameters.authentication.get_headers(),
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def update_tags(self, dataset_id: str, tags: list[str], version: str):
+        url = UrlBuilder.tags_management_url(self._parameters, dataset_id)
+        return _post(
+            url,
+            self._parameters.authentication.get_headers(),
+            json={"tags": tags, "version": version},
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
+    def delete_tags(self, dataset_id: str, version: str):
+        url = UrlBuilder.tags_management_url(self._parameters, dataset_id)
+        return _post(
+            url,
+            self._parameters.authentication.get_headers(),
+            json={"tags": [], "version": version},
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )
+
 
     def get_reflections(self, dataset_id):
         url = UrlBuilder.get_reflection_url(self._parameters, dataset_id)
@@ -158,3 +231,4 @@ class DremioRestClient:
             json=payload,
             ssl_verify=self._parameters.authentication.verify_ssl,
         )
+    
