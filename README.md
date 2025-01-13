@@ -10,7 +10,7 @@ The `dbt-dremio` package contains all of the code enabling dbt to work with [Dre
 
 The dbt-dremio package supports both Dremio Cloud and Dremio Software (versions 22.0 and later).
 
-## dbt-dremio version 1.8.0
+## dbt-dremio version 1.8.1
 
 Version 1.8.0 of the dbt-dremio adapter is compatible with dbt-core versions 1.8.*.
 
