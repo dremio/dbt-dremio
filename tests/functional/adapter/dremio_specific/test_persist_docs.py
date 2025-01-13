@@ -216,12 +216,11 @@ class TestPersistDocs(BasePersistDocs):
             profile.update(profiles_config_update)
         return profile
     
-    # Overriding this fixture to set autouse to be False so we are able to perform
+    # Overriding this fixture and setting autouse to be False so we are able to perform
     # run_dbt accordingly in each of the following tests
     @pytest.fixture(scope="class", autouse=False)
     def setUp(self, project):
-        run_dbt(["seed"])
-        run_dbt()
+        pass
 
     @pytest.fixture(scope="class")
     def client(self, adapter):
