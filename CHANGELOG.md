@@ -1,3 +1,9 @@
+# dbt-dremio v1.8.2
+
+## Changes
+
+- When naming reflections, if a `name` config is not set, the `alias` config parameter will be used instead. If also undefined, it will refer to the model name instead of using `Unnamed Reflection`
+
 # dbt-dremio v1.8.1
 
 ## Changes
