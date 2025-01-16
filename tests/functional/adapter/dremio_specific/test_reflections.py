@@ -126,6 +126,21 @@ default_displays_model = """
 -- depends_on: {{ ref('view1') }}
 """
 
+name_reflection_from_alias_model = """
+{{ config(alias='Reflection name from alias',
+            materialized='reflection',
+            display=['Date', 'DayOfWeek', 'PdDistrict', 'Category'],
+            reflection_type='raw')}}
+-- depends_on: {{ ref('view1') }}
+"""
+
+name_reflection_from_filename_model = """
+{{ config(materialized='reflection',
+            display=['Date', 'DayOfWeek', 'PdDistrict', 'Category'],
+            reflection_type='raw')}}
+-- depends_on: {{ ref('view1') }}
+"""
+
 
 class TestReflectionsDremio:
     @pytest.fixture(scope="class")
@@ -153,6 +168,8 @@ class TestReflectionsDremio:
             "default_transformations.sql": default_transformations_model,
             "default_computations.sql": default_computations_model,
             "default_displays_model.sql": default_displays_model,
+            "name_reflection_from_alias.sql": name_reflection_from_alias_model,
+            "name_reflection_from_filename.sql": name_reflection_from_filename_model,
         }
 
     def _create_path_list(self, database, schema):
@@ -352,6 +369,38 @@ class TestReflectionsDremio:
         assert reflection["displayFields"] == [{"name": x} for x in
                                                ["IncidntNum", "Category", "Descript", "DayOfWeek", "Date", "Time",
                                                 "PdDistrict", "Resolution", "Address", "X", "Y", "Location", "PdId"]]
+        assert "dimensionFields" not in reflection
+        assert "measureFields" not in reflection
+        assert "distributionFields" not in reflection
+        assert "partitionFields" not in reflection
+        assert "sortFields" not in reflection
+        assert reflection["partitionDistributionStrategy"] == "STRIPED"
+
+    def testNameReflectionFromAlias(self, project, client):
+        run_dbt(["run", "--select", "view1", "name_reflection_from_alias"])
+
+        reflection = self._get_reflection(project, client, "view1", "Reflection name from alias")
+
+        assert reflection
+        assert reflection["name"] == "Reflection name from alias"
+        assert reflection["type"] == "RAW"
+        assert reflection["displayFields"] == [{"name": x} for x in ["Date", "DayOfWeek", "PdDistrict", "Category"]]
+        assert "dimensionFields" not in reflection
+        assert "measureFields" not in reflection
+        assert "distributionFields" not in reflection
+        assert "partitionFields" not in reflection
+        assert "sortFields" not in reflection
+        assert reflection["partitionDistributionStrategy"] == "STRIPED"
+
+    def testNameReflectionFromFilename(self, project, client):
+        run_dbt(["run", "--select", "view1", "name_reflection_from_filename"])
+
+        reflection = self._get_reflection(project, client, "view1", "name_reflection_from_filename")
+
+        assert reflection
+        assert reflection["name"] == "name_reflection_from_filename"
+        assert reflection["type"] == "RAW"
+        assert reflection["displayFields"] == [{"name": x} for x in ["Date", "DayOfWeek", "PdDistrict", "Category"]]
         assert "dimensionFields" not in reflection
         assert "measureFields" not in reflection
         assert "distributionFields" not in reflection

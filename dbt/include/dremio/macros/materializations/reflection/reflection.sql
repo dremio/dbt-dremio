@@ -14,7 +14,7 @@ limitations under the License.*/
 
 {% materialization reflection, adapter='dremio' %}
 
-  {% set reflection_name = config.get('name', validator=validation.any[basetring]) or 'Unnamed Reflection' %}
+  {% set reflection_name = config.get('name', validator=validation.any[basetring]) or config.get('alias', validator=validation.any[basetring]) or model.name %}
   {% set raw_reflection_type = config.get('reflection_type', validator=validation.any[basestring]) or 'raw' %}
   {% set raw_anchor = config.get('anchor', validator=validation.any[list, basestring]) %}
   {% set raw_external_target = config.get('external_target', validator=validation.any[list, basestring]) %}
