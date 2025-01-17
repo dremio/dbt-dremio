@@ -1,8 +1,10 @@
 # Using dbt with Dremio Walkthrough
 
-- [This Walkthrough is Originally from this Repo](https://github.com/AlexMercedCoder/dbt-with-dremio-walkthrough-template)
+- [Dremio Docs](https://docs.dremio.com)
+- [Dremio Semantic Layer CI/CD with dbt whitepaper](https://www.dremio.com/wp-content/uploads/2024/01/Semantic-Layer-CI_CD-with-Dremio-and-dbt.pdf)
+- [dbt-dremio adapter Repository](https://github.com/dremio/dbt-dremio)
 
-# Table of Contents
+## Table of Contents
 
 - [Starting Up Dremio on Your Laptop](#starting-up-dremio-on-your-laptop)
 - [Creating a Python Virtual Environment and Installing dbt](#creating-a-python-virtual-environment-and-installing-dbt)
@@ -10,10 +12,10 @@
   - [`dbt init` prompts](#dbt-init-prompts)
     - [Basics](#basics)
     - [Connection Settings and Authentication](#connection-settings-and-authentication)
-    - [9-12: Default View and Table Storage Location](#9-12-default-view-and-table-storage-location)
+    - [Default View and Table Storage Location](#9-12-default-view-and-table-storage-location)
       - [Materializing Tables Location](#materializing-tables-location)
       - [Creating Views Location](#creating-views-location)
-    - [13 Thread](#13-thread)
+    - [Threads](#13-thread)
 - [Customizing Configurations in dbt with Dremio](#customizing-configurations-in-dbt-with-dremio)
   - [Configuring Defaults for a Group of Models in `dbt_project.yml`](#configuring-defaults-for-a-group-of-models-in-dbt_projectyml)
   - [Configuring an Individual Model with the config Function](#configuring-an-individual-model-with-the-config-function)
@@ -88,7 +90,7 @@ Now we can create a new dbt project using the command `dbt init`, this will be b
 #### Basics
 1. *name of your project*: enter whatever name you like
 2. *number of type of project*: enter the number for `dremio` (may not be 1 if you have other dbt libraries installed)
-3. *type of dremio project*: For this exercise choose `2` (The Following questions will defer depending on what you select for this option)
+3. *type of dremio project*: For this exercise choose `2` (The Following questions will differ depending on what you select for this option)
     - [1] dremio_cloud (if you are using Dremio Cloud, you'll need a Personal Access Token generated from the UI or REST API)
     - [2] software_with_username_password (if you are self-deploying Dremio like using Docker and want to authenticate using Username/Password)
     - [3] software_with_pat (if you are self-deploying Dremio like using Docker and want to authenticate using Personal Access Token which must be generated with Dremio REST API)
@@ -104,7 +106,7 @@ Now we can create a new dbt project using the command `dbt init`, this will be b
 
 ###### Materializing Tables Location
 
-- `object_storage_source`: must be a Dremio source where data can be written (S3, GCP, HDFS, AWS Glue, Polaris, Nessie), if you don't have one of these sources connected to Dremio accept the default `$scratch` option.
+- `object_storage_source`: must be a Dremio source where tables can be written (S3, GCP, HDFS, AWS Glue, Polaris, Nessie), if you don't have one of these sources connected to Dremio accept the default `$scratch` option.
 - `object_storage_path`: the sub path for your object_storage_source
 
 These two settings establish where physical tables are created by default, so if I want to create tables by default in `nessie.marketing.bronze` then the values would be:
@@ -114,7 +116,7 @@ These two settings establish where physical tables are created by default, so if
 
 ###### Creating Views Location
 
-- `dremio_space`: This can be any Dremio Source that can storage views (Spaces, Arctic Catalog, Nessie, Dremio Catalog) if you don't have any of these select the default option which will use the users homespace (every user gets a "home" space named after their username on Dremio Self-Deployed)
+- `dremio_space`: This can be any Dremio Source that can track views (Spaces, Arctic Catalog, Nessie, Dremio Catalog) if you don't have any of these select the default option which will use the users homespace (every user gets a "home" space named after their username on Dremio Self-Deployed)
 
 - `dremio_space_folder`: This the sub path for the dremio_space
 
@@ -125,7 +127,7 @@ If I want views to be create by a default in `default.views` then the values wou
 
 #### 13 Thread
 
-Just select the default 1 thread unless you want to use more threads.
+Just select the default `1` thread unless you want to use more threads.
 
 ## Customizing Configurations in dbt with Dremio
 
@@ -202,7 +204,7 @@ To effectively use dbt with Dremio, it’s important to familiarize yourself wit
     dbt test
     ```
 
-4. **`dbt test`**   
+4. **`dbt compile`**   
     
     ```
     dbt compile
