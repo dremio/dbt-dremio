@@ -79,7 +79,7 @@ jobs:
         run: bash .github/scripts/run_tests.sh
 
       - name: Upload tests report as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: all-tests-reports
           path: reports/
@@ -91,13 +91,13 @@ jobs:
 
     steps:
       - name: Download test reports
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: all-tests-reports
           path: reports/
           
       - name: Upload individual test reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: individual-test-reports
           path: reports/*.txt
@@ -112,7 +112,7 @@ jobs:
         uses: actions/checkout@v3.5.2
 
       - name: Download All Test Reports
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: all-tests-reports
           path: reports/
