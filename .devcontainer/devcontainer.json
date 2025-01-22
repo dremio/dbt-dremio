@@ -7,6 +7,12 @@
 	"service": "python", 
 	"workspaceFolder": "/usr/src/app",
 
+	"runArgs": [
+  		"--userns=keep-id:uid=1000,gid=1000"
+ 	],
+ 	"containerUser": "vscode",
+	"updateRemoteUserUID": true,
+
 	// Ports required for Dremio services
 	"forwardPorts": [9047, 32010, 32011, 19120, 8088],
 

@@ -55,7 +55,7 @@ services:
       - 31010:31010
       - 32010:32010
       - 45678:45678
-    container_name: dremio-analytics
+    container_name: dremio
     environment:
       - DREMIO_JAVA_SERVER_EXTRA_OPTS=-Dpaths.dist=file:///opt/dremio/data/dist -Ddebug.addDefaultUser=true
       - DREMIO_MAX_MEMORY_SIZE_MB=4096
@@ -66,6 +66,7 @@ services:
       - dremio-laptop-lakehouse
     volumes:
       - dremio_data:/opt/dremio/data:rw
+    user: "0"
   
   dremio-setup:
     image: alpine:latest
@@ -78,27 +79,6 @@ services:
     networks:
       - dremio-laptop-lakehouse
       
-  # Superset
-  superset:
-    image: apache/superset
-    container_name: superset
-    ports:
-      - "8088:8088"
-    networks:
-      - dremio-laptop-lakehouse
-    environment:
-      SUPERSET_LOAD_EXAMPLES: "yes"
-      SUPERSET_SECRET_KEY: c303fcbad0ad359d6c5536dbd2614a85d3698066976ad712
-      INIT_SCRIPT_PATH: /usr/src/app/.devcontainer/docker-superset-init.sh
-    volumes:
-      - superset_home:/app/superset_home:rw
-      - .:/usr/src/app:rw
-    depends_on:
-      - dremio
-    command: >
-      /bin/bash -c "chmod +x $INIT_SCRIPT_PATH && $INIT_SCRIPT_PATH && superset run -p 8088 --with-threads --reload --debugger"
-    tty: true
-
   # Dev environment container
   python:
     image: mcr.microsoft.com/devcontainers/python:1-3.9-bullseye
@@ -121,6 +101,5 @@ networks:
 
 
 volumes:
-  superset_home:
   dremio_data:
   minio_data:
