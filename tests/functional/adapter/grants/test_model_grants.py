@@ -31,6 +31,7 @@ from tests.utils.util import relation_from_name
 
 
 class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
+
     # Overridden to only include view materialization
     def test_view_table_grants(self, project, get_test_users):
         # we want the test to fail, not silently skip
@@ -45,10 +46,9 @@ class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         model_id = "model.test.my_model"
         model = manifest.nodes[model_id]
         expected = {select_privilege_name: [test_users[0]]}
-        expected_grants = {select_privilege_name: ["user: " + test_users[0]]}
         assert model.config.grants == expected
         assert model.config.materialized == "view"
-        self.assert_expected_grants_match_actual(project, "my_model", expected_grants)
+        self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # View materialization, change select grant user
         updated_yaml = self.interpolate_name_overrides(user2_model_schema_yml)
@@ -74,7 +74,6 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
 
     # Overridden to only include table materializations
     def test_view_table_grants(self, project, get_test_users):
-        # we want the test to fail, not silently skip
         test_users = get_test_users
         select_privilege_name = self.privilege_grantee_name_overrides()["select"]
         insert_privilege_name = self.privilege_grantee_name_overrides()["insert"]
@@ -88,7 +87,7 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         model_id = "model.test.my_model"
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
-        expected = {select_privilege_name: ["user:" + test_users[0]]}
+        expected = {select_privilege_name: [test_users[0]]}
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, change select grant user
@@ -99,27 +98,34 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         manifest = get_manifest(project.project_root)
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
-        expected = {select_privilege_name: ["user:" + test_users[1]]}
+        expected = {select_privilege_name: [test_users[1]]}
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, multiple grantees
-        updated_yaml = self.interpolate_name_overrides(multiple_users_table_model_schema_yml)
+        updated_yaml = self.interpolate_name_overrides(
+            multiple_users_table_model_schema_yml
+        )
         write_file(updated_yaml, project.project_root, "models", "schema.yml")
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1
         manifest = get_manifest(project.project_root)
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
-        expected = {select_privilege_name: ["user:" + test_users[0], "user:" + test_users[1]]}
+        expected = {select_privilege_name: [test_users[0], test_users[1]]}
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, multiple privileges
-        updated_yaml = self.interpolate_name_overrides(multiple_privileges_table_model_schema_yml)
+        updated_yaml = self.interpolate_name_overrides(
+            multiple_privileges_table_model_schema_yml
+        )
         write_file(updated_yaml, project.project_root, "models", "schema.yml")
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1
         manifest = get_manifest(project.project_root)
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
-        expected = {select_privilege_name: ["user:" + test_users[0]], insert_privilege_name: ["user:" + test_users[1]]}
+        expected = {
+            select_privilege_name: [test_users[0]],
+            insert_privilege_name: [test_users[1]],
+        }
         self.assert_expected_grants_match_actual(project, "my_model", expected)
