@@ -89,7 +89,7 @@ services:
       - .:/usr/src/app:rw
       - dremio_data:/mnt/dremio_data:rw
     working_dir: /usr/src/app
-    command: /bin/bash -c "pip install -r dev_requirements.txt && tail -f /dev/null && /bin/bash"
+    command: /bin/bash -c "pip install --user -r dev_requirements.txt && pip install --user . && tail -f /dev/null && /bin/bash"
     tty: true
     networks:
     - dremio-laptop-lakehouse
