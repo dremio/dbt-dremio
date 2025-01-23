@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 
 from dbt.tests.adapter.grants.test_invalid_grants import BaseInvalidGrants
 from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
@@ -19,6 +20,7 @@ from tests.utils.util import relation_from_name
 from dbt.tests.util import get_connection
 
 
+@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class TestInvalidGrantsDremio(BaseGrantsDremio, BaseInvalidGrants):
     def grantee_does_not_exist_error(self):
         return "Grant on catalog entity failed. User invalid_user does not exist."

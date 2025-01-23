@@ -37,6 +37,7 @@ my_snapshot_sql = """
 """.strip()
 
 
+@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
     # Override this to use our modified snapshot model
     @pytest.fixture(scope="class")

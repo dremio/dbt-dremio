@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from dbt.tests.adapter.grants.test_seed_grants import BaseSeedGrants
 from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.utils.util import relation_from_name
 from dbt.tests.util import get_connection
 
 
+@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class TestSeedGrantsDremio(BaseGrantsDremio, BaseSeedGrants):
 
     # Grants are reapplied if dbt run is ran twice without changes

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from dbt.tests.util import (
     run_dbt_and_capture,
     get_manifest,
@@ -27,6 +29,7 @@ from dbt.tests.adapter.grants.test_incremental_grants import (
 )
 
 
+@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
     # Define this here to use our modified version of relation_from_name
     def get_grants_on_relation(self, project, relation_name):
@@ -53,7 +56,7 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
         model_id = "model.test.my_incremental_model"
         model = manifest.nodes[model_id]
         assert model.config.materialized == "incremental"
-        expected = {select_privilege_name: [test_users[0]]}
+        expected = {select_privilege_name: ["user:" + test_users[0]]}
         self.assert_expected_grants_match_actual(
             project, "my_incremental_model", expected
         )
@@ -80,7 +83,7 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
         manifest = get_manifest(project.project_root)
         model = manifest.nodes[model_id]
         assert model.config.materialized == "incremental"
-        expected = {select_privilege_name: [test_users[1]]}
+        expected = {select_privilege_name: ["user:" + test_users[1]]}
         self.assert_expected_grants_match_actual(
             project, "my_incremental_model", expected
         )
