@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from dbt.tests.adapter.grants.test_model_grants import (
     BaseModelGrants,
     user2_model_schema_yml,
@@ -30,6 +32,7 @@ from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.utils.util import relation_from_name
 
 
+@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
 
     # Overridden to only include view materialization
@@ -59,6 +62,7 @@ class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
 
+@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
     # Need to override this to make sure it uses our modified version of relation_from_name
     # This isn't needed for views, as dbt-core's version defaults to database/schema path
@@ -87,7 +91,7 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         model_id = "model.test.my_model"
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
-        expected = {select_privilege_name: [test_users[0]]}
+        expected = {select_privilege_name: ["user:" + test_users[0]]}
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, change select grant user
@@ -98,7 +102,7 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         manifest = get_manifest(project.project_root)
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
-        expected = {select_privilege_name: [test_users[1]]}
+        expected = {select_privilege_name: ["user:" + test_users[1]]}
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, multiple grantees
@@ -111,7 +115,7 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         manifest = get_manifest(project.project_root)
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
-        expected = {select_privilege_name: [test_users[0], test_users[1]]}
+        expected = {select_privilege_name: ["user:" + test_users[0], "user:" + test_users[1]]}
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
         # Table materialization, multiple privileges
@@ -125,7 +129,7 @@ class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         model = manifest.nodes[model_id]
         assert model.config.materialized == "table"
         expected = {
-            select_privilege_name: [test_users[0]],
-            insert_privilege_name: [test_users[1]],
+            select_privilege_name: ["user:" + test_users[0]],
+            insert_privilege_name: ["user:" + test_users[1]],
         }
         self.assert_expected_grants_match_actual(project, "my_model", expected)
