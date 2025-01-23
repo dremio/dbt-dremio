@@ -13,9 +13,6 @@
  	"containerUser": "vscode",
 	"updateRemoteUserUID": true,
 
-	// Ports required for Dremio services
-	"forwardPorts": [9047, 32010, 32011, 19120, 8088],
-
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
