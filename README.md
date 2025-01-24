@@ -5,7 +5,8 @@ dbt is the T in ELT. Organize, cleanse, denormalize, filter, rename, and pre-agg
 ## Documentation
 
 [Dremio docs for our dbt adapter ](https://github.com/dremio/dbt-dremio/wiki/Using-Materializations-with-Dremio)
-[Walkthrough For Using dbt-dremio](./docs/walkthrough.md)
+
+[Walkthrough for using dbt-dremio](./docs/walkthrough.md)
 
 The `dbt-dremio` package contains all of the code enabling dbt to work with [Dremio](https://www.dremio.com/). For more information on using dbt with Dremio, consult [the docs](https://docs.getdbt.com/reference/warehouse-profiles/dremio-profile).
 
