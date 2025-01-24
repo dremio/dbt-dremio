@@ -18,7 +18,6 @@ from dbt.tests.adapter.grants.base_grants import BaseGrants
 from tests.utils.util import BUCKET
 
 
-@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class BaseGrantsDremio(BaseGrants):
     # This is overridden to change insert privilege to alter
     def privilege_grantee_name_overrides(self):

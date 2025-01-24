@@ -16,6 +16,8 @@ DREMIO_DATABASE=dbt_test
 DBT_TEST_USER_1=dbt_test_user_1
 DBT_TEST_USER_2=dbt_test_user_2
 DBT_TEST_USER_3=dbt_test_user_3
+DBT_TEST_ROLE_1=dbt_test_role_1
+DBT_TEST_ROLE_2=dbt_test_role_2
 EOF
 
 echo ".env file created successfully."
