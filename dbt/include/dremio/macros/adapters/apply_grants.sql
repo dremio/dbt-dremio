@@ -17,20 +17,20 @@ limitations under the License.*/
 {%- endmacro -%}
 
 {%- macro dremio__split_grantee(grantee) -%}
-    {%- set splitted = grantee.split(':') %}
-    {%- if splitted | length == 2 %}
-        {%- set type = splitted[0] %}
-        {%- if type in ['user', 'role'] %}
-            {%- set name = splitted[1] %}
-        {%- else %}
-            {% do exceptions.CompilationError("Invalid prefix. Use either user or role") %}
-        {%- endif %}
-    {%- else %}
-        {%- set type = 'user' %}
-        {%- set name = grantee %}
-    {%- endif %}
+    {%- set splitted = grantee.split(':') -%}
 
-    {{ return((type, name)) }}
+    {%- if splitted | length < 2 -%}
+        {{ return(("user", grantee)) }}
+    {%- else -%}
+        {%- set prefix = splitted[0] -%}
+        {%- set remainder = splitted[1:] | join(':') -%}
+
+        {%- if prefix not in ['user', 'role'] -%}
+            {% do exceptions.CompilationError("Invalid prefix. Use either user or role") %}
+        {%- endif -%}
+
+        {{ return((prefix, remainder)) }}
+    {%- endif -%}
 {%- endmacro -%}
 
 {% macro dremio__get_show_grant_sql(relation) %}

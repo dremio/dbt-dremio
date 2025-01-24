@@ -111,6 +111,15 @@ models:
         insert: ["role:{{ env_var('DBT_TEST_ROLE_2') }}", "user:{{ env_var('DBT_TEST_USER_3') }}"]
 """
 
+special_character_role_model_schema_yml = """
+version: 2
+models:
+  - name: my_model
+    config:
+      grants:
+        select: ["role:test:role"]
+"""
+
 @pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
 class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
     def get_test_roles(self):
@@ -174,6 +183,14 @@ class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
                                     "user:" + get_test_users[1]],
             insert_privilege_name: ["role:" + test_roles[1], "user:" + get_test_users[2]],
         }
+        self.assert_expected_grants_match_actual(project, "my_model", expected)
+
+        # special character (:) in role name
+        updated_yaml = self.interpolate_name_overrides(special_character_role_model_schema_yml)
+        write_file(updated_yaml, project.project_root, "models", "schema.yml")
+        (results, log_output) = run_dbt_and_capture(["--debug", "run"])
+        assert len(results) == 1
+        expected = {select_privilege_name: ["role:test:role"]}
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
 
