@@ -3,6 +3,11 @@
 ## Changes
 
 - When naming reflections, if a `name` config is not set, the `alias` config parameter will be used instead. If also undefined, it will refer to the model name instead of using `Unnamed Reflection`
+- Grants can now be set for both users and for roles. A prefix was added to handle this, with `user:` and `role:` being the valid prefixes. For example, `user:dbt_test_user_1` and `role:dbt_test_role_1`. If no prefix is provided, defaults to user for backwards compatibility.
+
+## Features
+
+- [#259](https://github.com/dremio/dbt-dremio/pull/259) Added support for roles in grants
 
 # dbt-dremio v1.8.1
 
