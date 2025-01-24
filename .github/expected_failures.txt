@@ -3,12 +3,6 @@ tests/functional/adapter/dbt_clone/test_dbt_clone.py::TestCloneNotPossibleDremio
 tests/functional/adapter/dremio_specific/test_drop_temp_table.py::TestDropTempTableDremio::test_drop_temp_table
 tests/functional/adapter/dremio_specific/test_schema_parsing.py::TestSchemaParsingDremio::test_schema_with_dots
 tests/functional/adapter/dremio_specific/test_verify_ssl.py::TestVerifyCertificateDremio::test_insecure_request_warning_not_exist
-tests/functional/adapter/grants/test_incremental_grants.py::TestIncrementalGrantsDremio::test_incremental_grants
-tests/functional/adapter/grants/test_invalid_grants.py::TestInvalidGrantsDremio::test_invalid_grants
-tests/functional/adapter/grants/test_model_grants.py::TestViewGrantsDremio::test_view_table_grants
-tests/functional/adapter/grants/test_model_grants.py::TestTableGrantsDremio::test_view_table_grants
-tests/functional/adapter/grants/test_seed_grants.py::TestSeedGrantsDremio::test_seed_grants
-tests/functional/adapter/grants/test_snapshot_grants.py::TestSnapshotGrantsDremio::test_snapshot_grants
 tests/functional/adapter/relation/test_get_relation_last_modified.py::TestGetLastRelationModified::test_get_last_relation_modified
 tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestingTypes::test_unit_test_data_type
 tests/functional/adapter/unit_testing/test_unit_testing.py::TestDremioUnitTestCaseInsensitivity::test_case_insensitivity
