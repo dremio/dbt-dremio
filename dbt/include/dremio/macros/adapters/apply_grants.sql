@@ -20,6 +20,7 @@ limitations under the License.*/
     {%- set splitted = grantee.split(':') -%}
 
     {%- if splitted | length < 2 -%}
+        {{ log("Deprecation warning: grants to users will soon require the user: prefix", info=True) }}
         {{ return(("user", grantee)) }}
     {%- else -%}
         {%- set prefix = splitted[0] -%}

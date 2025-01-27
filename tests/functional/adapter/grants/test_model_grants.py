@@ -31,6 +31,8 @@ from dbt.tests.util import (
 from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.utils.util import relation_from_name
 
+DREMIO_EDITION = os.getenv("DREMIO_EDITION")
+
 role_model_schema_yml = """
 version: 2
 models:
@@ -120,7 +122,7 @@ models:
         select: ["role:test:role"]
 """
 
-@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
+@pytest.mark.skipif(DREMIO_EDITION == "community", reason="Dremio only supports grants in EE/DC editions.")
 class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
     def get_test_roles(self):
         test_roles = []
@@ -194,7 +196,7 @@ class TestViewGrantsDremio(BaseGrantsDremio, BaseModelGrants):
         self.assert_expected_grants_match_actual(project, "my_model", expected)
 
 
-@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
+@pytest.mark.skipif(DREMIO_EDITION == "community", reason="Dremio only supports grants in EE/DC editions.")
 class TestTableGrantsDremio(BaseGrantsDremio, BaseModelGrants):
     # Need to override this to make sure it uses our modified version of relation_from_name
     # This isn't needed for views, as dbt-core's version defaults to database/schema path
