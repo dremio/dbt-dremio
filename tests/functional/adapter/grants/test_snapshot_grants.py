@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytest
+import pytest, os
 from dbt.tests.adapter.grants.test_snapshot_grants import (
     BaseSnapshotGrants,
     snapshot_schema_yml,
@@ -36,7 +36,9 @@ my_snapshot_sql = """
 {% endsnapshot %}
 """.strip()
 
+DREMIO_EDITION = os.getenv("DREMIO_EDITION")
 
+@pytest.mark.skipif(DREMIO_EDITION == "community", reason="Dremio only supports grants in EE/DC editions.")
 class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
     # Override this to use our modified snapshot model
     @pytest.fixture(scope="class")
