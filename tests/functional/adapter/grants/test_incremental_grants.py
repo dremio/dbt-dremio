@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+import pytest, os
 
 from dbt.tests.util import (
     run_dbt_and_capture,
@@ -28,8 +28,9 @@ from dbt.tests.adapter.grants.test_incremental_grants import (
     user2_incremental_model_schema_yml,
 )
 
+DREMIO_EDITION = os.getenv("DREMIO_EDITION")
 
-@pytest.mark.skip(reason="Dremio only supports grants in EE/DC editions.")
+@pytest.mark.skipif(DREMIO_EDITION == "community", reason="Dremio only supports grants in EE/DC editions.")
 class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
     # Define this here to use our modified version of relation_from_name
     def get_grants_on_relation(self, project, relation_name):
