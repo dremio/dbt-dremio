@@ -307,8 +307,10 @@ limitations under the License.*/
   {%- if relation.type != 'view' -%}
 
     {%- call statement('last_modified', fetch_result=True) -%}
-          select max(committed_at) as last_modified,
-                {{ current_timestamp() }} as snapshotted_at
+          select  '{{ relation.identifier}}' as identifier,
+                  '{{ relation.schema}}' as schema,
+                  max(committed_at) as last_modified,
+                  {{ current_timestamp() }} as snapshotted_at
           from TABLE( table_snapshot('{{relation}}') )
     {%- endcall -%}
   {%- else -%}
