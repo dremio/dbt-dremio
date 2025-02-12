@@ -3,8 +3,8 @@
 {
 	"name": "dbt-dremio-devcontainer",
 	// Use a Docker Compose file
-	"dockerComposeFile": "../docker-compose.yml",
-	"service": "python", 
+	"dockerComposeFile": "../.docker/docker-compose.yml",
+	"service": "dev", 
 	"workspaceFolder": "/usr/src/app",
 
 	"runArgs": [

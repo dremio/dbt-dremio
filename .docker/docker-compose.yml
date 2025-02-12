@@ -1,5 +1,4 @@
 services:
-
   # Nessie Catalog Server Using In-Memory Store
   nessie:
     image: projectnessie/nessie:latest
@@ -48,7 +47,6 @@ services:
 
   # Dremio
   dremio:
-    platform: linux/x86_64
     image: dremio/dremio-oss:latest
     ports:
       - 9047:9047
@@ -58,14 +56,13 @@ services:
     container_name: dremio
     environment:
       - DREMIO_JAVA_SERVER_EXTRA_OPTS=-Dpaths.dist=file:///opt/dremio/data/dist -Ddebug.addDefaultUser=true
-      - DREMIO_MAX_MEMORY_SIZE_MB=4096
-      - DREMIO_MAX_DIRECT_MEMORY_SIZE_MB=4096
       - SERVICES_COORDINATOR_ENABLED=true
       - SERVICES_EXECUTOR_ENABLED=true
     networks:
       - dremio-laptop-lakehouse
     volumes:
       - dremio_data:/opt/dremio/data:rw
+    # Workaround for permission issues in podman
     user: "0"
   
   dremio-setup:
@@ -80,16 +77,16 @@ services:
       - dremio-laptop-lakehouse
       
   # Dev environment container
-  python:
+  dev:
     image: mcr.microsoft.com/devcontainers/python:1-3.9-bullseye
-    container_name: python
+    container_name: dev 
     environment:
       - DBT_PROFILES_DIR=/usr/src/app/
     volumes:
-      - .:/usr/src/app:rw
+      - ..:/usr/src/app:rw
       - dremio_data:/mnt/dremio_data:rw
     working_dir: /usr/src/app
-    command: /bin/bash -c "pip install --upgrade pip && pip install --user -r dev_requirements.txt && pip install -e --user . && tail -f /dev/null && /bin/bash"
+    command: /bin/bash -c "pip install --upgrade pip && pip install --user -r dev_requirements.txt && pip install --user . && tail -f /dev/null && /bin/bash"
     tty: true
     networks:
     - dremio-laptop-lakehouse
@@ -98,7 +95,6 @@ services:
 
 networks:
   dremio-laptop-lakehouse:
-
 
 volumes:
   dremio_data:
