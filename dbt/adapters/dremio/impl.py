@@ -149,10 +149,12 @@ class DremioAdapter(SQLAdapter):
             # Just needed to change these two values to match Dremio cols
             grantee = row["grantee_id"]
             privilege = row["privilege"]
+            grantee_type = row["grantee_type"]
+
             if privilege in grants_dict.keys():
-                grants_dict[privilege].append(grantee)
+                grants_dict[privilege].append(f"{grantee_type}:{grantee}")
             else:
-                grants_dict.update({privilege: [grantee]})
+                grants_dict.update({privilege: [f"{grantee_type}:{grantee}"]})
         return grants_dict
 
     # This is for use in the test suite

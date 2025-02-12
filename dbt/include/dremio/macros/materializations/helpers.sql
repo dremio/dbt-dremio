@@ -19,10 +19,7 @@ limitations under the License.*/
       {%- set cols = [cols] -%}
     {%- endif -%}
     {{ label }} (
-    {%- for item in cols -%}
-      {{ adapter.quote(item) }}
-      {%- if not loop.last -%},{%- endif -%}
-    {%- endfor -%}
+    {{ cols | join(', ') }}
     )
   {%- endif %}
 {%- endmacro -%}

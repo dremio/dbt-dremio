@@ -3,6 +3,15 @@
 ## Changes
 
 - When naming reflections, if a `name` config is not set, the `alias` config parameter will be used instead. If also undefined, it will refer to the model name instead of using `Unnamed Reflection`
+- Grants can now be set for both users and for roles. A prefix was added to handle this, with `user:` and `role:` being the valid prefixes. For example, `user:dbt_test_user_1` and `role:dbt_test_role_1`. If no prefix is provided, defaults to user for backwards compatibility.
+- Moves the `raw_on_schema_change` variable back into scope for the config validator
+- Adds `BaseIncrementalOnSchemaChange` test to test_incremental.py
+- Changed logic for partitioning when materializing tables. Double quoting issue has been removed, now letting the user decide the quoting
+    - New example: `partition_by=['month("datetime_utc")']`
+## Features
+
+- [#259](https://github.com/dremio/dbt-dremio/pull/259) Added support for roles in grants
+- [#273](https://github.com/dremio/dbt-dremio/pull/273) Fix issue with on_schema_change config
 
 # dbt-dremio v1.8.1
 
@@ -27,7 +36,7 @@
   - Integration via REST API
 
 ## Features
- 
+
 -   [#250](https://github.com/dremio/dbt-dremio/pull/250) Implementation of wikis and tags feature
 -   [#250](https://github.com/dremio/dbt-dremio/pull/256) Reflections are now handled through the Rest API
 
@@ -55,7 +64,7 @@
 ## Changes
 
 -   [#199](https://github.com/dremio/dbt-dremio/issues/199) Populate PyPI's `long_description` with contents of `README.md`
--   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues. 
+-   [#167](https://github.com/dremio/dbt-dremio/issues/167) Remove parentheses surrounding views in the create_view_as macro. In more complex queries, the parentheses cause performance issues.
 -   [#211](https://github.com/dremio/dbt-dremio/issues/211) Make fetching model data false by default. This improves performance where job results do not need to be populated.
 -   [#203](https://github.com/dremio/dbt-dremio/issues/203) Allow for dots in schema name, by surrounding in single and double quotes.
 -   [#193](https://github.com/dremio/dbt-dremio/issues/193) Fixes Reflection bug: The name argument to ref() must be a string, got <class 'jinja2.runtime.Undefined'>
