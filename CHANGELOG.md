@@ -6,7 +6,8 @@
 - Grants can now be set for both users and for roles. A prefix was added to handle this, with `user:` and `role:` being the valid prefixes. For example, `user:dbt_test_user_1` and `role:dbt_test_role_1`. If no prefix is provided, defaults to user for backwards compatibility.
 - Moves the `raw_on_schema_change` variable back into scope for the config validator
 - Adds `BaseIncrementalOnSchemaChange` test to test_incremental.py
-
+- Changed logic for partitioning when materializing tables. Double quoting issue has been removed, now letting the user decide the quoting
+    - New example: `partition_by=['month("datetime_utc")']`
 ## Features
 
 - [#259](https://github.com/dremio/dbt-dremio/pull/259) Added support for roles in grants
