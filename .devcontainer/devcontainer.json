@@ -1,0 +1,30 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "dbt-dremio-devcontainer",
+	// Use a Docker Compose file
+	"dockerComposeFile": "../.docker/docker-compose.yml",
+	"service": "dev", 
+	"workspaceFolder": "/usr/src/app",
+
+	"runArgs": [
+  		"--userns=keep-id:uid=1000,gid=1000"
+ 	],
+ 	"containerUser": "vscode",
+	"updateRemoteUserUID": true,
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-azuretools.vscode-docker",
+				"eamodio.gitlens"
+			],
+			"settings": {
+   				"terminal.integrated.shell.linux": "/bin/bash"
+  			}
+		}
+	}
+}
