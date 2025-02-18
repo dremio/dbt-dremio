@@ -17,9 +17,8 @@ from typing import List
 from contextlib import contextmanager
 from dbt.tests.util import AnyInteger
 
-from dbt.adapters.events.logging import AdapterLogger
-
-logger = AdapterLogger("dremio")
+import logging
+LOGGER = logging.getLogger(__name__)
 
 # Ensure we do not include dashes in our source
 # https://github.com/dremio/dbt-dremio/issues/68
@@ -42,28 +41,30 @@ def relation_from_name(adapter, name: str, materialization=""):
     quote_policy = cls.get_default_quote_policy().to_dict()
     include_policy = cls.get_default_include_policy().to_dict()
 
+    relation_parts = name.split(".")
+
     # Make sure we have database/schema/identifier parts, even if
     # only identifier was supplied.
-    relation_parts = name.split(".")
-    if len(relation_parts) == 1:
-        if materialization == "view" or "view" in name:
-            relation_parts.insert(0, credentials.schema)
-        else:
-            relation_parts.insert(0, credentials.root_path)
-    if len(relation_parts) == 2:
-        # if the relation is a view then use database
-        if materialization == "view" or "view" in name:
-            relation_parts.insert(0, credentials.database)
-            relation_type = "view"
-        else:
-            relation_parts.insert(0, credentials.datalake)
-            relation_type = "table"
+
+    # if the relation is a view then use database
+    LOGGER.info(f"Credentials: {credentials}")
+    if materialization == "view" or "view" in name:
+        relation_parts.insert(0, credentials.database)
+        relation_parts.insert(1, credentials.schema)
+    else:
+        relation_parts.insert(0, credentials.datalake)
+        relation_parts.insert(1, credentials.root_path)
+    
+    relation_type = "table" if materialization != "view" and "view" not in name else "view"
+
     kwargs = {
         "database": relation_parts[0],
-        "schema": relation_parts[1],
-        "identifier": relation_parts[2],
+        "schema": ".".join(relation_parts[1:-1]),
+        "identifier": relation_parts[-1],
         "type": relation_type,
     }
+
+    LOGGER.info(f"Relation kwargs: {kwargs}")
 
     relation = cls.create(
         include_policy=include_policy,

@@ -17,8 +17,8 @@ limitations under the License.*/
     else target.root_path -%}
   {%- set custom_schema_name = custom_schema_name if not is_datalake_node(node)
     else node.config.root_path -%}
-  {%- set custom_schema_name = append_schema(custom_schema_name or default_schema, node.config.schema)
-    if node.config.materialized == 'table' else custom_schema_name -%}
+  {%- set custom_schema_name = default_schema ~ "." ~ custom_schema_name
+    if not is_datalake_node(node) else append_schema(custom_schema_name or default_schema, node.config.schema) -%}
   {{ generate_schema_name_impl(default_schema, custom_schema_name, node) }}
 {%- endmacro %}
 
