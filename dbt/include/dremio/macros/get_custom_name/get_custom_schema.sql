@@ -17,13 +17,15 @@ limitations under the License.*/
     else target.root_path -%}
   {%- set custom_schema_name = custom_schema_name if not is_datalake_node(node)
     else node.config.root_path -%}
-  {%- set custom_schema_name = default_schema ~ "." ~ custom_schema_name
-    if not is_datalake_node(node) else append_schema(custom_schema_name or default_schema, node.config.schema) -%}
+  {%- set custom_schema_name = append_schema(default_schema, custom_schema_name) if not is_datalake_node(node)
+    else append_schema(custom_schema_name or default_schema, node.config.schema) -%}
   {{ generate_schema_name_impl(default_schema, custom_schema_name, node) }}
 {%- endmacro %}
 
-{% macro append_schema(base_path, subfolder) -%}
-  {{ base_path if subfolder is none else subfolder if base_path in [none, 'no_schema'] else base_path ~ '.' ~ subfolder }}
+{% macro append_schema(base_path, custom_schema) -%}
+  {{ base_path if custom_schema is none
+      else custom_schema if base_path in [none, 'no_schema']
+      else base_path ~ '.' ~ custom_schema}}
 {%- endmacro %}
 
 {% macro generate_schema_name_impl(default_schema, custom_schema_name=none, node=none) -%}
