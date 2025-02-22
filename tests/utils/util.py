@@ -21,9 +21,6 @@ from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
-import logging
-LOGGER = logging.getLogger(__name__)
-
 # Ensure we do not include dashes in our source
 # https://github.com/dremio/dbt-dremio/issues/68
 BUCKET = "dbtdremios3"
@@ -51,14 +48,13 @@ def relation_from_name(adapter, name: str, materialization=""):
     # only identifier was supplied.
 
     # if the relation is a view then use database
-    LOGGER.info(f"Credentials: {credentials}")
     if materialization == "view" or "view" in name:
         relation_parts.insert(0, credentials.database)
-        relation_parts.insert(1, credentials.schema)
     else:
         relation_parts.insert(0, credentials.datalake)
-        relation_parts.insert(1, credentials.root_path)
     
+    relation_parts.insert(1, credentials.schema)
+
     relation_type = "table" if materialization != "view" and "view" not in name else "view"
 
     kwargs = {
@@ -67,8 +63,6 @@ def relation_from_name(adapter, name: str, materialization=""):
         "identifier": relation_parts[-1],
         "type": relation_type,
     }
-
-    LOGGER.info(f"Relation kwargs: {kwargs}")
 
     relation = cls.create(
         include_policy=include_policy,

@@ -229,6 +229,9 @@ class DremioConnectionManager(SQLConnectionManager):
         if database != credentials.datalake:
             logger.debug(f"Creating folder(s): {database}.{schema}")
             self._create_folders(database, schema, rest_client)
+        else:
+            logger.debug(f"Creating folder(s): {credentials.database}.{schema}")
+            self._create_folders(credentials.database, schema, rest_client)
         return
     
     # dbt docs integration with Dremio wikis and tags

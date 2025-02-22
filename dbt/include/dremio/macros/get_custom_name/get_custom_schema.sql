@@ -13,19 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro dremio__generate_schema_name(custom_schema_name, node) -%}
-  {%- set default_schema = target.schema if not is_datalake_node(node)
-    else target.root_path -%}
-  {%- set custom_schema_name = custom_schema_name if not is_datalake_node(node)
-    else node.config.root_path -%}
-  {%- set custom_schema_name = append_schema(default_schema, custom_schema_name) if not is_datalake_node(node)
-    else append_schema(custom_schema_name or default_schema, node.config.schema) -%}
+  {%- set default_schema = target.schema -%}
   {{ generate_schema_name_impl(default_schema, custom_schema_name, node) }}
-{%- endmacro %}
-
-{% macro append_schema(base_path, custom_schema) -%}
-  {{ base_path if custom_schema is none
-      else custom_schema if base_path in [none, 'no_schema']
-      else base_path ~ '.' ~ custom_schema}}
 {%- endmacro %}
 
 {% macro generate_schema_name_impl(default_schema, custom_schema_name=none, node=none) -%}
@@ -35,7 +24,7 @@ limitations under the License.*/
 
   {%- else -%}
 
-      {{ custom_schema_name }}
+      {{default_schema}}.{{ custom_schema_name }}
 
   {%- endif -%}
 {%- endmacro %}
