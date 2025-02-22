@@ -50,10 +50,12 @@ def relation_from_name(adapter, name: str, materialization=""):
     # if the relation is a view then use database
     if materialization == "view" or "view" in name:
         relation_parts.insert(0, credentials.database)
+        relation_parts.insert(1, credentials.schema)
     else:
         relation_parts.insert(0, credentials.datalake)
+        if credentials.root_path in [None, "no_schema"]:
+            relation_parts.insert(1, credentials.root_path)
     
-    relation_parts.insert(1, credentials.schema)
 
     relation_type = "table" if materialization != "view" and "view" not in name else "view"
 

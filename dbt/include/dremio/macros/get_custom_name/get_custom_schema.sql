@@ -13,7 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% macro dremio__generate_schema_name(custom_schema_name, node) -%}
-  {%- set default_schema = target.schema -%}
+  {%- set default_schema = target.schema if not is_datalake_node(node)
+    else target.root_path -%}
   {{ generate_schema_name_impl(default_schema, custom_schema_name, node) }}
 {%- endmacro %}
 

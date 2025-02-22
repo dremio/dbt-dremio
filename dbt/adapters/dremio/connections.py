@@ -227,10 +227,10 @@ class DremioConnectionManager(SQLConnectionManager):
             self._create_space(database, rest_client)
 
         if database != credentials.datalake:
-            logger.debug(f"Creating folder(s): {database}.{schema}")
+            logger.info(f"Creating folder(s): {database}.{schema}")
             self._create_folders(database, schema, rest_client)
         else:
-            logger.debug(f"Creating folder(s): {credentials.database}.{schema}")
+            logger.info(f"Creating folder(s): {credentials.database}.{schema}")
             self._create_folders(credentials.database, schema, rest_client)
         return
     
