@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../../../home/vscode/.local/lib/python3.9/site-packages"
+		}
+	],
+	"settings": {}
+}

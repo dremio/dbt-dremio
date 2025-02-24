@@ -23,6 +23,10 @@ limitations under the License.*/
 
       {{ default_schema }}
 
+  {%- elif default_schema == 'no_schema' -%}
+
+      {{ custom_schema_name}}
+
   {%- else -%}
 
       {{default_schema}}.{{ custom_schema_name }}

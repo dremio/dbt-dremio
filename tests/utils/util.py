@@ -53,7 +53,7 @@ def relation_from_name(adapter, name: str, materialization=""):
         relation_parts.insert(1, credentials.schema)
     else:
         relation_parts.insert(0, credentials.datalake)
-        if credentials.root_path in [None, "no_schema"]:
+        if credentials.root_path not in [None, "no_schema"]:
             relation_parts.insert(1, credentials.root_path)
     
 
