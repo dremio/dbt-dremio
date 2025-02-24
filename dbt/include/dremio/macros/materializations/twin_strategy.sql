@@ -14,7 +14,6 @@ limitations under the License.*/
 
 {%- macro apply_twin_strategy(target_relation) -%}
   {%- set twin_strategy = config.get('twin_strategy', validator=validation.any[basestring]) or 'clone' -%}
-    {{ log("TARGET: " ~ target_relation, True) }}
   {%- if target_relation.type == 'view' -%}
     {%- if twin_strategy != 'allow' -%}
       {%- set table_relation = api.Relation.create(
