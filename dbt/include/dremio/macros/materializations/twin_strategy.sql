@@ -24,12 +24,13 @@ limitations under the License.*/
       {{ adapter.drop_relation(table_relation) }}
     {%- endif -%}
   {%- elif target_relation.type == 'table' -%}
-    {%- if twin_strategy in ['prevent', 'clone'] -%}
-      {%- set view_relation = api.Relation.create(
-          identifier=generate_alias_name_impl(model.name, config.get('alias', validator=validation.any[basestring]), model),
-          schema=generate_schema_name_impl(target.schema, config.get('schema', validator=validation.any[basestring]), model),
-          database=generate_database_name_impl(target.database, config.get('database', validator=validation.any[basestring]), model),
-          type='view') -%}
+    {%- set view_relation = api.Relation.create(
+        identifier=generate_alias_name_impl(model.name, config.get('alias', validator=validation.any[basestring]), model),
+        schema=generate_schema_name_impl(target.schema, config.get('schema', validator=validation.any[basestring]), model),
+        database=generate_database_name_impl(target.database, config.get('database', validator=validation.any[basestring]), model),
+        type='view') -%}
+    {%- set conflicting_view = adapter.get_relation(database=view_relation.database, schema=view_relation.schema, identifier=view_relation.identifier) -%}
+    {%- if conflicting_view is not none -%}
       {%- if twin_strategy == 'prevent' -%}
         {{ adapter.drop_relation(view_relation) }}
       {%- elif twin_strategy == 'clone' -%}
