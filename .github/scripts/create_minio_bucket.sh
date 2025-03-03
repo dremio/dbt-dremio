@@ -3,6 +3,7 @@ set -e
 
 : "${RETRY_COUNT:?Need to set RETRY_COUNT}"
 : "${SLEEP_INTERVAL:?Need to set SLEEP_INTERVAL}"
+: "${MINIO_HOST_URL:?Need to set MINIO_HOST_URL}"
 : "${MINIO_HEALTH_URL:?Need to set MINIO_HEALTH_URL}"
 : "${MINIO_ROOT_USER:?Need to set MINIO_ROOT_USER}"
 : "${MINIO_ROOT_PASSWORD:?Need to set MINIO_ROOT_PASSWORD}"
@@ -24,7 +25,7 @@ if ! curl -s $MINIO_HEALTH_URL; then
 fi
 
 # Set alias to MinIO using localhost
-mc alias set myminio http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+mc alias set myminio "$MINIO_HOST_URL" "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
 
 echo "Creating bucket dbtdremios3"
 mc mb myminio/dbtdremios3

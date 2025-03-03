@@ -31,7 +31,8 @@ jobs:
     env:
       RETRY_COUNT: 12 # number of retries for health checks
       SLEEP_INTERVAL: 5 # Sleep duration in seconds between retries
-      MINIO_HEALTH_URL: http://localhost:9000/minio/health/live
+      MINIO_HOST_URL: http://localhost:9000
+      MINIO_HEALTH_URL: ${MINIO_HOST_URL}/minio/health/live
       DREMIO_HEALTH_URL: http://localhost:9047
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: password
