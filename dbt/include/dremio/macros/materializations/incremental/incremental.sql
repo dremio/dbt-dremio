@@ -25,6 +25,7 @@ limitations under the License.*/
   -- configs
   {%- set unique_key = config.get('unique_key', validator=validation.any[list, basestring]) -%}
   {%- set full_refresh_mode = (should_full_refresh()) -%}
+  {%- set raw_on_schema_change = config.get('on_schema_change', validator=validation.any[basestring]) or 'ignore' -%}
   {%- set on_schema_change = incremental_validate_on_schema_change(raw_on_schema_change) -%}
 
   -- the temp_ and backup_ relations should not already exist in the database; get_relation
@@ -70,7 +71,6 @@ limitations under the License.*/
     {%- set file_format = dbt_dremio_validate_get_file_format(raw_file_format) -%}
     {%- set incremental_predicates = config.get('predicates', none) or config.get('incremental_predicates', none) -%}
     {%- set strategy = dbt_dremio_validate_get_incremental_strategy(incremental_strategy) -%}
-    {%- set raw_on_schema_change = config.get('on_schema_change', validator=validation.any[basestring]) or 'ignore' -%}
     {% set build_sql = dbt_dremio_get_incremental_sql(strategy, intermediate_relation, target_relation, dest_columns, unique_key) %}
     
   {% endif %}

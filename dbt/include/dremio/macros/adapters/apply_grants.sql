@@ -16,6 +16,24 @@ limitations under the License.*/
     {{ return(False) }}
 {%- endmacro -%}
 
+{%- macro dremio__split_grantee(grantee) -%}
+    {%- set splitted = grantee.split(':') -%}
+
+    {%- if splitted | length < 2 -%}
+        {{ log("Deprecation warning: grants to users will soon require the user: prefix", info=True) }}
+        {{ return(("user", grantee)) }}
+    {%- else -%}
+        {%- set prefix = splitted[0] -%}
+        {%- set remainder = splitted[1:] | join(':') -%}
+
+        {%- if prefix not in ['user', 'role'] -%}
+            {% do exceptions.CompilationError("Invalid prefix. Use either user or role") %}
+        {%- endif -%}
+
+        {{ return((prefix, remainder)) }}
+    {%- endif -%}
+{%- endmacro -%}
+
 {% macro dremio__get_show_grant_sql(relation) %}
     {%- if relation.type == 'table' -%}
         {%- set relation_without_double_quotes = target.datalake ~ '.' ~ target.root_path ~ '.' ~ relation.identifier-%}
@@ -30,17 +48,23 @@ limitations under the License.*/
     {%- else -%}
          {% do exceptions.CompilationError("Invalid profile configuration: please only specify one of cloud_host or software_host in profiles.yml") %}
     {%- endif %}
-    SELECT privilege, grantee_id
+    SELECT privilege, grantee_type, grantee_id
         FROM {{privileges_table}}
         WHERE object_id='{{ relation_without_double_quotes }}'
 {% endmacro %}
 
 {%- macro dremio__get_grant_sql(relation, privilege, grantees) -%}
-    grant {{ privilege }} on {{relation.type}} {{ relation }} to user {{adapter.quote(grantees[0])}}
+    {%- set type, name = dremio__split_grantee(grantees[0]) %}
+
+    grant {{ privilege }} on {{ relation.type }} {{ relation }}
+    to {{ type }} {{ adapter.quote(name) }}
 {%- endmacro -%}
 
-{%- macro default__get_revoke_sql(relation, privilege, grantees) -%}
-    revoke {{ privilege }} on {{ relation.type }} {{ relation }} from user {{adapter.quote(grantees[0])}}
+{%- macro dremio__get_revoke_sql(relation, privilege, grantees) -%}
+    {%- set type, name = dremio__split_grantee(grantees[0]) %}
+
+    revoke {{ privilege }} on {{ relation.type }} {{ relation }}
+    from {{ type }} {{ adapter.quote(name) }}
 {%- endmacro -%}
 
 {% macro dremio__call_dcl_statements(dcl_statement_list) %}
