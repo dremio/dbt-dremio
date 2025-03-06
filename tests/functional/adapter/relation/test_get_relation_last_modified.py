@@ -23,7 +23,7 @@ sources:
     freshness:
       warn_after: {count: 10, period: hour}
       error_after: {count: 1, period: day}
-    database: "dbt_test_source"  
+    database: "{{ target.datalake }}"  
     schema: "{{ target.schema }}"
     tables:
       - name: test_source

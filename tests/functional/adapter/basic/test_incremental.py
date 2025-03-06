@@ -17,15 +17,21 @@ from dbt.tests.adapter.basic.test_incremental import (
     BaseIncremental,
     BaseIncrementalNotSchemaChange,
 )
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 from dbt.tests.adapter.incremental.test_incremental_merge_exclude_columns import (
     BaseMergeExcludeColumns,
 )
 from dbt.tests.adapter.incremental.test_incremental_on_schema_change import (
     BaseIncrementalOnSchemaChange,
 )
-from tests.fixtures.profiles import unique_schema, dbt_profile_data
-from tests.utils.util import BUCKET, SOURCE
-from dbt.tests.util import run_dbt, relation_from_name, check_relations_equal
+from tests.utils.util import (
+    BUCKET,
+    SOURCE,
+    relation_from_name,
+    check_relations_equal
+)
+from dbt.tests.util import run_dbt
+from dbt.tests.adapter.basic import files
 from collections import namedtuple
 
 
@@ -70,8 +76,25 @@ ResultHolder = namedtuple(
 )
 
 
+schema_yml = """
+version: 2
+sources:
+  - name: raw
+
+    database: "{{ target.datalake }}"
+    schema: "{{ target.root_path }}"
+    tables:
+      - name: seed
+        identifier: "{{ var('seed_name', 'base') }}"
+        """
+
+
 # Need to modify test to not assert any sources for it to pass
 class TestIncrementalDremio(BaseIncremental):
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {"incremental.sql": files.incremental_sql, "schema.yml": schema_yml}
+
     def test_incremental(self, project):
         # seed command
         results = run_dbt(["seed"])
