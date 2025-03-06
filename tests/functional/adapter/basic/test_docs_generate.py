@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import pytest
+from tests.fixtures.profiles import unique_schema
+
 import os
 from tests.utils.util import (
     base_expected_catalog,
@@ -23,11 +25,16 @@ from dbt.tests.adapter.basic.test_docs_generate import (
     BaseDocsGenerate,
     BaseDocsGenReferences,
     verify_metadata,
+    models__schema_yml,
     models__readme_md,
     models__model_sql,
-    models__schema_yml,
     run_and_generate,
     get_artifact,
+    ref_models__schema_yml,
+    ref_models__view_summary_sql,
+    ref_models__ephemeral_summary_sql,
+    ref_models__ephemeral_copy_sql,
+    ref_models__docs_md,
 )
 from dbt.tests.adapter.basic.expected_catalog import no_stats
 
@@ -43,6 +50,22 @@ models__second_model_sql = """
 select * from {{ ref('seed') }}
 """
 
+ref_sources__schema_yml = """
+version: 2
+sources:
+  - name: my_source
+    description: "{{ doc('source_info') }}"
+    loader: a_loader
+    database: "{{ target.datalake }}"
+    schema: "{{ var('test_schema') }}"
+    tables:
+      - name: my_table
+        description: "{{ doc('table_info') }}"
+        identifier: seed
+        columns:
+          - name: id
+            description: "{{ doc('column_info') }}"
+"""
 
 # Remove check for sources and only include nodes
 def verify_catalog_nodes(project, expected_catalog, start_time):
@@ -78,15 +101,6 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
             "readme.md": models__readme_md,
             "model.sql": models__model_sql,
         }
-
-    # Override this fixture to prepend our schema with BUCKET
-    # This ensures the schema works with our datalake
-    @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
-        return unique_schema
 
     # Override this fixture to prevent (twin_strategy) creating a view for seeds
     @pytest.fixture(scope="class")
@@ -161,11 +175,15 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
 
 class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
     @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
-        return unique_schema
+    def models(self):
+        return {
+            "schema.yml": ref_models__schema_yml,
+            "sources.yml": ref_sources__schema_yml,
+            "view_summary.sql": ref_models__view_summary_sql,
+            "ephemeral_summary.sql": ref_models__ephemeral_summary_sql,
+            "ephemeral_copy.sql": ref_models__ephemeral_copy_sql,
+            "docs.md": ref_models__docs_md,
+        }
 
     # Override this fixture to allow (twin_strategy) to create a view for seeds
     # The creation of some models looks for the seed under the database/schema

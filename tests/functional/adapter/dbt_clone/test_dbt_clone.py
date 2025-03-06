@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import pytest
+from tests.fixtures.profiles import unique_schema
+
 from copy import deepcopy
 from tests.utils.util import BUCKET, SOURCE
 from dbt.tests.adapter.dbt_clone.test_dbt_clone import BaseCloneNotPossible
@@ -60,14 +62,6 @@ class TestCloneNotPossibleDremio(BaseCloneNotPossible):
         return {
             "snapshot.sql": snapshot_sql,
         }
-
-    @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        # We only want the last part of the name
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
-        return unique_schema
 
     @pytest.fixture(scope="class")
     def macros(self):
