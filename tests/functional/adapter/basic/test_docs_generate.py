@@ -252,13 +252,6 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
             "model.sql": models__model_sql,
         }
 
-    @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
-        return unique_schema
-
     # The creation of some models looks for the seed under the database/schema
     @pytest.fixture(scope="class")
     def project_config_update(self, unique_schema):
@@ -273,28 +266,6 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
                 "quote_columns": True,
             },
         }
-
-    # Override this fixture to set root_path=schema
-    @pytest.fixture(scope="class")
-    def dbt_profile_data(
-        self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
-        profile = {
-            "test": {
-                "outputs": {
-                    "default": {},
-                },
-                "target": "default",
-            },
-        }
-        target = dbt_profile_target
-        target["schema"] = unique_schema
-        target["root_path"] = unique_schema
-        profile["test"]["outputs"]["default"] = target
-
-        if profiles_config_update:
-            profile.update(profiles_config_update)
-        return profile
 
     # Override this fixture to change expected types to Dremio types
     @pytest.fixture(scope="class")

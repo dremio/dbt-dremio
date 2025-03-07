@@ -12,5 +12,3 @@ tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigWithCountDremio::t
 tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigKwargsDremio::test_pre_and_post_model_hooks_model
 tests/hooks/test_model_hooks.py::TestPrePostSnapshotHooksInConfigKwargsDremio::test_hooks_on_snapshots
 tests/hooks/test_run_hooks.py::TestPrePostRunHooksDremio::test_pre_and_post_run_hooks
-#
-if
