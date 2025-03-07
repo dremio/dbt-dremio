@@ -9,8 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import pytest
+from tests.fixtures.profiles import unique_schema
 
 from pathlib import Path
 
@@ -45,17 +45,6 @@ from tests.hooks.fixtures import (
 )
 
 from tests.utils.util import BUCKET, SOURCE
-
-
-# This ensures the schema works with our datalake
-@pytest.fixture(scope="class")
-def unique_schema(request, prefix) -> str:
-    test_file = request.module.__name__
-    # We only want the last part of the name
-    test_file = test_file.split(".")[-1]
-    unique_schema = f"{BUCKET}.{test_file}"
-    return unique_schema
-
 
 # Override this fixture to set root_path=schema
 @pytest.fixture(scope="class")
@@ -310,14 +299,6 @@ class TestPrePostModelHooksOnSeedsPlusPrefixedWhitespaceDremio(
 
 
 class TestPrePostModelHooksOnSnapshotsDremio(object):
-    @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        # We only want the last part of the name
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
-        return unique_schema
-
     @pytest.fixture(scope="class")
     def dbt_profile_data(
         self, unique_schema, dbt_profile_target, profiles_config_update

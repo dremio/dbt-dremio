@@ -21,7 +21,7 @@ from dbt.tests.util import run_dbt
 schema_sources_yml = """
 sources:
   - name: seed_sources
-    database: "dbt_test_source"
+    database: "{{ target.datalake }}"
     schema: "{{ target.root_path }}"
     tables:
       - name: raw_source

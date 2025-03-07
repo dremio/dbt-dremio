@@ -17,15 +17,21 @@ from dbt.tests.adapter.basic.test_incremental import (
     BaseIncremental,
     BaseIncrementalNotSchemaChange,
 )
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 from dbt.tests.adapter.incremental.test_incremental_merge_exclude_columns import (
     BaseMergeExcludeColumns,
 )
 from dbt.tests.adapter.incremental.test_incremental_on_schema_change import (
     BaseIncrementalOnSchemaChange,
 )
-from tests.fixtures.profiles import unique_schema, dbt_profile_data
-from tests.utils.util import BUCKET, SOURCE
-from dbt.tests.util import run_dbt, relation_from_name, check_relations_equal
+from tests.utils.util import (
+    BUCKET,
+    SOURCE,
+    relation_from_name,
+    check_relations_equal
+)
+from dbt.tests.util import run_dbt
+from dbt.tests.adapter.basic import files
 from collections import namedtuple
 
 
@@ -70,8 +76,25 @@ ResultHolder = namedtuple(
 )
 
 
+schema_base_yml = """
+version: 2
+sources:
+  - name: raw
+
+    database: "{{ target.datalake }}"
+    schema: "{{ target.root_path }}"
+    tables:
+      - name: seed
+        identifier: "{{ var('seed_name', 'base') }}"
+        """
+
+
 # Need to modify test to not assert any sources for it to pass
 class TestIncrementalDremio(BaseIncremental):
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {"incremental.sql": files.incremental_sql, "schema.yml": schema_base_yml}
+
     def test_incremental(self, project):
         # seed command
         results = run_dbt(["seed"])
@@ -116,7 +139,30 @@ class TestBaseIncrementalNotSchemaChange(BaseIncrementalNotSchemaChange):
     pass
 
 class TestIncrementalOnSchemaChange(BaseIncrementalOnSchemaChange):
-    pass
+    def run_twice_and_assert(self, include, compare_source, compare_target, project):
+        # dbt run (twice)
+        run_args = ["run"]
+        if include:
+            run_args.extend(("--select", include))
+        results_one = run_dbt(run_args)
+        assert len(results_one) == 3
+
+        results_two = run_dbt(run_args)
+        assert len(results_two) == 3
+
+        check_relations_equal(project.adapter, [compare_source, compare_target])
+
+    def run_incremental_sync_all_columns(self, project):
+        select = "model_a incremental_sync_all_columns incremental_sync_all_columns_target"
+        compare_source = "incremental_sync_all_columns"
+        compare_target = "incremental_sync_all_columns_target"
+        self.run_twice_and_assert(select, compare_source, compare_target, project)
+
+    def run_incremental_sync_remove_only(self, project):
+        select = "model_a incremental_sync_remove_only incremental_sync_remove_only_target"
+        compare_source = "incremental_sync_remove_only"
+        compare_target = "incremental_sync_remove_only_target"
+        self.run_twice_and_assert(select, compare_source, compare_target, project)
 
 
 class TestBaseMergeExcludeColumnsDremio(BaseMergeExcludeColumns):
@@ -142,4 +188,19 @@ class TestBaseMergeExcludeColumnsDremio(BaseMergeExcludeColumns):
 
         return ResultHolder(
             seed_count, model_count, seed_rows, inc_test_model_count, relation
+        )
+
+    def check_scenario_correctness(self, expected_fields, test_case_fields, project):
+        """Invoke assertions to verify correct build functionality"""
+        # 1. test seed(s) should build afresh
+        assert expected_fields.seed_count == test_case_fields.seed_count
+        # 2. test model(s) should build afresh
+        assert expected_fields.model_count == test_case_fields.model_count
+        # 3. seeds should have intended row counts post update
+        assert expected_fields.seed_rows == test_case_fields.seed_rows
+        # 4. incremental test model(s) should be updated
+        assert expected_fields.inc_test_model_count == test_case_fields.inc_test_model_count
+        # 5. result table should match intended result set (itself a relation)
+        check_relations_equal(
+            project.adapter, [expected_fields.relation, test_case_fields.relation]
         )

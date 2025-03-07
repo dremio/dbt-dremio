@@ -14,6 +14,7 @@
 
 import pytest
 from dbt.tests.adapter.basic.test_base import BaseSimpleMaterializations
+from tests.fixtures.profiles import unique_schema
 
 from tests.utils.util import (
     relation_from_name,
@@ -36,7 +37,7 @@ schema_base_yml = """
 version: 2
 sources:
   - name: raw
-    database: "dbt_test_source"
+    database: "{{ target.datalake }}"
     schema: "{{ target.schema }}"
     tables:
       - name: seed
@@ -64,14 +65,6 @@ class TestSimpleMaterializationsDremio(BaseSimpleMaterializations):
             "name": "base",
             "vars": {"dremio:reflections": "false"},
         }
-
-    @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        # We only want the last part of the name
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
-        return unique_schema
 
     @pytest.fixture(scope="class")
     def dbt_profile_data(
