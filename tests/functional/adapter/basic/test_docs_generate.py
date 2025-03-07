@@ -23,102 +23,22 @@ from dbt.tests.adapter.basic.test_docs_generate import (
     BaseDocsGenerate,
     BaseDocsGenReferences,
     verify_metadata,
+    models__schema_yml,
     models__readme_md,
     models__model_sql,
-    models__schema_yml,
     run_and_generate,
     get_artifact,
-    verify_catalog
+    ref_models__schema_yml,
+    ref_models__view_summary_sql,
+    ref_models__ephemeral_summary_sql,
+    ref_models__ephemeral_copy_sql,
+    ref_models__docs_md,
 )
 from dbt.tests.adapter.basic.expected_catalog import no_stats
 
-models__schema_yml = """
-version: 2
-
-models:
-  - name: model
-    description: "The test model"
-    docs:
-      show: false
-    columns:
-      - name: id
-        description: The user ID number
-        data_tests:
-          - unique
-          - not_null
-      - name: first_name
-        description: The user's first name
-      - name: email
-        description: The user's email
-      - name: ip_address
-        description: The user's IP address
-      - name: updated_at
-        description: The last time this user's email was updated
-    data_tests:
-      - test.nothing
-
-  - name: second_model
-    description: "The second test model"
-    docs:
-      show: false
-    columns:
-      - name: id
-        description: The user ID number
-      - name: first_name
-        description: The user's first name
-      - name: email
-        description: The user's email
-      - name: ip_address
-        description: The user's IP address
-      - name: updated_at
-        description: The last time this user's email was updated
-
-
-sources:
-  - name: my_source
-    description: "My source"
-    loader: a_loader
-    database: "{{ target.database }}"
-    schema: "{{ var('test_schema') }}"
-    tables:
-      - name: my_table
-        description: "My table"
-        identifier: seed
-        columns:
-          - name: id
-            description: "An ID field"
-
-
-exposures:
-  - name: simple_exposure
-    type: dashboard
-    depends_on:
-      - ref('model')
-      - source('my_source', 'my_table')
-    owner:
-      email: something@example.com
-  - name: notebook_exposure
-    type: notebook
-    depends_on:
-      - ref('model')
-      - ref('second_model')
-    owner:
-      email: something@example.com
-      name: Some name
-    description: >
-      A description of the complex exposure
-    maturity: medium
-    meta:
-      tool: 'my_tool'
-      languages:
-        - python
-    tags: ['my_department']
-    url: http://example.com/notebook/1
-"""
-
 # required to explicitly use alternate_schema
 # otherwise will use unique_schema under profiles fixture
-models__second_model_sql = """
+models__second_model_custom_sql = """
 {{
     config(
         materialized='view',
@@ -128,6 +48,22 @@ models__second_model_sql = """
 select * from {{ ref('seed') }}
 """
 
+ref_sources__schema_yml = """
+version: 2
+sources:
+  - name: my_source
+    description: "{{ doc('source_info') }}"
+    loader: a_loader
+    database: "{{ target.datalake }}"
+    schema: "{{ var('test_schema') }}"
+    tables:
+      - name: my_table
+        description: "{{ doc('table_info') }}"
+        identifier: seed
+        columns:
+          - name: id
+            description: "{{ doc('column_info') }}"
+"""
 
 # Remove check for sources and only include nodes
 def verify_catalog_nodes(project, expected_catalog, start_time):
@@ -159,7 +95,7 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
     def models(self):
         return {
             "schema.yml": models__schema_yml,
-            "second_model.sql": models__second_model_sql,
+            "second_model.sql": models__second_model_custom_sql,
             "readme.md": models__readme_md,
             "model.sql": models__model_sql,
         }
@@ -173,6 +109,7 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
         unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
 
+    # Override this fixture to prevent (twin_strategy) creating a view for seeds
     @pytest.fixture(scope="class")
     def project_config_update(self, unique_schema):
         alternate_schema = unique_schema + "_test"
@@ -184,6 +121,7 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
             },
             "seeds": {
                 "quote_columns": True,
+                "+twin_strategy": "prevent",
             },
         }
 
@@ -246,12 +184,22 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
     @pytest.fixture(scope="class")
     def models(self):
         return {
-            "schema.yml": models__schema_yml,
-            "second_model.sql": models__second_model_sql,
-            "readme.md": models__readme_md,
-            "model.sql": models__model_sql,
+            "schema.yml": ref_models__schema_yml,
+            "sources.yml": ref_sources__schema_yml,
+            "view_summary.sql": ref_models__view_summary_sql,
+            "ephemeral_summary.sql": ref_models__ephemeral_summary_sql,
+            "ephemeral_copy.sql": ref_models__ephemeral_copy_sql,
+            "docs.md": ref_models__docs_md,
         }
 
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
+    # Override this fixture to allow (twin_strategy) to create a view for seeds
     # The creation of some models looks for the seed under the database/schema
     @pytest.fixture(scope="class")
     def project_config_update(self, unique_schema):
@@ -266,6 +214,28 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
                 "quote_columns": True,
             },
         }
+
+    # Override this fixture to set root_path=schema
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(
+        self, unique_schema, dbt_profile_target, profiles_config_update
+    ):
+        profile = {
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema
+        profile["test"]["outputs"]["default"] = target
+
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
 
     # Override this fixture to change expected types to Dremio types
     @pytest.fixture(scope="class")
@@ -284,4 +254,4 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
 
     def test_references(self, project, expected_catalog):
         start_time = run_and_generate(project)
-        verify_catalog(project, expected_catalog, start_time)
+        verify_catalog_nodes(project, expected_catalog, start_time)
