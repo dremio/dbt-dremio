@@ -40,7 +40,7 @@ from dbt.tests.adapter.basic.expected_catalog import no_stats
 
 # required to explicitly use alternate_schema
 # otherwise will use unique_schema under profiles fixture
-models__second_model_custom_sql = """
+models__second_model_sql = """
 {{
     config(
         materialized='view',
@@ -97,7 +97,7 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
     def models(self):
         return {
             "schema.yml": models__schema_yml,
-            "second_model.sql": models__second_model_custom_sql,
+            "second_model.sql": models__second_model_sql,
             "readme.md": models__readme_md,
             "model.sql": models__model_sql,
         }
