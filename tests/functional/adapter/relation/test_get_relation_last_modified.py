@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import pytest
-from tests.fixtures.profiles import unique_schema
-
 from dbt.tests.util import run_dbt
 from tests.utils.util import BUCKET, relation_from_name
 
@@ -54,6 +52,14 @@ class TestGetLastRelationModified:
                 "+twin_strategy": "prevent",
             },
         }
+
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
 
     @pytest.fixture(scope="class")
     def dbt_profile_data(

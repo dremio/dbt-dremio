@@ -4,7 +4,8 @@ from dbt.tests.adapter.caching.test_caching import (
     TestNoPopulateCache,
     BaseCachingSelectedSchemaOnly,
     BaseCachingLowercaseModel,
-    BaseCachingUppercaseModel
+    BaseCachingUppercaseModel,
+    model_sql,
 )
 
 class TestNoPopulateCacheDremio(TestNoPopulateCache):

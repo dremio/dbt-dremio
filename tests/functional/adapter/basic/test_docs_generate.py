@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import pytest
-from tests.fixtures.profiles import unique_schema
-
 import os
 from tests.utils.util import (
     base_expected_catalog,
@@ -102,6 +100,15 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
             "model.sql": models__model_sql,
         }
 
+    # Override this fixture to prepend our schema with BUCKET
+    # This ensures the schema works with our datalake
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
     # Override this fixture to prevent (twin_strategy) creating a view for seeds
     @pytest.fixture(scope="class")
     def project_config_update(self, unique_schema):
@@ -184,6 +191,13 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
             "ephemeral_copy.sql": ref_models__ephemeral_copy_sql,
             "docs.md": ref_models__docs_md,
         }
+
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
 
     # Override this fixture to allow (twin_strategy) to create a view for seeds
     # The creation of some models looks for the seed under the database/schema

@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import pytest
-from tests.fixtures.profiles import unique_schema
-
 from dbt.tests.adapter.utils.test_array_append import BaseArrayAppend
 
 from tests.utils.util import BUCKET
@@ -37,6 +35,15 @@ class TestArrayAppend(BaseArrayAppend):
             "actual.sql": models__array_append_actual_sql,
             "expected.sql": models__array_append_expected_sql,
         }
+
+    # Override this fixture to prepend our schema with BUCKET
+    # This ensures the schema works with our datalake
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
 
     @pytest.fixture(scope="class")
     def dbt_profile_data(

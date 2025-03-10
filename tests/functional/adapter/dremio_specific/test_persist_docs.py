@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import pytest
-from tests.fixtures.profiles import unique_schema
-
 from dbt.tests.adapter.persist_docs.test_persist_docs import BasePersistDocs
 from dbt.tests.adapter.persist_docs.fixtures import (
     _DOCS__MY_FUN_DOCS,
@@ -188,6 +186,15 @@ class TestPersistDocs(BasePersistDocs):
                 }
             }
         }
+    
+    # This ensures the schema works with our datalake
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
 
     # Override this fixture to set root_path=schema
     @pytest.fixture(scope="class")
