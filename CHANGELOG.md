@@ -3,6 +3,7 @@
 ## Changes
 
 - **Breaking:** With the previous implementation of the twin strategy, the connector **always** created a view matching the schema and name of a new table when the `clone` strategy was set (default). This differs from the behavior described in our [documentation](https://github.com/dremio/dbt-dremio/wiki/Using-Materializations-with-Dremio#user-content-optional-twin-strategy-configuration) since the twin strategy is only supposed to overwrite **conflicting** views.
+    - With this change, we introduce a check that will only overwrite existing views, not create new ones on table creation when the `clone` strategy is enabled.
     - To avoid failing queries, double-check that database and schema for freshly created table point to the physical space (datalake). This is especially relevant when pointing a source to a physical tables, since dbt defaults to the database (views), but the table will only lie in the datalake with this fix.
 
 ## Features
