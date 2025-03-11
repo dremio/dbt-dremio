@@ -22,7 +22,6 @@ limitations under the License.*/
     type='view') -%}
 
   {%- if target_relation.type == 'view' -%}
-    {{ log("Applying twin strategy " ~ twin_strategy ~ " to view " ~ target_relation.identifier, True) }}
     -- Check if there is a conflicting table
     {%- set table_relation = api.Relation.create(
         identifier=generate_alias_name_impl(model.name, config.get('file', validator=validation.any[basestring]), model),
@@ -46,7 +45,6 @@ limitations under the License.*/
       {%- endif -%}
     {%- endif -%}
   {%- elif target_relation.type == 'table' -%}
-    {{ log("Applying twin strategy " ~ twin_strategy ~ " to table " ~ target_relation.identifier, True) }}
     -- Check if there is a conflicting view
     {%- set conflicting_view = adapter.get_relation(database=view_relation.database, schema=view_relation.schema, identifier=view_relation.identifier) -%}
     {%- if conflicting_view is not none -%}
