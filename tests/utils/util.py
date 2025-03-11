@@ -48,7 +48,7 @@ def relation_from_name(adapter, name: str, materialization=""):
     # only identifier was supplied.
 
     # if the relation is a view then use database
-    if materialization == "view" or "view" in name.lower():
+    if materialization == "view" or (materialization != "table" and "view" in name.lower()):
         relation_parts.insert(0, credentials.database)
         relation_parts.insert(1, credentials.schema)
     else:
