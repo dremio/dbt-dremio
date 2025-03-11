@@ -1,3 +1,14 @@
+# dbt-dremio v1.9.0
+
+## Changes
+
+- **Breaking:** With the previous implementation of the twin strategy, the connector **always** created a view matching the schema and name of a new table when the `clone` strategy was set (default). This differs from the behavior described in our [documentation](https://github.com/dremio/dbt-dremio/wiki/Using-Materializations-with-Dremio#user-content-optional-twin-strategy-configuration) since the twin strategy is only supposed to overwrite **conflicting** views.
+    - To avoid failing queries, double-check that database and schema for freshly created table point to the physical space (datalake). This is especially relevant when pointing a source to a physical tables, since dbt defaults to the database (views), but the table will only lie in the datalake with this fix.
+
+## Features
+
+- [#278](https://github.com/dremio/dbt-dremio/pull/278) Fix twin strategy implementation
+
 # dbt-dremio v1.8.2
 
 ## Changes
@@ -8,6 +19,7 @@
 - Adds `BaseIncrementalOnSchemaChange` test to test_incremental.py
 - Changed logic for partitioning when materializing tables. Double quoting issue has been removed, now letting the user decide the quoting
     - New example: `partition_by=['month("datetime_utc")']`
+
 ## Features
 
 - [#259](https://github.com/dremio/dbt-dremio/pull/259) Added support for roles in grants
