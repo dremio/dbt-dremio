@@ -22,17 +22,21 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from dbt.adapters.base.column import Column as BaseColumn
+from dbt.adapters.base.impl import ConstraintSupport
 from dbt.adapters.base.meta import available
 from dbt.adapters.base.relation import BaseRelation
-
+from dbt.adapters.base.column import Column as BaseColumn
 from dbt.adapters.capability import (
     CapabilityDict,
     CapabilitySupport,
     Support,
     Capability,
 )
+from dbt.adapters.dremio.column import DremioColumn
+from dbt.contracts.graph.nodes import ConstraintType
 from dbt.adapters.sql.impl import DROP_RELATION_MACRO_NAME
 from dbt.adapters.events.logging import AdapterLogger
+from dbt.contracts.graph.nodes import ConstraintType
 
 logger = AdapterLogger("dremio")
 
@@ -41,6 +45,14 @@ class DremioAdapter(SQLAdapter):
     ConnectionManager = DremioConnectionManager
     Relation = DremioRelation
     Column = DremioColumn
+
+    CONSTRAINT_SUPPORT = {
+        ConstraintType.check: ConstraintSupport.NOT_SUPPORTED,
+        ConstraintType.not_null: ConstraintSupport.NOT_ENFORCED,
+        ConstraintType.unique: ConstraintSupport.NOT_SUPPORTED,
+        ConstraintType.primary_key: ConstraintSupport.NOT_SUPPORTED,
+        ConstraintType.foreign_key: ConstraintSupport.NOT_SUPPORTED,
+    }
 
     _capabilities = CapabilityDict(
         {
@@ -211,6 +223,23 @@ class DremioAdapter(SQLAdapter):
         self.connections.create_reflection(name, type, anchor, display, dimensions, date_dimensions, measures,
                                            computations, partition_by, partition_transform, partition_method,
                                            distribute_by, localsort_by, arrow_cache)
+
+    def get_column_schema_from_query(self, sql: str) -> List[BaseColumn]:
+        """Get a list of the Columns with names and data types from the given sql."""
+
+        """
+        cursor.job_results()
+{'rowCount': 0, 'schema': [{'name': 'id', 'type': {'name': 'INTEGER'}}, {'name': 'customer_name', 'type': {'name': 'VARCHAR'}}, {'name': 'first_transaction_date', 'type': {'name': 'DATE'}}], 'rows': []}
+        """
+        _, cursor = self.connections.add_select_query(sql)
+        columns = [
+            self.Column.create(
+                entry['name'], self.connections.data_type_code_to_name(entry['type']['name'])
+            )
+            # https://peps.python.org/pep-0249/#description
+            for entry in cursor.job_results()['schema']
+        ]
+        return columns
 
 
 COLUMNS_EQUAL_SQL = """
