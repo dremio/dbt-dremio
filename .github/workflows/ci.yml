@@ -134,7 +134,7 @@ jobs:
       - name: Extract Actual Failed Tests
         run: |
           shopt -s globstar
-          grep "FAILED tests" reports/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
+          grep "FAILED tests" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
 
       - name: Sort Expected Failures
         run: sort .github/expected_failures.txt > expected_failures_sorted.txt
