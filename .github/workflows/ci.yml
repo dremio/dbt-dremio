@@ -131,28 +131,24 @@ jobs:
         with:
           path: reports/
 
-      - name: Extract Actual Failed Tests
-        run: |
-          shopt -s globstar
-          grep "FAILED tests" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
-
-      - name: Sort Expected Failures
-        run: sort .github/expected_failures.txt > expected_failures_sorted.txt
-
       - name: Compare Actual Failures with Expected Failures
         run: |
+          shopt -s globstar
+          actual_failures=$(grep "FAILED tests" reports/**/*.txt | awk '{print $2}' | sort)
+          expected_failures=$(sort .github/expected_failures.txt)
+
           echo "Expected Failures:"
-          cat expected_failures_sorted.txt
+          echo "$expected_failures"
           echo ""
           echo "Actual Failures:"
-          cat actual_failures_sorted.txt
+          echo "$actual_failures"
           echo ""
 
           # Identify unexpected failures
-          unexpected_failures=$(comm -13 expected_failures_sorted.txt actual_failures_sorted.txt)
+          unexpected_failures=$(comm -13 <(echo "$expected_failures") <(echo "$actual_failures"))
 
           # Identify missing expected failures
-          missing_failures=$(comm -23 expected_failures_sorted.txt actual_failures_sorted.txt)
+          missing_failures=$(comm -23 <(echo "$expected_failures") <(echo "$actual_failures"))
 
           # Initialize exit code
           exit_code=0
