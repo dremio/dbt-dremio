@@ -75,25 +75,55 @@ jobs:
       - name: Create .env file for tests
         run: bash .github/scripts/create_env_file.sh
 
-      - name: Run tests
-        run: bash .github/scripts/run_tests.sh
+      - name: Discover Test Directories
+        id: discover-tests
+        run: |
+          test_dirs=$(find tests/ -type f \( -name 'test_*.py' -o -name '*_test.py' \) -exec dirname {} \; | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "test_dirs=$test_dirs" >> $GITHUB_OUTPUT
 
-      - name: Upload tests report as artifact
+  run-parallel-tests:
+    name: Run Parallel Tests
+    runs-on: ubuntu-latest
+    needs: run-tests
+    strategy:
+      matrix:
+        test_dir: ${{ fromJson(needs.run-tests.outputs.test_dirs) }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r dev_requirements.txt
+          pip install .
+
+      - name: Run tests
+        run: |
+          mkdir -p reports
+          report_file="reports/${{ matrix.test_dir }}.txt"
+          pytest ${{ matrix.test_dir }} | tee $report_file
+
+      - name: Upload test report
         uses: actions/upload-artifact@v4
         with:
-          name: all-tests-reports
-          path: reports/
+          name: ${{ matrix.test_dir }}-report
+          path: reports/${{ matrix.test_dir }}.txt
 
   upload-individual-test-reports:
     name: Upload Tests Artifacts
     runs-on: ubuntu-latest
-    needs: run-tests
-
+    needs: run-parallel-tests
     steps:
       - name: Download test reports
         uses: actions/download-artifact@v4
         with:
-          name: all-tests-reports
+          name: ${{ matrix.test_dir }}-report
           path: reports/
           
       - name: Upload individual test reports
@@ -105,8 +135,7 @@ jobs:
   verify-failures:
     name: Verify Expected Test Failures
     runs-on: ubuntu-latest
-    needs: [run-tests, upload-individual-test-reports]
-
+    needs: [run-parallel-tests, upload-individual-test-reports]
     steps:
       - name: Check out repository
         uses: actions/checkout@v3.5.2
@@ -125,7 +154,7 @@ jobs:
       - name: Extract Actual Failed Tests
         run: |
           shopt -s globstar
-          grep "FAILED" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
+          grep "FAILED tests" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
 
       - name: Sort Expected Failures
         run: sort .github/expected_failures.txt > expected_failures_sorted.txt
