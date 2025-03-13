@@ -8,10 +8,12 @@
 - Adds `BaseIncrementalOnSchemaChange` test to test_incremental.py
 - Changed logic for partitioning when materializing tables. Double quoting issue has been removed, now letting the user decide the quoting
     - New example: `partition_by=['month("datetime_utc")']`
+- Fixed grabbing column schemas
 ## Features
 
 - [#259](https://github.com/dremio/dbt-dremio/pull/259) Added support for roles in grants
 - [#273](https://github.com/dremio/dbt-dremio/pull/273) Fix issue with on_schema_change config
+- [#282](https://github.com/dremio/dbt-dremio/pull/282) Fix issue with get_column_schema_from_query
 
 # dbt-dremio v1.8.1
 
