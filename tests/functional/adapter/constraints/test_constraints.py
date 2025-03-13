@@ -15,8 +15,19 @@ from dbt.tests.adapter.constraints.test_constraints import (
 from tests.utils.util import BUCKET
 
 _expected_sql_dremio = """
-create table <model_identifier> ( id integer not null, color VARCHAR, date_day VARCHAR ) as ( select id, color, date_day from ( -- depends_on: <foreign_key_model_identifier> select 'blue' as color, 1 as id, '2019-01-01' as date_day ) as model_subq )
-
+create table <model_identifier> ( 
+    id integer not null, color VARCHAR, date_day VARCHAR 
+) 
+as ( 
+    select id, color, date_day 
+    from ( 
+        -- depends_on: <foreign_key_model_identifier> 
+        select 
+            'blue' as color, 
+            1 as id, 
+            '2019-01-01' as date_day 
+        ) as model_subq 
+    )
 """
 
 
@@ -62,47 +73,62 @@ class DremioColumnEqualSetup:
             profile.update(profiles_config_update)
         return profile
 
+
 class TestDremioTableConstraintsColumnsEqual(
     DremioColumnEqualSetup, BaseTableConstraintsColumnsEqual
 ):
     pass
 
-class TestDremioViewConstraintsColumnsEqual(DremioColumnEqualSetup, BaseViewConstraintsColumnsEqual):
+
+class TestDremioViewConstraintsColumnsEqual(
+        DremioColumnEqualSetup,
+        BaseViewConstraintsColumnsEqual):
     pass
 
-class TestDremioTableConstraintsRuntimeDdlEnforcement(DremioColumnEqualSetup, BaseConstraintsRuntimeDdlEnforcement):
+
+class TestDremioTableConstraintsRuntimeDdlEnforcement(
+        DremioColumnEqualSetup, BaseConstraintsRuntimeDdlEnforcement):
     @pytest.fixture(scope="class")
     def expected_sql(self):
         return _expected_sql_dremio
+
 
 # TODO: Revisit once at least one of the constraints starts being enforced
 @pytest.mark.skip("Dremio does not enforce any constraints so rollbacks can't be tested")
 class TestDremioTableConstraintsRollback(BaseConstraintsRollback):
     pass
 
-class TestDremioIncrementalConstraintsColumnsEqual(DremioColumnEqualSetup, BaseIncrementalConstraintsColumnsEqual):
+
+class TestDremioIncrementalConstraintsColumnsEqual(
+        DremioColumnEqualSetup,
+        BaseIncrementalConstraintsColumnsEqual):
     pass
+
 
 # TODO: Revisit once at least one of the constraints starts being enforced
 @pytest.mark.skip("Dremio does not enforce any constraints so rollbacks can't be tested")
 class TestDremioIncrementalConstraintsRollback(BaseIncrementalConstraintsRollback):
     pass
 
-class TestDremioIncrementalConstraintsRuntimeDdlEnforcement(DremioColumnEqualSetup, BaseIncrementalConstraintsRuntimeDdlEnforcement):
+
+class TestDremioIncrementalConstraintsRuntimeDdlEnforcement(
+        DremioColumnEqualSetup, BaseIncrementalConstraintsRuntimeDdlEnforcement):
     @pytest.fixture(scope="class")
     def expected_sql(self):
-        return """
-create table <model_identifier> ( id integer not null, color VARCHAR, date_day VARCHAR ) as ( select id, color, date_day from ( -- depends_on: <foreign_key_model_identifier> select 'blue' as color, 1 as id, '2019-01-01' as date_day ) as model_subq )
-"""
+        return _expected_sql_dremio
 
-class TestDremioModelConstraintsRuntimeEnforcement(DremioColumnEqualSetup, BaseModelConstraintsRuntimeEnforcement):
+
+class TestDremioModelConstraintsRuntimeEnforcement(
+        DremioColumnEqualSetup,
+        BaseModelConstraintsRuntimeEnforcement):
     @pytest.fixture(scope="class")
     def expected_sql(self):
-        return """
-create table <model_identifier> ( id integer not null, color VARCHAR, date_day VARCHAR ) as ( select id, color, date_day from ( -- depends_on: <foreign_key_model_identifier> select 'blue' as color, 1 as id, '2019-01-01' as date_day ) as model_subq )
-"""
+        return _expected_sql_dremio
 
-class TestDremioConstraintQuotedColumn(DremioColumnEqualSetup, BaseConstraintQuotedColumn):
+
+class TestDremioConstraintQuotedColumn(
+        DremioColumnEqualSetup,
+        BaseConstraintQuotedColumn):
     @pytest.fixture(scope="class")
     def expected_sql(self):
         return """
@@ -110,10 +136,10 @@ create table <model_identifier> (
     id integer not null,
     "from" varchar not null,
     date_day varchar
-    
-    )   
+
+    )
   as (
-    
+
     select id, "from", date_day
     from (
         select
@@ -122,5 +148,5 @@ create table <model_identifier> (
   '2019-01-01' as date_day
     ) as model_subq
   )
-  
+
 """
