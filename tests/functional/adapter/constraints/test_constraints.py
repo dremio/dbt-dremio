@@ -1,8 +1,8 @@
 import pytest
-from dbt.adapters.dremio.api.rest.client import DremioRestClient
 
 from dbt.tests.adapter.constraints.test_constraints import (
     BaseConstraintQuotedColumn,
+    BaseConstraintsRollback,
     BaseConstraintsRuntimeDdlEnforcement,
     BaseModelConstraintsRuntimeEnforcement,
     BaseIncrementalConstraintsColumnsEqual,
@@ -72,27 +72,6 @@ class TestDremioViewConstraintsColumnsEqual(DremioColumnEqualSetup, BaseViewCons
 
 class TestDremioTableConstraintsRuntimeDdlEnforcement(DremioColumnEqualSetup, BaseConstraintsRuntimeDdlEnforcement):
     @pytest.fixture(scope="class")
-    def dbt_profile_data(
-            self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
-        profile = {
-            "test": {
-                "outputs": {
-                    "default": {},
-                },
-                "target": "default",
-            },
-        }
-        target = dbt_profile_target
-        target["schema"] = unique_schema
-        target["root_path"] = f"{BUCKET}.{unique_schema}"
-        profile["test"]["outputs"]["default"] = target
-
-        if profiles_config_update:
-            profile.update(profiles_config_update)
-        return profile
-
-    @pytest.fixture(scope="class")
     def expected_sql(self):
         return _expected_sql_dremio
 
@@ -111,27 +90,6 @@ class TestDremioIncrementalConstraintsRollback(BaseIncrementalConstraintsRollbac
 
 class TestDremioIncrementalConstraintsRuntimeDdlEnforcement(DremioColumnEqualSetup, BaseIncrementalConstraintsRuntimeDdlEnforcement):
     @pytest.fixture(scope="class")
-    def dbt_profile_data(
-            self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
-        profile = {
-            "test": {
-                "outputs": {
-                    "default": {},
-                },
-                "target": "default",
-            },
-        }
-        target = dbt_profile_target
-        target["schema"] = unique_schema
-        target["root_path"] = f"{BUCKET}.{unique_schema}"
-        profile["test"]["outputs"]["default"] = target
-
-        if profiles_config_update:
-            profile.update(profiles_config_update)
-        return profile
-
-    @pytest.fixture(scope="class")
     def expected_sql(self):
         return """
 create table <model_identifier> ( id integer not null, color VARCHAR, date_day VARCHAR ) as ( select id, color, date_day from ( -- depends_on: <foreign_key_model_identifier> select 'blue' as color, 1 as id, '2019-01-01' as date_day ) as model_subq )
@@ -145,27 +103,6 @@ create table <model_identifier> ( id integer not null, color VARCHAR, date_day V
 """
 
 class TestDremioConstraintQuotedColumn(DremioColumnEqualSetup, BaseConstraintQuotedColumn):
-    @pytest.fixture(scope="class")
-    def dbt_profile_data(
-            self, unique_schema, dbt_profile_target, profiles_config_update
-    ):
-        profile = {
-            "test": {
-                "outputs": {
-                    "default": {},
-                },
-                "target": "default",
-            },
-        }
-        target = dbt_profile_target
-        target["schema"] = unique_schema
-        target["root_path"] = f"{BUCKET}.{unique_schema}"
-        profile["test"]["outputs"]["default"] = target
-
-        if profiles_config_update:
-            profile.update(profiles_config_update)
-        return profile
-
     @pytest.fixture(scope="class")
     def expected_sql(self):
         return """
