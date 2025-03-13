@@ -75,6 +75,7 @@ class DremioColumnEqualSetup:
             profile.update(profiles_config_update)
         return profile
 
+
 class TestDremioTableConstraintsColumnsEqual(
     DremioColumnEqualSetup, BaseTableConstraintsColumnsEqual
 ):
@@ -92,6 +93,7 @@ class TestDremioTableConstraintsRuntimeDdlEnforcement(
     @pytest.fixture(scope="class")
     def expected_sql(self):
         return _expected_sql_dremio
+
 
 # TODO: Revisit once at least one of the constraints starts being enforced
 @pytest.mark.skip("Dremio does not enforce any constraints so rollbacks can't be tested")
