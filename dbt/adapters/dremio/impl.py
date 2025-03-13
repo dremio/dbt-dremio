@@ -15,11 +15,13 @@
 import agate
 from dbt.adapters.sql import SQLAdapter
 from dbt.adapters.dremio import DremioConnectionManager
+from dbt.adapters.dremio.column import DremioColumn
 from dbt.adapters.dremio.relation import DremioRelation
 from typing import Dict
 
 from typing import List
 from typing import Optional
+from dbt.adapters.base.column import Column as BaseColumn
 from dbt.adapters.base.meta import available
 from dbt.adapters.base.relation import BaseRelation
 
@@ -38,6 +40,7 @@ logger = AdapterLogger("dremio")
 class DremioAdapter(SQLAdapter):
     ConnectionManager = DremioConnectionManager
     Relation = DremioRelation
+    Column = DremioColumn
 
     _capabilities = CapabilityDict(
         {
@@ -156,6 +159,17 @@ class DremioAdapter(SQLAdapter):
             else:
                 grants_dict.update({privilege: [f"{grantee_type}:{grantee}"]})
         return grants_dict
+
+    def get_column_schema_from_query(self, sql: str) -> List[BaseColumn]:
+        """Get a list of the Columns with names and data types from the given sql."""
+        _, cursor = self.connections.add_select_query(sql)
+        columns = [
+            self.Column.create(
+                entry['name'], self.connections.data_type_code_to_name(entry['type']['name'])
+            )
+            for entry in cursor.job_results()['schema']
+        ]
+        return columns
 
     # This is for use in the test suite
     # Need to override to add fetch to the execute method
