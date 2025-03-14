@@ -326,7 +326,7 @@ class DremioConnectionManager(SQLConnectionManager):
                           date_dimensions: List[str], measures: List[str],
                           computations: List[str], partition_by: List[str], partition_transform: List[str],
                           partition_method: str, distribute_by: List[str], localsort_by: List[str],
-                          arrow_cache: bool) -> None:
+                          arrow_cache: bool, reflection_strategy: str, max_wait_time: int, check_interval: int) -> None:
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         rest_client = connection.handle.get_client()
@@ -357,13 +357,41 @@ class DremioConnectionManager(SQLConnectionManager):
             if reflection.get("name") == name:
                 logger.debug(f"Reflection {name} already exists. Updating it")
                 payload["tag"] = reflection.get("tag")
-                rest_client.update_reflection(reflection.get("id"), payload)
+                created_reflection = rest_client.update_reflection(reflection.get("id"), payload)
                 updated = True
                 break
 
         if not updated:
             logger.debug(f"Reflection {name} does not exist. Creating it")
-            rest_client.create_reflection(payload)
+            created_reflection = rest_client.create_reflection(payload)
+
+        if reflection_strategy == "wait":
+            reflection_id = created_reflection["id"]
+            start_time = time.time()
+            end_time = start_time + max_wait_time
+
+            while time.time() < end_time:
+                reflection_info = rest_client.get_reflection(reflection_id)
+                status = reflection_info["status"]["availability"]
+
+                if status == "AVAILABLE":
+                    return
+
+                time.sleep(check_interval)
+
+            logger.info(f"Reflection {name} did not become available within {max_wait_time} seconds, skipping wait")
+
+        elif reflection_strategy == "depend":
+            reflection_id = created_reflection["id"]
+
+            while True:
+                reflection_info = rest_client.get_reflection(reflection_id)
+                status = reflection_info["status"]["availability"]
+
+                if status == "AVAILABLE":
+                    return
+
+                time.sleep(check_interval)
 
     def _make_new_space_json(self, name) -> json:
         python_dict = {"entityType": "space", "name": name}
