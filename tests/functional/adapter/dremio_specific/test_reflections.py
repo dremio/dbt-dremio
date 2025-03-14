@@ -6,7 +6,6 @@ from dbt.adapters.dremio.api.authentication import DremioAuthentication
 from dbt.tests.util import run_dbt, run_dbt_and_capture
 from pydantic.experimental.pipeline import transform
 
-from tests.utils.util import BUCKET
 
 view1_model = """
 SELECT IncidntNum, Category, Descript, DayOfWeek, TO_DATE("SF_incidents2016.json"."Date", 'YYYY-MM-DD', 1) AS "Date", "SF_incidents2016.json"."Time" AS "Time", PdDistrict, Resolution, Address, X, Y, Location, PdId
