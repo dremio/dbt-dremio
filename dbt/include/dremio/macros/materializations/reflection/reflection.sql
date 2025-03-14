@@ -15,7 +15,7 @@ limitations under the License.*/
 {% materialization reflection, adapter='dremio' %}
   {%- set reflection_strategy = config.get('reflection_strategy', validator=validation.any[basestring]) or 'trigger' -%}
 
-  {% if reflection_strategy not in ['depend', 'trigger'] %}
+  {% if reflection_strategy not in ['trigger', 'wait', 'depend'] %}
     {% do exceptions.CompilationError("Invalid reflection strategy. Valid strategies are 'trigger', 'wait' or 'depend'") %}
   {%- endif -%}
 

@@ -435,6 +435,6 @@ class TestReflectionsDremio:
         (results, log_output) = run_dbt_and_capture(["run", "--select", "view1", "wait_strategy_timeout_reflection"])
         assert "did not become available within 1 seconds, skipping wait" in log_output
 
-    def testTriggerStrategyTimeoutReflection(self,    project):
+    def testTriggerStrategyTimeoutReflection(self, project):
         (results, log_output) = run_dbt_and_capture(["run", "--select", "view1", "trigger_strategy_timeout_reflection"])
         assert "did not become available within 1 seconds, skipping wait" not in log_output
