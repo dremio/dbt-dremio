@@ -9,9 +9,25 @@ on:
       - main
 
 jobs:
-  run-tests:
-    name: Setup and Run Tests
+  discover-tests:
+    name: Discover Tests
     runs-on: ubuntu-latest
+    outputs:
+      test_dirs: ${{ steps.discover-tests.outputs.test_dirs }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Discover Test Directories
+        id: discover-tests
+        run: |
+          test_dirs=$(find tests/ -type f \( -name 'test_*.py' -o -name '*_test.py' \) -exec dirname {} \; | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "test_dirs=$test_dirs" >> $GITHUB_OUTPUT
+
+  run-parallel-tests:
+    name: Run Parallel Tests
+    runs-on: ubuntu-latest
+    needs: discover-tests 
     env:
       RETRY_COUNT: 12 # number of retries for health checks
       SLEEP_INTERVAL: 5 # Sleep duration in seconds between retries
@@ -27,20 +43,30 @@ jobs:
       DBT_TEST_USER_1: dbt_test_user_1
       DBT_TEST_USER_2: dbt_test_user_2
       DBT_TEST_USER_3: dbt_test_user_3
-
+    strategy:
+      matrix:
+        test_dir: ${{ fromJson(needs.discover-tests.outputs.test_dirs) }}
+    services:
+      minio:
+        image: minio/minio:edge-cicd
+        options: --network-alias minio
+        ports:
+          - 9000:9000
+          - 9001:9001
+        env:
+          MINIO_ROOT_USER: ${{ env.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD: ${{ env.MINIO_ROOT_PASSWORD }}
+      dremio:
+        image: dremio/dremio-oss
+        options: --network-alias dremio
+        ports:
+          - 31010:31010
+          - 9047:9047
+        env:
+          DREMIO_JAVA_SERVER_EXTRA_OPTS: -Ddebug.addDefaultUser=true
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Create Docker Network
-        run: |
-          docker network create ci-network || echo "Network already exists"
-
-      - name: Start MinIO Service
-        run: bash .github/scripts/start_minio.sh
-
-      - name: Start Dremio Service
-        run: bash .github/scripts/start_dremio.sh
 
       - name: Install MinIO Client (mc)
         run: bash .github/scripts/install_minio_client.sh
@@ -75,38 +101,27 @@ jobs:
       - name: Create .env file for tests
         run: bash .github/scripts/create_env_file.sh
 
+      - name: Sanitize test directory name
+        id: sanitize
+        run: echo "sanitized_test_dir=$(echo ${{ matrix.test_dir }} | tr '/' '_')" >> $GITHUB_ENV
+
       - name: Run tests
-        run: bash .github/scripts/run_tests.sh
+        continue-on-error: true
+        run: |
+          mkdir reports/
+          report_file="reports/${{ env.sanitized_test_dir }}.txt"
+          pytest ${{ matrix.test_dir }} | tee $report_file
 
-      - name: Upload tests report as artifact
+      - name: Upload test report as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: all-tests-reports
+          name: ${{ env.sanitized_test_dir }}
           path: reports/
-
-  upload-individual-test-reports:
-    name: Upload Tests Artifacts
-    runs-on: ubuntu-latest
-    needs: run-tests
-
-    steps:
-      - name: Download test reports
-        uses: actions/download-artifact@v4
-        with:
-          name: all-tests-reports
-          path: reports/
-          
-      - name: Upload individual test reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: individual-test-reports
-          path: reports/*.txt
 
   verify-failures:
     name: Verify Expected Test Failures
     runs-on: ubuntu-latest
-    needs: [run-tests, upload-individual-test-reports]
-
+    needs: run-parallel-tests
     steps:
       - name: Check out repository
         uses: actions/checkout@v3.5.2
@@ -114,36 +129,26 @@ jobs:
       - name: Download All Test Reports
         uses: actions/download-artifact@v4
         with:
-          name: all-tests-reports
           path: reports/
-
-      - name: Set Up Python Environment
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Extract Actual Failed Tests
-        run: |
-          shopt -s globstar
-          grep "FAILED" reports/**/*.txt | awk '{print $2}' | sort > actual_failures_sorted.txt
-
-      - name: Sort Expected Failures
-        run: sort .github/expected_failures.txt > expected_failures_sorted.txt
 
       - name: Compare Actual Failures with Expected Failures
         run: |
+          shopt -s globstar
+          actual_failures=$(grep "FAILED tests" reports/**/*.txt | awk '{print $2}' | sort)
+          expected_failures=$(sort .github/expected_failures.txt)
+
           echo "Expected Failures:"
-          cat expected_failures_sorted.txt
+          echo "$expected_failures"
           echo ""
           echo "Actual Failures:"
-          cat actual_failures_sorted.txt
+          echo "$actual_failures"
           echo ""
 
           # Identify unexpected failures
-          unexpected_failures=$(comm -13 expected_failures_sorted.txt actual_failures_sorted.txt)
+          unexpected_failures=$(comm -13 <(echo "$expected_failures") <(echo "$actual_failures"))
 
           # Identify missing expected failures
-          missing_failures=$(comm -23 expected_failures_sorted.txt actual_failures_sorted.txt)
+          missing_failures=$(comm -23 <(echo "$expected_failures") <(echo "$actual_failures"))
 
           # Initialize exit code
           exit_code=0
