@@ -143,10 +143,10 @@ name_reflection_from_filename_model = """
 -- depends_on: {{ ref('view1') }}
 """
 
-depend_strategy_timeout_reflection = """
-{{ config(alias='This will mock a timeout when using depend',
+wait_strategy_timeout_reflection = """
+{{ config(alias='This will mock a timeout when using wait',
             materialized='reflection',
-            reflection_strategy='depend',
+            reflection_strategy='wait',
             max_wait_time=1,
             display=['Date', 'DayOfWeek', 'PdDistrict', 'Category'],
             reflection_type='raw')}}
@@ -191,7 +191,7 @@ class TestReflectionsDremio:
             "default_displays_model.sql": default_displays_model,
             "name_reflection_from_alias.sql": name_reflection_from_alias_model,
             "name_reflection_from_filename.sql": name_reflection_from_filename_model,
-            "depend_strategy_timeout_reflection.sql": depend_strategy_timeout_reflection,
+            "wait_strategy_timeout_reflection.sql": wait_strategy_timeout_reflection,
             "trigger_strategy_timeout_reflection.sql": trigger_strategy_timeout_reflection,
         }
 
@@ -431,8 +431,8 @@ class TestReflectionsDremio:
         assert "sortFields" not in reflection
         assert reflection["partitionDistributionStrategy"] == "STRIPED"
 
-    def testDependStrategyTimeoutReflection(self, project):
-        (results, log_output) = run_dbt_and_capture(["run", "--select", "view1", "depend_strategy_timeout_reflection"])
+    def testWaitStrategyTimeoutReflection(self, project):
+        (results, log_output) = run_dbt_and_capture(["run", "--select", "view1", "wait_strategy_timeout_reflection"])
         assert "did not become available within 1 seconds, skipping wait" in log_output
 
     def testTriggerStrategyTimeoutReflection(self,    project):
