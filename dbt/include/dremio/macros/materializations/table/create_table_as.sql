@@ -27,9 +27,7 @@ limitations under the License.*/
 
 {% macro dremio__create_table_as(temporary, relation, sql) -%}
   {% set contract_config = config.get('contract') %}
-  {% if contract_config.enforced %}
-     {{exceptions.warn("Model contracts are not enforced by dbt-dremio!")}}
-  {% endif %}
+
 
   {%- set sql_header = config.get('sql_header', none) -%}
 
@@ -41,6 +39,13 @@ limitations under the License.*/
   {{ config_cols("localsort by") }}
   {{ store_as_clause() }}
   {{ single_writer_clause() }}
+
+  {% if contract_config.enforced %}
+     {{ get_table_columns_and_constraints() }}
+     {{ get_assert_columns_equivalent(sql) }}
+     {% set sql = get_select_subquery(sql) %}
+  {% endif %}
+
   as (
     {{ sql }}
   )

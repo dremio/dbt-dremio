@@ -22,6 +22,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from dbt.adapters.base.column import Column as BaseColumn
+from dbt.adapters.base.impl import ConstraintSupport
 from dbt.adapters.base.meta import available
 from dbt.adapters.base.relation import BaseRelation
 
@@ -33,6 +34,7 @@ from dbt.adapters.capability import (
 )
 from dbt.adapters.sql.impl import DROP_RELATION_MACRO_NAME
 from dbt.adapters.events.logging import AdapterLogger
+from dbt.contracts.graph.nodes import ConstraintType
 
 logger = AdapterLogger("dremio")
 
@@ -41,6 +43,14 @@ class DremioAdapter(SQLAdapter):
     ConnectionManager = DremioConnectionManager
     Relation = DremioRelation
     Column = DremioColumn
+
+    CONSTRAINT_SUPPORT = {
+        ConstraintType.check: ConstraintSupport.NOT_SUPPORTED,
+        ConstraintType.not_null: ConstraintSupport.NOT_ENFORCED,
+        ConstraintType.unique: ConstraintSupport.NOT_SUPPORTED,
+        ConstraintType.primary_key: ConstraintSupport.NOT_SUPPORTED,
+        ConstraintType.foreign_key: ConstraintSupport.NOT_SUPPORTED,
+    }
 
     _capabilities = CapabilityDict(
         {
