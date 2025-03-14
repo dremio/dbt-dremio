@@ -174,6 +174,10 @@ class DremioConnectionManager(SQLConnectionManager):
         message = "OK" if rows == -1 else str(rows)
         return AdapterResponse(_message=message, rows_affected=rows)
 
+    @classmethod
+    def data_type_code_to_name(cls, type_code) -> str:
+        return type_code
+
     def execute(
             self,
             sql: str,
