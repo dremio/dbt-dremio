@@ -82,8 +82,8 @@ def get_connection(adapter, name="_test"):
         conn = adapter.connections.get_thread_connection()
         yield conn
 
-# Uses:
-#    adapter.get_columns_in_relation
+# Overwrite the default implementation to use this adapter's
+# relation_from_name function. 
 def get_relation_columns(adapter, name):
     relation = relation_from_name(adapter, name)
     with get_connection(adapter):
@@ -91,11 +91,11 @@ def get_relation_columns(adapter, name):
         return sorted(((c.name, c.dtype, c.char_size) for c in columns), key=lambda x: x[0])
 
 
+# Overwrite the default implementation to use this adapter's
+# relation_from_name function. 
 def check_relation_types(adapter, relation_to_type):
     # Ensure that models with different materialiations have the
     # corrent table/view.
-    # Uses:
-    #   adapter.list_relations_without_caching
     """
     Relation name to table/view
     {
@@ -127,6 +127,8 @@ def check_relation_types(adapter, relation_to_type):
                 )
 
 
+# Overwrite the default implementation to use this adapter's
+# relation_from_name function. 
 def check_relations_equal(adapter, relation_names: List, compare_snapshot_cols=False):
     # Replaces assertTablesEqual. assertManyTablesEqual can be replaced
     # by doing a separate call for each set of tables/relations.
