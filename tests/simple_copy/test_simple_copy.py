@@ -16,7 +16,8 @@ import pytest
 
 from pathlib import Path
 
-from dbt.tests.util import run_dbt, rm_file, write_file, check_relations_equal
+from tests.utils.util import check_relations_equal
+from dbt.tests.util import run_dbt, rm_file, write_file
 
 from dbt.tests.adapter.simple_copy.fixtures import (
     _PROPERTIES__SCHEMA_YML,
@@ -45,7 +46,7 @@ class SimpleCopySetup:
             "compound_sort.sql": _MODELS__COMPOUND_SORT,
             "disabled.sql": _MODELS__DISABLED,
             "empty.sql": _MODELS__EMPTY,
-            "get_and_ref.sql": _MODELS__GET_AND_REF,
+            "get_and_ref_view.sql": _MODELS__GET_AND_REF,
             "incremental.sql": _MODELS__INCREMENTAL,
             "interleaved_sort.sql": _MODELS__INTERLEAVED_SORT,
             "materialized.sql": _MODELS__MATERIALIZED,
@@ -78,7 +79,7 @@ class SimpleCopyBase(SimpleCopySetup):
         assert len(results) == 7
         check_relations_equal(
             project.adapter,
-            ["seed", "view_model", "incremental", "materialized", "get_and_ref"],
+            ["seed", "view_model", "incremental", "materialized", "get_and_ref_view"],
         )
 
         # Change the seed.csv file and see if everything is the same, i.e. everything has been updated
@@ -91,7 +92,7 @@ class SimpleCopyBase(SimpleCopySetup):
         assert len(results) == 7
         check_relations_equal(
             project.adapter,
-            ["seed", "view_model", "incremental", "materialized", "get_and_ref"],
+            ["seed", "view_model", "incremental", "materialized", "get_and_ref_view"],
         )
 
     def test_simple_copy_with_materialized_views(self, project):

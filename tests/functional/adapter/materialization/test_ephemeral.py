@@ -14,21 +14,44 @@
 
 import pytest
 import os
+from dbt.tests.adapter.basic import files
 from dbt.tests.adapter.basic.test_ephemeral import BaseEphemeral
-from dbt.tests.adapter.ephemeral.test_ephemeral import BaseEphemeralMulti
-from tests.utils.util import BUCKET
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
+from tests.utils.util import (
+    BUCKET,
+    relation_from_name,
+    check_relations_equal
+)
 from dbt.tests.util import (
-    check_relations_equal,
     check_result_nodes_by_name,
     get_manifest,
-    relation_from_name,
-    run_dbt,
+    run_dbt
 )
 
 
-# Need to modify test to not assert any sources for it to pass
+schema_yml = """
+version: 2
+sources:
+  - name: raw
+
+    database: "{{ target.datalake }}"
+    schema: "{{ target.root_path }}"
+    tables:
+      - name: seed
+        identifier: "{{ var('seed_name', 'base') }}"
+        """
+
+
 class TestEphemeralDremio(BaseEphemeral):
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {
+            "ephemeral.sql": files.base_ephemeral_sql,
+            "view_model.sql": files.ephemeral_view_sql,
+            "table_model.sql": files.ephemeral_table_sql,
+            "schema.yml": schema_yml
+        }
+
     def test_ephemeral(self, project):
         # seed command
         results = run_dbt(["seed"])

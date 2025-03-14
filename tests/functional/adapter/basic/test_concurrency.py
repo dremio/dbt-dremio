@@ -21,13 +21,13 @@ from dbt.tests.adapter.concurrency.test_concurrency import (
     seeds__update_csv,
 )
 from dbt.tests.util import (
-    check_relations_equal,
     check_table_does_not_exist,
     rm_file,
     run_dbt,
     run_dbt_and_capture,
     write_file,
 )
+from tests.utils.util import check_relations_equal 
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 models__invalid_sql = """

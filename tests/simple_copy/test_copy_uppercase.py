@@ -10,7 +10,8 @@
 # limitations under the License.
 
 import pytest
-from dbt.tests.util import run_dbt, check_relations_equal
+from tests.utils.util import check_relations_equal
+from dbt.tests.util import run_dbt
 
 from dbt.tests.adapter.simple_copy.fixtures import (
     _PROPERTIES__SCHEMA_YML,
@@ -37,7 +38,7 @@ class TestSimpleCopyUppercaseDremio:
             "COMPOUND_SORT.sql": _MODELS__COMPOUND_SORT,
             "DISABLED.sql": _MODELS__DISABLED,
             "EMPTY.sql": _MODELS__EMPTY,
-            "GET_AND_REF.sql": _MODELS_GET_AND_REF_UPPERCASE,
+            "GET_AND_REF_VIEW.sql": _MODELS_GET_AND_REF_UPPERCASE,
             "INCREMENTAL.sql": _MODELS__INCREMENTAL,
             "INTERLEAVED_SORT.sql": _MODELS__INTERLEAVED_SORT,
             "MATERIALIZED.sql": _MODELS__MATERIALIZED,
@@ -65,5 +66,5 @@ class TestSimpleCopyUppercaseDremio:
 
         check_relations_equal(
             project.adapter,
-            ["seed", "VIEW_MODEL", "INCREMENTAL", "MATERIALIZED", "GET_AND_REF"],
+            ["seed", "VIEW_MODEL", "INCREMENTAL", "MATERIALIZED", "GET_AND_REF_VIEW"],
         )
