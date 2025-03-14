@@ -86,6 +86,6 @@ class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
-            "seeds": {"+twin_strategy": "prevent"},
+            "seeds": {"+twin_strategy": "allow"},
             "name": "snapshot_strategy_timestamp",
         }
