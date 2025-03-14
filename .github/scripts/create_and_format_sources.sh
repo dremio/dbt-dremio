@@ -50,10 +50,11 @@ manipulate_source() {
   local description=$3
 
   echo "$description in Dremio..."
+  formatted_data=$(echo "$data" | jq -c .)
   RESPONSE=$(curl --show-error --fail -s -w "\n%{http_code}" -X PUT "$url" \
     -H "Content-Type: application/json" \
     -H "Authorization: _dremio$AUTH_TOKEN" \
-    --data "$data")
+    --data "$formatted_data")
 
   HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
   RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
@@ -67,11 +68,58 @@ manipulate_source() {
 }
 
 manipulate_source "$DREMIO_HEALTH_URL/apiv2/source/dbt_test_source" \
-  "{\"name\":\"dbt_test_source\",\"config\":{\"credentialType\":\"ACCESS_KEY\",\"accessKey\":\"$MINIO_ROOT_USER\",\"accessSecret\":\"$MINIO_ROOT_PASSWORD\",\"secure\":false,\"externalBucketList\":[],\"enableAsync\":true,\"enableFileStatusCheck\":true,\"rootPath\":\"/\",\"defaultCtasFormat\":\"ICEBERG\",\"propertyList\":[{\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},{\"name\":\"fs.s3a.endpoint\",\"value\":\"minio:9000\"},{\"name\":\"dremio.s3.compat\",\"value\":\"true\"}],\"whitelistedBuckets\":[],\"isCachingEnabled\":false,\"maxCacheSpacePct\":100},\"type\":\"S3\",\"metadataPolicy\":{\"deleteUnavailableDatasets\":true,\"autoPromoteDatasets\":false,\"namesRefreshMillis\":3600000,\"datasetDefinitionRefreshAfterMillis\":3600000,\"datasetDefinitionExpireAfterMillis\":10800000,\"authTTLMillis\":86400000,\"updateMode\":\"PREFETCH_QUERIED\"}}" \
+  "{
+    \"name\":\"dbt_test_source\",
+    \"config\":{
+      \"credentialType\":\"ACCESS_KEY\",
+      \"accessKey\":\"$MINIO_ROOT_USER\",
+      \"accessSecret\":\"$MINIO_ROOT_PASSWORD\",
+      \"secure\":false,
+      \"externalBucketList\":[],
+      \"enableAsync\":true,
+      \"enableFileStatusCheck\":true,
+      \"rootPath\":\"/\",
+      \"defaultCtasFormat\":\"ICEBERG\",
+      \"propertyList\":[
+        {\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},
+        {\"name\":\"fs.s3a.endpoint\",\"value\":\"minio:9000\"},
+        {\"name\":\"dremio.s3.compat\",\"value\":\"true\"}
+      ],
+      \"whitelistedBuckets\":[],
+      \"isCachingEnabled\":false,
+      \"maxCacheSpacePct\":100
+    },
+    \"type\":\"S3\",
+    \"metadataPolicy\":{
+      \"deleteUnavailableDatasets\":true,
+      \"autoPromoteDatasets\":false,
+      \"namesRefreshMillis\":3600000,
+      \"datasetDefinitionRefreshAfterMillis\":3600000,
+      \"datasetDefinitionExpireAfterMillis\":10800000,
+      \"authTTLMillis\":86400000,
+      \"updateMode\":\"PREFETCH_QUERIED\"
+    }
+  }" \
   "Creating S3 source"
 
 manipulate_source "$DREMIO_HEALTH_URL/apiv2/source/Samples" \
-  "{\"name\":\"Samples\",\"config\":{\"externalBucketList\":[\"samples.dremio.com\"],\"credentialType\":\"NONE\",\"secure\":false,\"propertyList\":[]},\"name\":\"Samples\",\"accelerationRefreshPeriod\":3600000,\"accelerationGracePeriod\":10800000,\"accelerationNeverRefresh\":true,\"accelerationNeverExpire\":true,\"accelerationActivePolicyType\":\"PERIOD\",\"accelerationRefreshSchedule\":\"0 0 8 * * *\",\"accelerationRefreshOnDataChanges\":false,\"type\":\"S3\"}" \
+  "{
+    \"name\":\"Samples\",
+    \"config\":{
+      \"externalBucketList\":[\"samples.dremio.com\"],
+      \"credentialType\":\"NONE\",
+      \"secure\":false,
+      \"propertyList\":[]
+    },
+    \"accelerationRefreshPeriod\":3600000,
+    \"accelerationGracePeriod\":10800000,
+    \"accelerationNeverRefresh\":true,
+    \"accelerationNeverExpire\":true,
+    \"accelerationActivePolicyType\":\"PERIOD\",
+    \"accelerationRefreshSchedule\":\"0 0 8 * * *\",
+    \"accelerationRefreshOnDataChanges\":false,
+    \"type\":\"S3\"
+  }" \
   "Creating Samples source"
 
 manipulate_source "$DREMIO_HEALTH_URL/apiv2/source/Samples/file_format/samples.dremio.com/SF_incidents2016.json" \
