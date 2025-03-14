@@ -3,8 +3,10 @@ from build.lib.dbt.adapters.dremio.api.rest.client import DremioRestClient
 from dbt.adapters.dremio import DremioCredentials
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
 from dbt.adapters.dremio.api.authentication import DremioAuthentication
-from dbt.tests.util import run_dbt
+from dbt.tests.util import run_dbt, run_dbt_and_capture
 from pydantic.experimental.pipeline import transform
+
+from tests.utils.util import BUCKET
 
 view1_model = """
 SELECT IncidntNum, Category, Descript, DayOfWeek, TO_DATE("SF_incidents2016.json"."Date", 'YYYY-MM-DD', 1) AS "Date", "SF_incidents2016.json"."Time" AS "Time", PdDistrict, Resolution, Address, X, Y, Location, PdId
@@ -141,6 +143,25 @@ name_reflection_from_filename_model = """
 -- depends_on: {{ ref('view1') }}
 """
 
+depend_strategy_timeout_reflection = """
+{{ config(alias='This will mock a timeout when using depend',
+            materialized='reflection',
+            reflection_strategy='depend',
+            max_wait_time=1,
+            display=['Date', 'DayOfWeek', 'PdDistrict', 'Category'],
+            reflection_type='raw')}}
+-- depends_on: {{ ref('view1') }}
+"""
+
+trigger_strategy_timeout_reflection = """
+{{ config(alias='This will mock a timeout when using trigger',
+            materialized='reflection',
+            reflection_strategy='trigger',
+            max_wait_time=1,
+            display=['Date', 'DayOfWeek', 'PdDistrict', 'Category'],
+            reflection_type='raw')}}
+-- depends_on: {{ ref('view1') }}
+"""
 
 class TestReflectionsDremio:
     @pytest.fixture(scope="class")
@@ -170,6 +191,8 @@ class TestReflectionsDremio:
             "default_displays_model.sql": default_displays_model,
             "name_reflection_from_alias.sql": name_reflection_from_alias_model,
             "name_reflection_from_filename.sql": name_reflection_from_filename_model,
+            "depend_strategy_timeout_reflection.sql": depend_strategy_timeout_reflection,
+            "trigger_strategy_timeout_reflection.sql": trigger_strategy_timeout_reflection,
         }
 
     def _create_path_list(self, database, schema):
@@ -407,3 +430,11 @@ class TestReflectionsDremio:
         assert "partitionFields" not in reflection
         assert "sortFields" not in reflection
         assert reflection["partitionDistributionStrategy"] == "STRIPED"
+
+    def testDependStrategyTimeoutReflection(self, project):
+        (results, log_output) = run_dbt_and_capture(["run", "--select", "view1", "depend_strategy_timeout_reflection"])
+        assert "did not become available within 1 seconds, skipping wait" in log_output
+
+    def testTriggerStrategyTimeoutReflection(self,    project):
+        (results, log_output) = run_dbt_and_capture(["run", "--select", "view1", "trigger_strategy_timeout_reflection"])
+        assert "did not become available within 1 seconds, skipping wait" not in log_output

@@ -38,7 +38,7 @@ USING target
 #}
 
 {%- macro create_reflection(reflection_name, reflection_type, anchor,
-  display=none, dimensions=none, date_dimensions=none, measures=none, computations=none, partition_by=none, partition_transform=none, partition_method=none, distribute_by=none, localsort_by=none, arrow_cache=false) %}
+  display=none, dimensions=none, date_dimensions=none, measures=none, computations=none, partition_by=none, partition_transform=none, partition_method=none, distribute_by=none, localsort_by=none, arrow_cache=false, reflection_strategy=reflection_strategy, max_wait_time=max_wait_time, check_interval=check_interval) %}
 
   {%- if reflection_type == 'raw' %}
     {% set reflection_type = 'RAW' %}
@@ -48,7 +48,7 @@ USING target
     {% do exceptions.CompilationError("invalid reflection type") %}
   {%- endif -%}
 
-  {% do adapter.create_reflection(reflection_name, reflection_type, anchor, display, dimensions, date_dimensions, measures, computations, partition_by, partition_transform, partition_method, distribute_by, localsort_by, arrow_cache) %}
+  {% do adapter.create_reflection(reflection_name, reflection_type, anchor, display, dimensions, date_dimensions, measures, computations, partition_by, partition_transform, partition_method, distribute_by, localsort_by, arrow_cache, reflection_strategy, max_wait_time, check_interval) %}
 
   SELECT 1
 {% endmacro -%}

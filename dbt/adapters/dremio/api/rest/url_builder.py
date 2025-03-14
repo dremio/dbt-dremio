@@ -185,7 +185,7 @@ class UrlBuilder:
         return url_path + endpoint
 
     @classmethod
-    def get_reflection_url(cls, parameters: Parameters, dataset_id):
+    def get_reflections_from_dataset_url(cls, parameters: Parameters, dataset_id):
         url_path = parameters.base_url
         if type(parameters) is CloudParameters:
             url_path += UrlBuilder.CLOUD_DATASET_ENDPOINT.format(
@@ -195,4 +195,17 @@ class UrlBuilder:
             url_path += UrlBuilder.SOFTWARE_DATASET_ENDPOIT
 
         endpoint = "/{}/reflection".format(dataset_id)
+        return url_path + endpoint
+
+    @classmethod
+    def get_reflection_url(cls, parameters: Parameters, reflection_id):
+        url_path = parameters.base_url
+        if type(parameters) is CloudParameters:
+            url_path += UrlBuilder.CLOUD_REFLECTIONS_ENDPOINT.format(
+                parameters.cloud_project_id
+            )
+        else:
+            url_path += UrlBuilder.SOFTWARE_REFLECTIONS_ENDPOINT
+
+        endpoint = "/{}".format(reflection_id)
         return url_path + endpoint
