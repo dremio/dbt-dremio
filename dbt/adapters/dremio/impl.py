@@ -207,10 +207,10 @@ class DremioAdapter(SQLAdapter):
     def create_reflection(self, name: str, type: str, anchor: DremioRelation, display: List[str], dimensions: List[str],
                           date_dimensions: List[str], measures: List[str], computations: List[str],
                           partition_by: List[str], partition_transform: List[str], partition_method: str,
-                          distribute_by: List[str], localsort_by: List[str], arrow_cache: bool) -> None:
+                          distribute_by: List[str], localsort_by: List[str], arrow_cache: bool, reflection_strategy: str, max_wait_time: int, check_interval: int) -> None:
         self.connections.create_reflection(name, type, anchor, display, dimensions, date_dimensions, measures,
                                            computations, partition_by, partition_transform, partition_method,
-                                           distribute_by, localsort_by, arrow_cache)
+                                           distribute_by, localsort_by, arrow_cache, reflection_strategy, max_wait_time, check_interval)
 
 
 COLUMNS_EQUAL_SQL = """

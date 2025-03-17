@@ -207,7 +207,7 @@ class DremioRestClient:
 
 
     def get_reflections(self, dataset_id):
-        url = UrlBuilder.get_reflection_url(self._parameters, dataset_id)
+        url = UrlBuilder.get_reflections_from_dataset_url(self._parameters, dataset_id)
         return _get(
             url,
             self._parameters.authentication.get_headers(),
@@ -231,4 +231,11 @@ class DremioRestClient:
             json=payload,
             ssl_verify=self._parameters.authentication.verify_ssl,
         )
-    
+
+    def get_reflection(self, reflection_id):
+        url = UrlBuilder.get_reflection_url(self._parameters, reflection_id)
+        return _get(
+            url,
+            self._parameters.authentication.get_headers(),
+            ssl_verify=self._parameters.authentication.verify_ssl,
+        )

@@ -13,6 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% materialization reflection, adapter='dremio' %}
+  {%- set reflection_strategy = config.get('reflection_strategy', validator=validation.any[basestring]) or 'trigger' -%}
+
+  {% if reflection_strategy not in ['trigger', 'wait', 'depend'] %}
+    {% do exceptions.CompilationError("Invalid reflection strategy. Valid strategies are 'trigger', 'wait' or 'depend'") %}
+  {%- endif -%}
 
   {% set reflection_name = config.get('name', validator=validation.any[basetring]) or config.get('alias', validator=validation.any[basetring]) or model.name %}
   {% set raw_reflection_type = config.get('reflection_type', validator=validation.any[basestring]) or 'raw' %}
@@ -30,6 +35,8 @@ limitations under the License.*/
   {%- set distribute_by = config.get('distribute_by', validator=validation.any[basestring])-%}
   {%- set localsort_by = config.get('localsort_by', validator=validation.any[basestring]) -%}
   {%- set arrow_cache = config.get('arrow_cache') -%}
+  {%- set max_wait_time = config.get('max_wait_time', validator=validation.any[int]) or 30 -%}
+  {%- set check_interval = config.get('check_interval', validator=validation.any[int]) or 5 -%}
 
   {% set relation = this %}
 
@@ -115,7 +122,7 @@ limitations under the License.*/
   -- build model
   {% call statement('main') -%}
     {{ create_reflection(reflection_name, reflection_type, anchor,
-      display=display, dimensions=dimensions, date_dimensions=date_dimensions, measures=measures, computations=computations, partition_by=partition_by, partition_transform=partition_transform, partition_method=partition_method, distribute_by=distribute_by, localsort_by=localsort_by, arrow_cache=arrow_cache) }}
+      display=display, dimensions=dimensions, date_dimensions=date_dimensions, measures=measures, computations=computations, partition_by=partition_by, partition_transform=partition_transform, partition_method=partition_method, distribute_by=distribute_by, localsort_by=localsort_by, arrow_cache=arrow_cache, reflection_strategy=reflection_strategy, max_wait_time=max_wait_time, check_interval=check_interval) }}
   {%- endcall %}
 
   {{ run_hooks(post_hooks) }}
