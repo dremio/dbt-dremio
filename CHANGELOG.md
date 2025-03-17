@@ -1,3 +1,22 @@
+# dbt-dremio v1.8.3
+
+## Changes
+
+- Added 3 strategies for reflections: `trigger`, `wait` and `depend`
+  - `trigger` keeps the previous behavior for reflections, where the job to create them is triggered and then dbt-dremio moves on to other models
+  - `wait` will wait for the reflection to be created before moving on to other models, up to a `max_wait_time` timeout
+  - `depend` will wait for the reflection to be created before moving on to other models, with no timeout
+  - New fields in the reflections config:
+    - `strategy`: `trigger`, `wait` or `depend`
+    - `max_wait_time`: time in seconds to wait for the reflection to be created before moving on to other models
+      - default: `30`
+    - `wait_interval`: time in seconds to wait between checks for the reflection to be created
+      - default: `5`
+
+## Features
+
+- [#285](https://github.com/dremio/dbt-dremio/pull/285) Add strategies to reflections
+
 # dbt-dremio v1.8.2
 
 ## Changes
