@@ -42,8 +42,10 @@ echo "::add-mask::$AUTH_TOKEN"
 if [ "$GITHUB_ACTIONS" = "true" ]; then
   echo "Running in GitHub Actions"
   echo "AUTH_TOKEN=${AUTH_TOKEN}" >> $GITHUB_ENV
+  HOST="minio"
 else # Jenkins
   echo $AUTH_TOKEN > /tmp/auth_token.txt
+  HOST="localhost"
 fi
 
 manipulate_source() {
@@ -92,7 +94,7 @@ manipulate_source "$DREMIO_HEALTH_URL/apiv2/source/dbt_test_source" \
       \"defaultCtasFormat\":\"ICEBERG\",
       \"propertyList\":[
         {\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},
-        {\"name\":\"fs.s3a.endpoint\",\"value\":\"minio:9000\"},
+        {\"name\":\"fs.s3a.endpoint\",\"value\":\"$HOST:9000\"},
         {\"name\":\"dremio.s3.compat\",\"value\":\"true\"}
       ],
       \"whitelistedBuckets\":[],
