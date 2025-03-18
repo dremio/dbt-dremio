@@ -54,7 +54,7 @@ manipulate_source() {
   local description=$3
   local raw=$4
 
-  echo "$description in Dremio..."
+  echo -e "\n$description in Dremio..."
 
   if [ "$raw" == "true" ]; then
     RESPONSE=$(curl --show-error -s -w "\n%{http_code}" -X PUT "$url" \
@@ -72,9 +72,9 @@ manipulate_source() {
   RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
 
   if [ "$HTTP_STATUS" -eq 200 ]; then
-    echo -e "\n$description successfull in Dremio."
+    echo -e "$description successful in Dremio."
   else
-    echo -e "\n$description failed: $RESPONSE_BODY"
+    echo -e "$description failed: $RESPONSE_BODY"
     exit 1
   fi
 }
@@ -145,4 +145,3 @@ manipulate_source "$DREMIO_HEALTH_URL/apiv2/source/Samples/folder_format/samples
   "{\"ignoreOtherFileFormats\":false,\"type\":\"Parquet\"}" \
   "Formatting NYC-taxi-trips" \
   "true"
-
