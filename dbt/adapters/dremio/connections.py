@@ -224,8 +224,8 @@ class DremioConnectionManager(SQLConnectionManager):
         database = relation.database
         schema = relation.schema
 
-        if database == ("@" + credentials.UID) or self.__catalog_exists(
-            [database]):
+        if database == ("@" + credentials.UID) or self._catalog_exists(
+            database):
             logger.debug(
                 "Database is default or already exists: creating folders only")
         else:
@@ -237,14 +237,14 @@ class DremioConnectionManager(SQLConnectionManager):
             self._create_folders(database, schema, rest_client)
         return
 
-    def __catalog_exists(self, path):
+    def _catalog_exists(self, path: str):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         rest_client = connection.handle.get_client()
         try:
             catalog_info = rest_client.get_catalog_item(
                 catalog_id=None,
-                catalog_path=path,
+                catalog_path=[path],
             )
             return catalog_info.get("id") is not None
         except DremioNotFoundException:
