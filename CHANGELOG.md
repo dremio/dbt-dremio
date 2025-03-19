@@ -1,3 +1,9 @@
+# dbt-dremio v1.8.3
+
+## Changes
+
+- Adds check for catalog/space existence during model creation. It would unblock using non admin users in DC to run dbt-dremio.
+
 # dbt-dremio v1.8.2
 
 ## Changes
