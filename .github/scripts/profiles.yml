@@ -1,0 +1,45 @@
+test_cloud_options:
+  outputs:
+    dev:
+      dremio_space: '@user'
+      dremio_space_folder: no_schema
+      object_storage_path: no_schema
+      object_storage_source: $scratch
+      pat: dremio123
+      port: 9047
+      software_host: localhost
+      threads: 1
+      type: dremio
+      use_ssl: false
+      user: dremio
+  target: dev
+test_sw_pat_options:
+  outputs:
+    dev:
+      dremio_space: '@user'
+      dremio_space_folder: no_schema
+      object_storage_path: no_schema
+      object_storage_source: $scratch
+      pat: dremio123
+      port: 9047
+      software_host: localhost
+      threads: 1
+      type: dremio
+      use_ssl: false
+      user: dremio
+  target: dev
+test_sw_up_options:
+  outputs:
+    dev:
+      dremio_space: '@user'
+      dremio_space_folder: no_schema
+      object_storage_path: no_schema
+      object_storage_source: $scratch
+      password: dremio123
+      port: 9047
+      software_host: localhost
+      threads: 1
+      type: dremio
+      use_ssl: false
+      user: dremio
+  target: dev
