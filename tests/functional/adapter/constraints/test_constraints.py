@@ -31,6 +31,8 @@ as (
 """
 
 
+# These fixture overrides are required by all the tests in this file
+# so a class that is inherited by all the test classes is created
 class DremioColumnEqualSetup:
     @pytest.fixture
     def string_type(self):
