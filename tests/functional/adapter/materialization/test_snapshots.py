@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 from dbt.tests.adapter.basic.test_snapshot_check_cols import (
     BaseSnapshotCheckCols,
 )
