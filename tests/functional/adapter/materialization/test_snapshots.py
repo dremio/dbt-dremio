@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import pytest
-from tests.fixtures.profiles import unique_schema, dbt_profile_data
 from dbt.tests.adapter.basic.test_snapshot_check_cols import (
     BaseSnapshotCheckCols,
 )
@@ -62,6 +61,14 @@ class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):
         }
 
 class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
     @pytest.fixture(scope="class")
     def dbt_profile_data(
         self, unique_schema, dbt_profile_target, profiles_config_update
