@@ -23,11 +23,16 @@ from dbt.tests.adapter.basic.test_docs_generate import (
     BaseDocsGenerate,
     BaseDocsGenReferences,
     verify_metadata,
+    models__schema_yml,
     models__readme_md,
     models__model_sql,
-    models__schema_yml,
     run_and_generate,
     get_artifact,
+    ref_models__schema_yml,
+    ref_models__view_summary_sql,
+    ref_models__ephemeral_summary_sql,
+    ref_models__ephemeral_copy_sql,
+    ref_models__docs_md,
 )
 from dbt.tests.adapter.basic.expected_catalog import no_stats
 
@@ -43,6 +48,22 @@ models__second_model_sql = """
 select * from {{ ref('seed') }}
 """
 
+ref_sources__schema_yml = """
+version: 2
+sources:
+  - name: my_source
+    description: "{{ doc('source_info') }}"
+    loader: a_loader
+    database: "{{ target.datalake }}"
+    schema: "{{ var('test_schema') }}"
+    tables:
+      - name: my_table
+        description: "{{ doc('table_info') }}"
+        identifier: seed
+        columns:
+          - name: id
+            description: "{{ doc('column_info') }}"
+"""
 
 # Remove check for sources and only include nodes
 def verify_catalog_nodes(project, expected_catalog, start_time):
@@ -160,6 +181,17 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
 
 
 class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {
+            "schema.yml": ref_models__schema_yml,
+            "sources.yml": ref_sources__schema_yml,
+            "view_summary.sql": ref_models__view_summary_sql,
+            "ephemeral_summary.sql": ref_models__ephemeral_summary_sql,
+            "ephemeral_copy.sql": ref_models__ephemeral_copy_sql,
+            "docs.md": ref_models__docs_md,
+        }
+
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__

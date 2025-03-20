@@ -174,6 +174,10 @@ class DremioConnectionManager(SQLConnectionManager):
         message = "OK" if rows == -1 else str(rows)
         return AdapterResponse(_message=message, rows_affected=rows)
 
+    @classmethod
+    def data_type_code_to_name(cls, type_code) -> str:
+        return type_code
+
     def execute(
             self,
             sql: str,
@@ -220,8 +224,10 @@ class DremioConnectionManager(SQLConnectionManager):
         database = relation.database
         schema = relation.schema
 
-        if database == ("@" + credentials.UID):
-            logger.debug("Database is default: creating folders only")
+        if database == ("@" + credentials.UID) or self._catalog_exists(
+            database):
+            logger.debug(
+                "Database is default or already exists: creating folders only")
         else:
             logger.debug(f"Creating space: {database}")
             self._create_space(database, rest_client)
@@ -230,7 +236,20 @@ class DremioConnectionManager(SQLConnectionManager):
             logger.debug(f"Creating folder(s): {database}.{schema}")
             self._create_folders(database, schema, rest_client)
         return
-    
+
+    def _catalog_exists(self, path: str):
+        thread_connection = self.get_thread_connection()
+        connection = self.open(thread_connection)
+        rest_client = connection.handle.get_client()
+        try:
+            catalog_info = rest_client.get_catalog_item(
+                catalog_id=None,
+                catalog_path=[path],
+            )
+            return catalog_info.get("id") is not None
+        except DremioNotFoundException:
+            return False
+
     # dbt docs integration with Dremio wikis and tags
     def process_wikis(self, relation, text: str):
         logger.debug("Integrating wikis")
@@ -240,7 +259,7 @@ class DremioConnectionManager(SQLConnectionManager):
         database = relation.database
         schema = relation.schema
 
-        path = self._create_path_list(database,schema)
+        path = self._create_path_list(database, schema)
         identifier = relation.identifier
         path.append(identifier)
         try:

@@ -22,7 +22,6 @@ from dbt.tests.adapter.basic.test_snapshot_timestamp import (
 from tests.utils.util import BUCKET
 
 
-@pytest.mark.skip(reason="https://github.com/dremio/dbt-dremio/issues/20")
 class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
@@ -61,7 +60,6 @@ class TestSnapshotCheckColsDremio(BaseSnapshotCheckCols):
             "name": "snapshot_strategy_check_cols",
         }
 
-@pytest.mark.skip(reason="https://github.com/dremio/dbt-dremio/issues/20")
 class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:

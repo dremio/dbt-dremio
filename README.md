@@ -4,16 +4,17 @@ dbt is the T in ELT. Organize, cleanse, denormalize, filter, rename, and pre-agg
 
 ## Documentation
 
-[Dremio docs for our dbt adapter ](https://github.com/dremio/dbt-dremio/wiki/Using-Materializations-with-Dremio)
-[Walkthrough For Using dbt-dremio](./docs/walkthrough.md)
+- [Dremio docs for our dbt adapter](https://github.com/dremio/dbt-dremio/wiki/Using-Materializations-with-Dremio)
+- [Walkthrough For Using dbt-dremio](./docs/walkthrough.md)
+- [Trouble Shooting Guide](./docs/troubleshoot.md)
 
 The `dbt-dremio` package contains all of the code enabling dbt to work with [Dremio](https://www.dremio.com/). For more information on using dbt with Dremio, consult [the docs](https://docs.getdbt.com/reference/warehouse-profiles/dremio-profile).
 
 The dbt-dremio package supports both Dremio Cloud and Dremio Software (versions 22.0 and later).
 
-## dbt-dremio version 1.8.1
+## dbt-dremio version 1.8.2
 
-Version 1.8.0 of the dbt-dremio adapter is compatible with dbt-core versions 1.8.*.
+Version 1.8.2 of the dbt-dremio adapter is compatible with dbt-core versions 1.8.*.
 
 > Prior to version 1.1.0b, dbt-dremio was created and maintained by [Fabrice Etanchaud](https://github.com/fabrice-etanchaud) on [their GitHub repo](https://github.com/fabrice-etanchaud/dbt-dremio). Code for using Dremio REST APIs was originally authored by [Ryan Murray](https://github.com/rymurr). Contributors in this repo are credited for laying the groundwork and maintaining the adapter till version 1.0.6.5. The dbt-dremio adapter is maintained and distributed by Dremio starting with version 1.1.0b.
 

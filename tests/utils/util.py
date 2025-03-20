@@ -48,7 +48,7 @@ def relation_from_name(adapter, name: str, materialization=""):
     # only identifier was supplied.
 
     # if the relation is a view then use database
-    if materialization == "view" or "view" in name:
+    if materialization == "view" or (materialization != "table" and "view" in name.lower()):
         relation_parts.insert(0, credentials.database)
         relation_parts.insert(1, credentials.schema)
     else:
@@ -59,9 +59,11 @@ def relation_from_name(adapter, name: str, materialization=""):
 
     relation_type = "table" if materialization != "view" and "view" not in name else "view"
 
+    schema = ".".join(relation_parts[1:-1])
+
     kwargs = {
         "database": relation_parts[0],
-        "schema": ".".join(relation_parts[1:-1]),
+        "schema": None if schema == "" else schema, 
         "identifier": relation_parts[-1],
         "type": relation_type,
     }
@@ -80,12 +82,20 @@ def get_connection(adapter, name="_test"):
         conn = adapter.connections.get_thread_connection()
         yield conn
 
+# Overwrite the default implementation to use this adapter's
+# relation_from_name function. 
+def get_relation_columns(adapter, name):
+    relation = relation_from_name(adapter, name)
+    with get_connection(adapter):
+        columns = adapter.get_columns_in_relation(relation)
+        return sorted(((c.name, c.dtype, c.char_size) for c in columns), key=lambda x: x[0])
 
+
+# Overwrite the default implementation to use this adapter's
+# relation_from_name function. 
 def check_relation_types(adapter, relation_to_type):
     # Ensure that models with different materialiations have the
     # corrent table/view.
-    # Uses:
-    #   adapter.list_relations_without_caching
     """
     Relation name to table/view
     {
@@ -117,6 +127,8 @@ def check_relation_types(adapter, relation_to_type):
                 )
 
 
+# Overwrite the default implementation to use this adapter's
+# relation_from_name function. 
 def check_relations_equal(adapter, relation_names: List, compare_snapshot_cols=False):
     # Replaces assertTablesEqual. assertManyTablesEqual can be replaced
     # by doing a separate call for each set of tables/relations.
