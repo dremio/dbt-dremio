@@ -9,4 +9,3 @@ tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigDremio::test_pre_a
 tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigWithCountDremio::test_pre_and_post_model_hooks_model_and_project
 tests/hooks/test_model_hooks.py::TestPrePostModelHooksInConfigKwargsDremio::test_pre_and_post_model_hooks_model
 tests/hooks/test_run_hooks.py::TestPrePostRunHooksDremio::test_pre_and_post_run_hooks
-tests/hooks/test_run_hooks.py::TestPrePostRunHooksDremio::test_pre_and_post_seed_hooks
