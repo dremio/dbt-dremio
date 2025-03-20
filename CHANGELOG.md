@@ -6,10 +6,13 @@
     - With this change, we introduce a check that will only overwrite existing views, not create new ones on table creation when the `clone` strategy is enabled. When a view is created with a conflicting table, the view will always select the existing table.
     - To avoid failing queries, double-check that database and schema for freshly created table point to the physical space (datalake). This is especially relevant when pointing a source to a physical tables, since dbt defaults to the database (views), but the table will only lie in the datalake with this fix.
 - Adds check for catalog/space existence during model creation. It would unblock using non admin users in DC to run dbt-dremio.
+- Adds support for dbt model constraints
+- Adds support for dbt model contracts 
 
 ## Features
 
 - [#278](https://github.com/dremio/dbt-dremio/pull/278) Fix twin strategy implementation
+- [#281](https://github.com/dremio/dbt-dremio/pull/281) Add support for dbt model constraints / contracts
 
 # dbt-dremio v1.8.2
 
