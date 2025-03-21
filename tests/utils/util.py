@@ -235,7 +235,7 @@ def base_expected_catalog(
             "seed.test.seed": {
                 "unique_id": "seed.test.seed",
                 "metadata": {
-                    "schema": my_schema_name, 
+                    "schema": my_schema_name,
                     "database": SOURCE,
                     "name": case("seed"),
                     "type": table_type,
