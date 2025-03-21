@@ -170,7 +170,7 @@ def base_expected_catalog(
 
     model_database = project.database
     my_schema_name = case(project.test_schema)
-    alternate_schema = case(project.test_schema + "_test")
+    alternate_schema = case(project.test_schema + ".test")
 
     expected_cols = {
         col_case("id"): {

@@ -23,9 +23,6 @@ from dbt.tests.adapter.basic.test_docs_generate import (
     BaseDocsGenerate,
     BaseDocsGenReferences,
     verify_metadata,
-    models__schema_yml,
-    models__readme_md,
-    models__model_sql,
     run_and_generate,
     get_artifact,
     ref_models__schema_yml,
@@ -36,17 +33,6 @@ from dbt.tests.adapter.basic.test_docs_generate import (
 )
 from dbt.tests.adapter.basic.expected_catalog import no_stats
 
-# required to explicitly use alternate_schema
-# otherwise will use unique_schema under profiles fixture
-models__second_model_sql = """
-{{
-    config(
-        materialized='view',
-        schema=var('alternate_schema')
-    )
-}}
-select * from {{ ref('seed') }}
-"""
 
 ref_sources__schema_yml = """
 version: 2
@@ -90,40 +76,12 @@ def verify_catalog_nodes(project, expected_catalog, start_time):
 
 
 class TestBaseDocsGenerateDremio(BaseDocsGenerate):
-    # Override this fixture to add our version of second_model
-    @pytest.fixture(scope="class")
-    def models(self):
-        return {
-            "schema.yml": models__schema_yml,
-            "second_model.sql": models__second_model_sql,
-            "readme.md": models__readme_md,
-            "model.sql": models__model_sql,
-        }
-
-    # Override this fixture to prepend our schema with BUCKET
-    # This ensures the schema works with our datalake
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
         test_file = test_file.split(".")[-1]
         unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
-
-    # Override this fixture to prevent (twin_strategy) creating a view for seeds
-    @pytest.fixture(scope="class")
-    def project_config_update(self, unique_schema):
-        alternate_schema = unique_schema + "_test"
-        return {
-            "asset-paths": ["assets", "invalid-asset-paths"],
-            "vars": {
-                "test_schema": unique_schema,
-                "alternate_schema": alternate_schema,
-            },
-            "seeds": {
-                "quote_columns": True,
-                "+twin_strategy": "prevent",
-            },
-        }
 
     # Override this fixture to set root_path=schema
     @pytest.fixture(scope="class")
@@ -142,7 +100,6 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
         target["schema"] = unique_schema
         target["root_path"] = unique_schema
         profile["test"]["outputs"]["default"] = target
-
         if profiles_config_update:
             profile.update(profiles_config_update)
         return profile
@@ -198,22 +155,6 @@ class TestBaseDocsGenReferencesDremio(BaseDocsGenReferences):
         test_file = test_file.split(".")[-1]
         unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
-
-    # Override this fixture to allow (twin_strategy) to create a view for seeds
-    # The creation of some models looks for the seed under the database/schema
-    @pytest.fixture(scope="class")
-    def project_config_update(self, unique_schema):
-        alternate_schema = unique_schema + "_test"
-        return {
-            "asset-paths": ["assets", "invalid-asset-paths"],
-            "vars": {
-                "test_schema": unique_schema,
-                "alternate_schema": alternate_schema,
-            },
-            "seeds": {
-                "quote_columns": True,
-            },
-        }
 
     # Override this fixture to set root_path=schema
     @pytest.fixture(scope="class")

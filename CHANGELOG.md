@@ -7,12 +7,14 @@
     - To avoid failing queries, double-check that database and schema for freshly created table point to the physical space (datalake). This is especially relevant when pointing a source to a physical tables, since dbt defaults to the database (views), but the table will only lie in the datalake with this fix.
 - Adds check for catalog/space existence during model creation. It would unblock using non admin users in DC to run dbt-dremio.
 - Adds support for dbt model constraints
-- Adds support for dbt model contracts 
+- Adds support for dbt model contracts
+- Let the adapter pass down the defined schema to Dremio during both table and view creation
 
 ## Features
 
 - [#278](https://github.com/dremio/dbt-dremio/pull/278) Fix twin strategy implementation
 - [#281](https://github.com/dremio/dbt-dremio/pull/281) Add support for dbt model constraints / contracts
+- [#271](https://github.com/dremio/dbt-dremio/pull/271) Pass down schema on table and view creation
 
 # dbt-dremio v1.8.2
 
