@@ -76,6 +76,14 @@ def verify_catalog_nodes(project, expected_catalog, start_time):
 
 
 class TestBaseDocsGenerateDremio(BaseDocsGenerate):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
     # Override this fixture to allow (twin_strategy) to create a view for seeds
     # The creation of some models looks for the seed under the database/schema
     @pytest.fixture(scope="class")
