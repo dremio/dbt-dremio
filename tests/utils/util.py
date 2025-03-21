@@ -170,7 +170,7 @@ def base_expected_catalog(
 
     model_database = project.database
     my_schema_name = case(project.test_schema)
-    alternate_schema = case(project.test_schema + "_test")
+    alternate_schema = case(project.test_schema + ".test")
 
     expected_cols = {
         col_case("id"): {
@@ -235,7 +235,7 @@ def base_expected_catalog(
             "seed.test.seed": {
                 "unique_id": "seed.test.seed",
                 "metadata": {
-                    "schema": my_schema_name,
+                    "schema": my_schema_name, 
                     "database": SOURCE,
                     "name": case("seed"),
                     "type": table_type,
