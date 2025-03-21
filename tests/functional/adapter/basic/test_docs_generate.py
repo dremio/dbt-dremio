@@ -79,13 +79,11 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
         test_file = request.module.__name__
-        # We only want the last part of the name
         test_file = test_file.split(".")[-1]
         unique_schema = f"{BUCKET}.{prefix}_{test_file}"
         return unique_schema
 
-    # Override this fixture to allow (twin_strategy) to create a view for seeds
-    # The creation of some models looks for the seed under the database/schema
+    # Override this fixture to set root_path=schema
     @pytest.fixture(scope="class")
     def dbt_profile_data(
         self, unique_schema, dbt_profile_target, profiles_config_update
@@ -120,7 +118,7 @@ class TestBaseDocsGenerateDremio(BaseDocsGenerate):
             model_stats=no_stats(),
         )
 
-    # Test "--no-compile" flag works and produces no manifest
+    # Test "--no-compile" flag works and produces no manifest.json
     def test_run_and_generate_no_compile(self, project, expected_catalog):
         start_time = run_and_generate(project, ["--no-compile"])
         assert not os.path.exists(
