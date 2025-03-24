@@ -12,9 +12,9 @@ The `dbt-dremio` package contains all of the code enabling dbt to work with [Dre
 
 The dbt-dremio package supports both Dremio Cloud and Dremio Software (versions 22.0 and later).
 
-## dbt-dremio version 1.8.2
+## dbt-dremio version 1.8.3
 
-Version 1.8.2 of the dbt-dremio adapter is compatible with dbt-core versions 1.8.*.
+Version 1.8.3 of the dbt-dremio adapter is compatible with dbt-core versions 1.8.*.
 
 > Prior to version 1.1.0b, dbt-dremio was created and maintained by [Fabrice Etanchaud](https://github.com/fabrice-etanchaud) on [their GitHub repo](https://github.com/fabrice-etanchaud/dbt-dremio). Code for using Dremio REST APIs was originally authored by [Ryan Murray](https://github.com/rymurr). Contributors in this repo are credited for laying the groundwork and maintaining the adapter till version 1.0.6.5. The dbt-dremio adapter is maintained and distributed by Dremio starting with version 1.1.0b.
 
