@@ -3,15 +3,6 @@ set -e
 
 echo "Creating dbt projects..."
 
-# # Define paths
-# if [ "$GITHUB_ACTIONS" = "true" ]; then
-#   PROJECT_DIR="$GITHUB_WORKSPACE/project"
-#   # DBT_PROFILES_DIR="$GITHUB_WORKSPACE/.dbt"
-# else # Jenkins
-#   PROJECT_DIR="$WORKSPACE/project"
-#   # DBT_PROFILES_DIR="$WORKSPACE/.dbt"
-# fi
-
 PROJECT_DIR="$HOME/project"
 DBT_PROFILES_DIR="$HOME/.dbt"
 
