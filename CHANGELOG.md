@@ -1,3 +1,9 @@
+# dbt-dremio v1.8.4
+
+## Changes
+
+- Adjusted existing pipeline scripts to support Jenkins
+
 # dbt-dremio v1.8.3
 
 ## Changes
@@ -60,7 +66,7 @@
 ## Features
 
 -   [#250](https://github.com/dremio/dbt-dremio/pull/250) Implementation of wikis and tags feature
--   [#250](https://github.com/dremio/dbt-dremio/pull/256) Reflections are now handled through the Rest API
+-   [#256](https://github.com/dremio/dbt-dremio/pull/256) Reflections are now handled through the Rest API
 
 # dbt-dremio v1.8.0
 
@@ -70,7 +76,7 @@
 
 ## Features
 
--   [#223](https://github.com/dremio/dbt-dremio/issues/224) Implement merge strategy for incremental materializations
+-   [#224](https://github.com/dremio/dbt-dremio/issues/224) Implement merge strategy for incremental materializations
 -   [#229](https://github.com/dremio/dbt-dremio/issues/229) Add max operator to get_relation_last_modified macro
 
 # dbt-dremio v1.7.0
