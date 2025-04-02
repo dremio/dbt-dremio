@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Optional, List
+from typing import Any, Dict, Tuple, Optional, List
 from contextlib import contextmanager
 
+from dbt.adapters.dremio import __version__
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
@@ -45,6 +46,26 @@ from dbt.adapters.dremio.api.rest.error import (
 )
 
 from dbt.adapters.events.logging import AdapterLogger
+
+DREMIO_QUERY_COMMENT = """
+{%- set comment_dict = {} -%}
+{%- do comment_dict.update(
+    app='dbt',
+    dbt_version=dbt_version,
+    adapter_version='1.8.3',
+    profile_name=target.get('profile_name'),
+    target_name=target.get('target_name'),
+) -%}
+{%- if node is not none -%}
+  {%- do comment_dict.update(
+    node_id=node.unique_id,
+  ) -%}
+{% else %}
+  {# in the node context, the connection name is the node_id #}
+  {%- do comment_dict.update(connection_name=connection_name) -%}
+{%- endif -%}
+{{ return(tojson(comment_dict)) }}
+"""
 
 logger = AdapterLogger("dremio")
 
@@ -177,14 +198,22 @@ class DremioConnectionManager(SQLConnectionManager):
     @classmethod
     def data_type_code_to_name(cls, type_code) -> str:
         return type_code
-
+    
+    # Overriding this method to update the query comment macro before it is evaluated
+    def set_query_header(self, query_header_context: Dict[str, Any]) -> None:
+        self.profile.query_comment.comment = DREMIO_QUERY_COMMENT
+        super().set_query_header(query_header_context)
+    
     def execute(
             self,
             sql: str,
             auto_begin: bool = False,
             fetch: bool = False,
             limit: Optional[int] = None,
-    ) -> Tuple[AdapterResponse, agate.Table]:
+    ) -> Tuple[AdapterResponse, agate.Table]:        
+        logger.info(f"Query header.comment.query_comment: {self.query_header.comment.query_comment}")
+        logger.info(f"Query header._get_comment_macro: {self.query_header._get_comment_macro()}")
+        logger.info(f"self.profile.query_comment.comment: {self.profile.query_comment.comment}")
         sql = self._add_query_comment(sql)
         _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
         response = self.get_response(cursor)
