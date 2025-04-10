@@ -211,14 +211,14 @@ class DremioConnectionManager(SQLConnectionManager):
     @classmethod
     def data_type_code_to_name(cls, type_code) -> str:
         return type_code
-    
+
     def execute(
             self,
             sql: str,
             auto_begin: bool = False,
             fetch: bool = False,
             limit: Optional[int] = None,
-    ) -> Tuple[AdapterResponse, agate.Table]:        
+    ) -> Tuple[AdapterResponse, agate.Table]:
         sql = self._add_query_comment(sql)
         _, cursor = self.add_query(sql, auto_begin, fetch=fetch)
         response = self.get_response(cursor)
