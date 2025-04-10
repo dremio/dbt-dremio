@@ -13,9 +13,12 @@
 # limitations under the License.
 
 import agate
-from typing import Tuple, Optional, List
+from typing import Any, Dict, Tuple, Optional, List
 from contextlib import contextmanager
 
+from dbt.adapters.base.query_headers import MacroQueryStringSetter
+
+from dbt.adapters.dremio.__version__ import version
 from dbt.adapters.dremio.api.cursor import DremioCursor
 from dbt.adapters.dremio.api.handle import DremioHandle
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
@@ -29,7 +32,7 @@ import json
 
 import dbt_common.exceptions
 from dbt.adapters.sql import SQLConnectionManager
-from dbt.adapters.contracts.connection import AdapterResponse
+from dbt.adapters.contracts.connection import AdapterResponse, DEFAULT_QUERY_COMMENT
 
 from dbt.adapters.dremio.api.rest.client import DremioRestClient
 
@@ -48,11 +51,42 @@ from dbt.adapters.events.logging import AdapterLogger
 
 logger = AdapterLogger("dremio")
 
+DREMIO_QUERY_COMMENT = f"""
+{{%- set comment_dict = {{}} -%}}
+{{%- do comment_dict.update(
+    app='dbt',
+    dbt_version=dbt_version,
+    dbt_dremio_version='{version}',
+    profile_name=target.get('profile_name'),
+    target_name=target.get('target_name')
+) -%}}
+{{%- if node is not none -%}}
+  {{%- do comment_dict.update(
+    node_id=node.unique_id,
+  ) -%}}
+{{% else %}}
+  {{# in the node context, the connection name is the node_id #}}
+  {{%- do comment_dict.update(connection_name=connection_name) -%}}
+{{%- endif -%}}
+{{{{ return(tojson(comment_dict)) }}}}
+"""
+
+class DremioMacroQueryStringSetter(MacroQueryStringSetter):
+    # Overriding this method to update the query comment macro
+    def _get_comment_macro(self) -> Optional[str]:
+        if self.config.query_comment.comment == DEFAULT_QUERY_COMMENT:
+            return DREMIO_QUERY_COMMENT
+        else:
+            return self.config.query_comment.comment
+
 class DremioConnectionManager(SQLConnectionManager):
     TYPE = "dremio"
     DEFAULT_CONNECTION_RETRIES = 5
 
     retries = DEFAULT_CONNECTION_RETRIES
+
+    def set_query_header(self, query_header_context: Dict[str, Any]) -> None:
+        self.query_header = DremioMacroQueryStringSetter(self.profile, query_header_context)
 
     @contextmanager
     def exception_handler(self, sql):
