@@ -25,4 +25,4 @@ macro-paths: ["macros"]
 
 vars:
     "dremio:reflections_metadata_enabled": false
-    "dremio:exact_search_enabled": false
+    "dremio:exact_search_enabled": true

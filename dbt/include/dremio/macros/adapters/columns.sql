@@ -26,7 +26,13 @@ limitations under the License.*/
         ,numeric_precision
         ,numeric_scale
     from information_schema.columns
-    where ilike(table_schema, '{{ schema_name }}')
+
+    {%- if var('dremio:exact_search_enabled', default=true) %}
+        where table_schema = '{{ schema_name }}'
+    {%- else %}
+        where ilike(table_schema, '{{ schema_name }}')
+    {%- endif %}
+
     and ilike(table_name, '{{ identifier }}')
     order by ordinal_position
   {% endcall %}
