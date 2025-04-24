@@ -2,7 +2,9 @@
 
 ## Changes
 
-- Basic unit testing support - limited to models without dependencies and a set of data types
+- Basic unit testing support
+  - Only tables and views without dependencies, i.e., without using Jinja function ref(), can be tested
+  - Not all data types / castings are supported
 - Included dbt-dremio version in query metadata
 - Adjusted existing pipeline scripts to support Jenkins
 
