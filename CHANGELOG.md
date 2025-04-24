@@ -2,9 +2,13 @@
 
 ## Changes
 
+- Basic unit testing support - limited to models without dependencies and a set of data types
 - Included dbt-dremio version in query metadata
 - Adjusted existing pipeline scripts to support Jenkins
 
+## Features
+
+- [#291](https://github.com/dremio/dbt-dremio/pull/291) dbt Unit Testing - basic implementation
 # dbt-dremio v1.8.3
 
 ## Changes
