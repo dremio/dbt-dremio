@@ -18,8 +18,6 @@
       else get_create_table_as_sql(True, temp_relation, empty_sql)
   ) %}
 
-  {{ debug() }}
-  
   {%- set columns_in_relation = adapter.get_columns_in_relation(temp_relation) -%}
   {%- set column_name_to_data_types = {} -%}
   {%- for column in columns_in_relation -%}
