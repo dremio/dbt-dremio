@@ -27,7 +27,7 @@ limitations under the License.*/
         ,numeric_scale
     from information_schema.columns
 
-    {%- if var('dremio:exact_search_enabled', default=true) %}
+    {%- if var('dremio:exact_search_enabled', default=false) %}
         where table_schema = '{{ schema_name }}'
     {%- else %}
         where ilike(table_schema, '{{ schema_name }}')

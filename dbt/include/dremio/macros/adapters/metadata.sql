@@ -212,13 +212,7 @@ limitations under the License.*/
   {% set sql %}
     select substring(schema_name, position('.' in schema_name) + 1)
     from information_schema.schemata
-
-    {%- if var('dremio:exact_search_enabled', default=true) %}
-        where schema_name = '{{ schema_name_like }}'
-    {%- else %}
-        where ilike(schema_name, '{{ schema_name_like }}')
-    {%- endif %}
-
+    where ilike(schema_name, '{{ schema_name_like }}')
     union
     values('no_schema')
   {% endset %}
@@ -231,7 +225,7 @@ limitations under the License.*/
   {% set sql -%}
     select count(*)
     from information_schema.schemata
-    {%- if var('dremio:exact_search_enabled', default=true) %}
+    {%- if var('dremio:exact_search_enabled', default=false) %}
         where schema_name = '{{ schema_name }}'
     {%- else %}
         where ilike(schema_name, '{{ schema_name }}')
@@ -283,7 +277,7 @@ limitations under the License.*/
       select table_catalog, table_name, table_schema, table_type
       from cte2
       where ilike(table_catalog, '{{ database }}')
-      {%- if var('dremio:exact_search_enabled', default=true) %}
+      {%- if var('dremio:exact_search_enabled', default=false) %}
         and table_schema = '{{ schema_name }}'
       {%- else %}
         and ilike(table_schema, '{{ schema_name }}')
@@ -304,7 +298,7 @@ limitations under the License.*/
           end) as table_schema
           ,lower(table_type) as table_type
       from information_schema."tables"
-      {%- if var('dremio:exact_search_enabled', default=true) %}
+      {%- if var('dremio:exact_search_enabled', default=false) %}
         where table_schema = '{{ schema_name }}'
       {%- else %}
         where ilike(table_schema, '{{ schema_name }}')
