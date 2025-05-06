@@ -17,7 +17,6 @@ limitations under the License.*/
   {%- if execute and graph -%}
     {%- set model = graph.nodes.values() | selectattr("name", "equalto", model_name) | list | first -%}
     {%- if model.config.materialized == 'reflection' -%}
-      {%- set exceptions = modules.exceptions -%}
       {% do exceptions.CompilationError("Reflections cannot be ref()erenced (" ~ relation ~ ")") %}
     {%- endif -%}
     {%- set format = model.config.format if
