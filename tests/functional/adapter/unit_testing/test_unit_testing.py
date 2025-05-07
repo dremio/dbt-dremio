@@ -20,7 +20,6 @@ from dbt.tests.adapter.unit_testing.test_case_insensitivity import (
 from dbt.tests.adapter.unit_testing.test_invalid_input import BaseUnitTestInvalidInput
 
 class TestDremioUnitTestingTypes(BaseUnitTestingTypes):
-    
     @pytest.fixture
     def data_types(self):
         # https://docs.dremio.com/current/reference/sql/data-types/
@@ -29,50 +28,50 @@ class TestDremioUnitTestingTypes(BaseUnitTestingTypes):
             ["1", "1"],
             ["'1'", "1"],
             ["cast('true' as boolean)", "true"],
-            # ["1.0", "1.0"], # FIXME: Revisit, wrong fixture
+            ["1.0", "1.0"], # FIXME: Revisit, wrong fixture
             ["'string value'", "string value"],
-            # ["cast(1.0 as numeric)", "1.0"], # FIXME: Revisit, wrong fixture
+            ["cast(1.0 as numeric)", "1.0"], # FIXME: Revisit, wrong fixture
             ["cast(1 as bigint)", 1],
             ["cast('2019-01-01' as date)", "2019-01-01"],
-            # ["cast('2013-11-03 00:00:00' as timestamp)", "2013-11-03 00:00:00"], #FIXME: Revisit, wrong fixture
-            # ["st_geogpoint(75, 45)", "'st_geogpoint(75, 45)'"], # ?
+            ["cast('2013-11-03 00:00:00' as timestamp)", "2013-11-03 00:00:00"], #FIXME: Revisit, wrong fixture
+            ["st_geogpoint(75, 45)", "'st_geogpoint(75, 45)'"], # ?
             # arrays #FIXME: Revisit, wrong fixture
-            # ["array['a','b','c']", "['a','b','c']"],
-            # ["array[1,2,3]", "[1,2,3]"],
-            # ["array[true,true,false]", "[true,true,false]"],
+            ["array['a','b','c']", "['a','b','c']"],
+            ["array[1,2,3]", "[1,2,3]"],
+            ["array[true,true,false]", "[true,true,false]"],
             # array of date #FIXME: Revisit, wrong fixture
-            # ["array[date '2019-01-01']", "['2020-01-01']"],
-            # ["array[date '2019-01-01']", "[]"],
-            # ["array[date '2019-01-01']", "null"],
+            ["array[date '2019-01-01']", "['2020-01-01']"],
+            ["array[date '2019-01-01']", "[]"],
+            ["array[date '2019-01-01']", "null"],
             # array of timestamp #FIXME: Revisit, wrong fixture
-            # ["array[timestamp '2019-01-01']", "['2020-01-01']"],
-            # ["array[timestamp '2019-01-01']", "[]"],
-            # ["array[timestamp '2019-01-01']", "null"],
+            ["array[timestamp '2019-01-01']", "['2020-01-01']"],
+            ["array[timestamp '2019-01-01']", "[]"],
+            ["array[timestamp '2019-01-01']", "null"],
             # json
-            # [
-            #     """json '{"name": "Cooper", "forname": "Alice"}'""",
-            #     """{"name": "Cooper", "forname": "Alice"}""",
-            # ],
-            # ["""json '{"name": "Cooper", "forname": "Alice"}'""", "{}"],
+            [
+                """json '{"name": "Cooper", "forname": "Alice"}'""",
+                """{"name": "Cooper", "forname": "Alice"}""",
+            ],
+            ["""json '{"name": "Cooper", "forname": "Alice"}'""", "{}"],
             # structs
-            # [
-            #     "struct('Isha' as name, 22 as age)",
-            #     """'struct("Isha" as name, 22 as age)'""",
-            # ],
-            # [
-            #     "struct('Kipketer' AS name, [23.2, 26.1, 27.3, 29.4] AS laps)",
-            #     """'struct("Kipketer" AS name, [23.2, 26.1, 27.3, 29.4] AS laps)'""",
-            # ],
+            [
+                "struct('Isha' as name, 22 as age)",
+                """'struct("Isha" as name, 22 as age)'""",
+            ],
+            [
+                "struct('Kipketer' AS name, [23.2, 26.1, 27.3, 29.4] AS laps)",
+                """'struct("Kipketer" AS name, [23.2, 26.1, 27.3, 29.4] AS laps)'""",
+            ],
             # struct of struct
-            # [
-            #     "struct(struct(1 as id, 'blue' as color) as my_struct)",
-            #     """'struct(struct(1 as id, "blue" as color) as my_struct)'""",
-            # ],
+            [
+                "struct(struct(1 as id, 'blue' as color) as my_struct)",
+                """'struct(struct(1 as id, "blue" as color) as my_struct)'""",
+            ],
             # array of struct
-            # [
-            #     "[struct(st_geogpoint(75, 45) as my_point), struct(st_geogpoint(75, 35) as my_point)]",
-            #     "['struct(st_geogpoint(75, 45) as my_point)', 'struct(st_geogpoint(75, 35) as my_point)']",
-            # ],
+            [
+                "[struct(st_geogpoint(75, 45) as my_point), struct(st_geogpoint(75, 35) as my_point)]",
+                "['struct(st_geogpoint(75, 45) as my_point)', 'struct(st_geogpoint(75, 35) as my_point)']",
+            ],
         ]
 
 class TestDremioUnitTestCaseInsensitivity(BaseUnitTestCaseInsensivity):
