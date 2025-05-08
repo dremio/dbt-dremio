@@ -41,6 +41,7 @@ class DremioAuthentication:
     def build_headers(cls, authorization_field):
         headers = {
             "Content-Type": "application/json",
+            "User-Agent": "Dremio QA DCS automation",
             "Authorization": "{authorization_token}".format(
                 authorization_token=authorization_field
             ),
