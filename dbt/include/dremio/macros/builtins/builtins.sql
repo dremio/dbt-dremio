@@ -14,7 +14,7 @@ limitations under the License.*/
 
 {%- macro ref(model_name, v=None) -%}
   {%- set relation = builtins.ref(model_name, v=v) -%}
-  {%- if execute -%}
+  {%- if execute and graph -%}
     {%- set model = graph.nodes.values() | selectattr("name", "equalto", model_name) | list | first -%}
     {%- if model.config.materialized == 'reflection' -%}
       {% do exceptions.CompilationError("Reflections cannot be ref()erenced (" ~ relation ~ ")") %}

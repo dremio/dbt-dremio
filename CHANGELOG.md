@@ -2,15 +2,15 @@
 
 ## Changes
 
-- Basic unit testing support
-  - Only tables and views without dependencies, i.e., without using Jinja function ref(), can be tested
+- Unit testing feature with limitation
   - Not all data types / castings are supported
 - Included dbt-dremio version in query metadata
 - Adjusted existing pipeline scripts to support Jenkins
 
 ## Features
 
-- [#291](https://github.com/dremio/dbt-dremio/pull/291) dbt Unit Testing - basic implementation
+- [#291](https://github.com/dremio/dbt-dremio/pull/291) [#293](https://github.com/dremio/dbt-dremio/pull/293) dbt Unit Testing
+
 # dbt-dremio v1.8.3
 
 ## Changes
