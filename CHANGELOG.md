@@ -6,6 +6,7 @@
   - Not all data types / castings are supported
 - Included dbt-dremio version in query metadata
 - Adjusted existing pipeline scripts to support Jenkins
+- Added possibility for direct comparison where possible
 
 ## Features
 
