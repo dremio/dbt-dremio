@@ -4,6 +4,7 @@
 
 - Included dbt-dremio version in query metadata
 - Adjusted existing pipeline scripts to support Jenkins
+- Added possibility for direct comparison where possible
 
 # dbt-dremio v1.8.3
 
