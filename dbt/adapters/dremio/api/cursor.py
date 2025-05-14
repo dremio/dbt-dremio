@@ -180,7 +180,8 @@ class DremioCursor:
         if self._job_results is not None:
             tester = agate.TypeTester()
             json_rows = self._job_results["rows"]
-            force = {} # Used to force agate to use a specific .DataType for some types
+            # Used to force agate to use a specific .DataType for some type values that can be misinterpreted as Boolean
+            force = {}
             self._table_results = json_rows
             for col in self._job_results["schema"]:
                 name = col["name"]

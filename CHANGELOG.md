@@ -2,15 +2,14 @@
 
 ## Changes
 
-- Unit testing feature with limitation
-  - Not all data types / castings are supported
+- Unit testing feature
 - Included dbt-dremio version in query metadata
 - Adjusted existing pipeline scripts to support Jenkins
 - Added possibility for direct comparison where possible
 
 ## Features
 
-- [#291](https://github.com/dremio/dbt-dremio/pull/291) [#293](https://github.com/dremio/dbt-dremio/pull/293) dbt Unit Testing
+- [#291](https://github.com/dremio/dbt-dremio/pull/291) [#293](https://github.com/dremio/dbt-dremio/pull/293) [#294](https://github.com/dremio/dbt-dremio/pull/294) dbt Unit Testing
 
 # dbt-dremio v1.8.3
 
