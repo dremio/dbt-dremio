@@ -180,13 +180,16 @@ class DremioCursor:
         if self._job_results is not None:
             tester = agate.TypeTester()
             json_rows = self._job_results["rows"]
+            force = {} # Used to force agate to use a specific .DataType for some types
             self._table_results = json_rows
             for col in self._job_results["schema"]:
                 name = col["name"]
                 data_type_str = col["type"]["name"]
-                if data_type_str == "BIGINT":
-                    tester = agate.TypeTester(force={f"{name}": agate.Number()})
-
+                if data_type_str == "BIGINT" or data_type_str == "INTEGER":
+                    force[name] = agate.Number()
+            if force:
+                tester = agate.TypeTester(force=force)
             self._table_results = agate.Table.from_object(
                 json_rows, column_types=tester
             )
+            logger.debug(f"Table results: {self._table_results}")
