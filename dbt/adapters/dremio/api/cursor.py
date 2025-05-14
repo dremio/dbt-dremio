@@ -192,4 +192,3 @@ class DremioCursor:
             self._table_results = agate.Table.from_object(
                 json_rows, column_types=tester
             )
-            logger.debug(f"Table results: {self._table_results}")

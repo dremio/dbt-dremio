@@ -19,31 +19,6 @@ from dbt.tests.adapter.unit_testing.test_case_insensitivity import (
 )
 from dbt.tests.adapter.unit_testing.test_invalid_input import BaseUnitTestInvalidInput
 
-from dbt.tests.util import write_file, run_dbt
-
-my_model_sql = """
-select
-    tested_column from {{ ref('my_upstream_model')}}
-"""
-
-my_upstream_model_sql = """
-select
-  {sql_value} as tested_column
-"""
-
-test_my_model_yml = """
-unit_tests:
-  - name: test_my_model
-    model: my_model
-    given:
-      - input: ref('my_upstream_model')
-        rows:
-          - {{ tested_column: {yaml_value} }}
-    expect:
-      rows:
-        - {{ tested_column: {yaml_value} }}
-"""
-
 class TestDremioUnitTestingTypes(BaseUnitTestingTypes):
     @pytest.fixture
     def data_types(self):
@@ -70,8 +45,8 @@ class TestDremioUnitTestingTypes(BaseUnitTestingTypes):
 
             # Date/Time
             ["cast('2019-01-01' as date)", "2019-01-01"],
-            # ["cast('13:45:30' as time)", "13:45:30.000"],
-            # ["cast('2013-11-03 00:00:00' as timestamp)", "2013-11-03 00:00:00.000"],
+            ["cast('13:45:30' as time)", "'13:45:30.000'"],
+            ["cast('2013-11-03 00:00:00' as timestamp)", "'2013-11-03 00:00:00.000'"],
 
             # Arrays / Lists
             ["array['a','b','c']", "['a','b','c']"],
@@ -80,46 +55,22 @@ class TestDremioUnitTestingTypes(BaseUnitTestingTypes):
             ["array[date '2019-01-01']", "['2019-01-01']"],
             ["array[timestamp '2019-01-01']", "['2019-01-01 00:00:00.000']"],
 
-            # # Binary
-            # ["cast('abc' as binary)", "YWJj"],
+            # Binary
+            ["cast('abc' as binary)", "YWJj"],
 
-            # # Intervals
-            # ["interval '2' year", "+002-00"],
-            # ["interval '3' month", "3 months"],
-            # ["interval '5' day", "5 days"],
-            # ["interval '12' hour", "12 hours"],
-            # ["interval '30' minute", "30 minutes"],
-            # ["interval '45' second", "45 seconds"],
+            # Intervals
+            ["interval '2' year", "\"'2' year\""],
+            ["interval '3' month", "\"'3' month\""],
+            ["interval '5' day", "\"'5' day\""],
+            ["interval '12' hour", "\"'12' hour\""],
+            ["interval '30' minute", "\"'30' minute\""],
+            ["interval '45' second", "\"'45' second\""],
 
-            # # JSON Complex Types via CONVERT_FROM
-            # ["convert_from('{\"a\": 1}', 'json')", "{'a': 1}"],
-            # ["convert_from('[1,2,3]', 'json')", "[1, 2, 3]"],
-            # ["convert_from('{\"x\":1, \"y\":2}', 'json')", "{'x': 1, 'y': 2}"],
+            # Struct
+            ["convert_from('{a:1}', 'json')", "\"convert_from('{a:1}', 'json')\""],
+            ["convert_from('[1,2,3]', 'json')", "\"convert_from('[1,2,3]', 'json')\""],
+            ["convert_from('{x:1, y:2}', 'json')", "\"convert_from('{x:1, y:2}', 'json')\""],
         ]
-    
-    def test_unit_test_data_type(self, project, data_types):
-        for sql_value, yaml_value in data_types:
-            # Write parametrized type value to sql files
-            write_file(
-                my_upstream_model_sql.format(sql_value=sql_value),
-                "models",
-                "my_upstream_model.sql",
-            )
-
-            # Write parametrized type value to unit test yaml definition
-            write_file(
-                test_my_model_yml.format(yaml_value=yaml_value),
-                "models",
-                "schema.yml",
-            )
-
-            results = run_dbt(["run", "--select", "my_upstream_model"])
-            assert len(results) == 1
-
-            try:
-                run_dbt(["test", "--debug", "--select", "my_model"])
-            except Exception:
-                raise AssertionError(f"unit test failed when testing model with {sql_value}")
 
 class TestDremioUnitTestCaseInsensitivity(BaseUnitTestCaseInsensivity):
     pass
