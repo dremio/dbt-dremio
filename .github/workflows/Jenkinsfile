@@ -1,0 +1,91 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'VERSION', defaultValue: '1.0.0', description: 'Version for the release (e.g., 1.0.0)')
+    }
+
+    environment {
+        PYTHON_VERSION = '3.9'
+        TWINE_USERNAME = '__token__'
+        TWINE_PASSWORD = credentials('PYPI_PASSWORD')
+        RELEASE_PAT = credentials('RELEASE_PAT')
+    }
+
+    stages {
+        stage('Checkout Repository') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Set up Python') {
+            steps {
+                sh 'python3 -m venv venv'
+                sh '. venv/bin/activate && pip install --upgrade pip'
+            }
+        }
+
+        stage('Install Dependencies for Wheel Creation') {
+            steps {
+                sh '. venv/bin/activate && pip install wheel'
+            }
+        }
+
+        stage('Clean Up Previous Builds') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                pip uninstall -y dbt-dremio dbt-core || true
+                rm -rf *.egg-info build dist
+                '''
+            }
+        }
+
+        stage('Create Wheel File') {
+            steps {
+                sh '. venv/bin/activate && python setup.py sdist bdist_wheel | tee create-wheel.log'
+            }
+        }
+
+        stage('Create Git Tag') {
+            steps {
+                sh '''
+                git config user.name "${USER}"
+                git config user.email "${USER}@dremio.com"
+                git tag -a v${VERSION} -m "Tag for release v${VERSION}"
+                git push origin v${VERSION}
+                '''
+            }
+        }
+
+        stage('Create GitHub Release') {
+            steps {
+                sh '''
+                echo "${RELEASE_PAT}" | gh auth login --with-token
+                gh release create v${VERSION} \
+                    --title "v${VERSION}" \
+                    --generate-notes
+                '''
+            }
+        }
+
+        stage('Upload to PyPI') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                pip install build twine
+                python -m build
+                twine check dist/*
+                twine upload dist/*
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
