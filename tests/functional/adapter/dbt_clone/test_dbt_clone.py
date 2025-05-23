@@ -21,21 +21,21 @@ from dbt.tests.util import run_dbt
 
 
 # Need to change the target_database to be the object_storage_source
-snapshot_sql = """
-{% snapshot my_cool_snapshot %}
+snapshot_sql = f"""
+{{% snapshot my_cool_snapshot %}}
 
-    {{
+    {{{{
         config(
-            target_database="dbt_test_source",
+            target_database="{SOURCE}",
             target_schema=schema,
             unique_key='id',
             strategy='check',
             check_cols=['id'],
         )
-    }}
-    select * from {{ ref('view_model') }}
+    }}}}
+    select * from {{{{ ref('view_model') }}}}
 
-{% endsnapshot %}
+{{% endsnapshot %}}
 """
 
 # Append _seeds to schemas of both targets

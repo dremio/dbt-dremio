@@ -19,6 +19,8 @@ from dbt.tests.util import (
     read_file,
     write_file,
 )
+from tests.utils.util import BUCKET
+
 test_schema_parsing = """
 {{
   config(
@@ -45,7 +47,7 @@ class TestSchemaParsingDremio:
 
     def test_schema_with_dots(self, project):
         self.update_config_file(
-            {"root_path": 'dbtdremios3."test.schema"'},
+            {"root_path": f'{BUCKET}."test.schema"'},
             project.profiles_dir,
             "profiles.yml",
         )
