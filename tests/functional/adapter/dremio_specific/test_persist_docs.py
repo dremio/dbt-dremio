@@ -25,7 +25,7 @@ from dbt.adapters.dremio.api.parameters import ParametersBuilder
 
 from build.lib.dbt.adapters.dremio.api.rest.client import DremioRestClient
 
-from tests.utils.util import BUCKET
+from tests.utils.util import BUCKET, SOURCE
 
 # Excluded seed
 _PROPERTIES__SCHEMA_YML = """
@@ -256,9 +256,8 @@ class TestPersistDocs(BasePersistDocs):
     def _get_relation_id(self, project, client, identifier):
         client.start()
 
-        # Replacing dbt_test to dbt_test_source if it is table
         if identifier == "table_model":
-            database = "dbt_test_source"
+            database = SOURCE 
         else:
             database = project.database
         schema = project.test_schema

@@ -31,7 +31,6 @@ from dbt.tests.util import (
 )
 from tests.utils.util import BUCKET
 
-# Unable to insert variable into docstring, so "dbt_test_source" is hardcoded
 schema_base_yml = """
 version: 2
 sources:
