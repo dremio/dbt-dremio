@@ -225,7 +225,11 @@ limitations under the License.*/
   {% set sql -%}
     select count(*)
     from information_schema.schemata
-    where ilike(schema_name, '{{ schema_name }}')
+    {%- if var('dremio:exact_search_enabled', default=false) %}
+        where schema_name = '{{ schema_name }}'
+    {%- else %}
+        where ilike(schema_name, '{{ schema_name }}')
+    {%- endif %}
   {%- endset %}
   {{ return(run_query(sql)) }}
 {% endmacro %}
@@ -273,7 +277,11 @@ limitations under the License.*/
       select table_catalog, table_name, table_schema, table_type
       from cte2
       where ilike(table_catalog, '{{ database }}')
-      and ilike(table_schema, '{{ schema }}')
+      {%- if var('dremio:exact_search_enabled', default=false) %}
+        and table_schema = '{{ schema_name }}'
+      {%- else %}
+        and ilike(table_schema, '{{ schema_name }}')
+      {%- endif %}
 
       union all
 
