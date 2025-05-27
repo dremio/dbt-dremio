@@ -17,6 +17,7 @@ import os
 
 from dbt.config.profile import read_profile
 from dbt.adapters.dremio.credentials import DremioCredentials
+from tests.utils.util import SOURCE
 
 # Tests require manual setup before executing.
 #
@@ -55,18 +56,17 @@ class TestProfileTemplate:
     _PAT_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS = {"pat": None}
     _COMMON_PROFILE_OPTIONS_WITH_DEFAULTS = {
         "user": None,
-        "object_storage_source": "$scratch",
-        "object_storage_path": "no_schema",
-        "dremio_space": "@user",
-        "dremio_space_folder": "no_schema",
         "threads": 1,
     }
     _DREMIO_CLOUD_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS = {
-        "cloud_host": "api.dremio.cloud",
-        "cloud_project_id": None,
-        "use_ssl": True,
+        "dremio_space": SOURCE,
+        "dremio_space_folder": "space",
+        "object_storage_source": SOURCE,
+        "object_storage_path": "object_storage",
+        "use_ssl": False,
     }
     _DREMIO_SW_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS = {
+        "object_storage_source": "$scratch",
         "software_host": None,
         "port": 9047,
         "use_ssl": False,

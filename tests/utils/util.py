@@ -16,6 +16,7 @@ from dbt.tests.util import check_relations_equal_with_relations
 from typing import List
 from contextlib import contextmanager
 from dbt.tests.util import AnyInteger
+import os
 
 from dbt.adapters.events.logging import AdapterLogger
 
@@ -23,8 +24,9 @@ logger = AdapterLogger("dremio")
 
 # Ensure we do not include dashes in our source
 # https://github.com/dremio/dbt-dremio/issues/68
-BUCKET = "dbtdremios3"
-SOURCE = "dbt_test_source"
+# Use environment variable if present, otherwise use default value
+BUCKET = os.environ.get("DBT_DREMIO_S3_BUCKET", "dbtdremios3")
+SOURCE = os.environ.get("DBT_DREMIO_S3_SOURCE", "dbt_test_source")
 
 
 class TestProcessingException(Exception):
@@ -55,7 +57,7 @@ def relation_from_name(adapter, name: str, materialization=""):
         relation_parts.insert(0, credentials.datalake)
         if credentials.root_path not in [None, "no_schema"]:
             relation_parts.insert(1, credentials.root_path)
-    
+
 
     relation_type = "table" if materialization != "view" and "view" not in name else "view"
 
@@ -63,7 +65,7 @@ def relation_from_name(adapter, name: str, materialization=""):
 
     kwargs = {
         "database": relation_parts[0],
-        "schema": None if schema == "" else schema, 
+        "schema": None if schema == "" else schema,
         "identifier": relation_parts[-1],
         "type": relation_type,
     }
@@ -83,7 +85,7 @@ def get_connection(adapter, name="_test"):
         yield conn
 
 # Overwrite the default implementation to use this adapter's
-# relation_from_name function. 
+# relation_from_name function.
 def get_relation_columns(adapter, name):
     relation = relation_from_name(adapter, name)
     with get_connection(adapter):
@@ -92,7 +94,7 @@ def get_relation_columns(adapter, name):
 
 
 # Overwrite the default implementation to use this adapter's
-# relation_from_name function. 
+# relation_from_name function.
 def check_relation_types(adapter, relation_to_type):
     # Ensure that models with different materialiations have the
     # corrent table/view.
@@ -128,7 +130,7 @@ def check_relation_types(adapter, relation_to_type):
 
 
 # Overwrite the default implementation to use this adapter's
-# relation_from_name function. 
+# relation_from_name function.
 def check_relations_equal(adapter, relation_names: List, compare_snapshot_cols=False):
     # Replaces assertTablesEqual. assertManyTablesEqual can be replaced
     # by doing a separate call for each set of tables/relations.
