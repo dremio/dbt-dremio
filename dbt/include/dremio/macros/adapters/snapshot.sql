@@ -17,26 +17,44 @@ limitations under the License.*/
   {%- set columns = config.get("snapshot_table_column_names") or get_snapshot_table_column_names() -%}
   {%- set insert_cols_csv = insert_cols | join(', ') -%}
 
+  {%- set update_source -%}
+    (
+      select *
+      from {{ source }}
+      where dbt_change_type in ('update', 'delete')
+    )
+  {%- endset -%}
+
+  {%- set insert_source -%}
+    (
+      select *
+      from {{ source }}
+      where dbt_change_type = 'insert'
+    )
+  {%- endset -%}
+
+  -- First, handle updates/deletes for matched records
   merge into {{ target }} as DBT_INTERNAL_DEST
-  using {{ source }} as DBT_INTERNAL_SOURCE
+  using {{ update_source }} as DBT_INTERNAL_SOURCE
+  on DBT_INTERNAL_SOURCE.{{ columns.dbt_scd_id }} = DBT_INTERNAL_DEST.{{ columns.dbt_scd_id }}
+    {%- if config.get("dbt_valid_to_current") %}
+    and (
+      DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} = {{ config.get('dbt_valid_to_current') }}
+      or DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} is null
+    )
+    {%- else %}
+    and DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} is null
+    {%- endif %}
+
+  when matched then update
+    set {{ columns.dbt_valid_to }} = DBT_INTERNAL_SOURCE.{{ columns.dbt_valid_to }};
+
+  -- Then, handle inserts for non-matched records
+  merge into {{ target }} as DBT_INTERNAL_DEST
+  using {{ insert_source }} as DBT_INTERNAL_SOURCE
   on DBT_INTERNAL_SOURCE.{{ columns.dbt_scd_id }} = DBT_INTERNAL_DEST.{{ columns.dbt_scd_id }}
 
-  when matched
-    {%- if config.get("dbt_valid_to_current") %}
-      and (
-        DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} = {{ config.get('dbt_valid_to_current') }}
-        or DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} is null
-      )
-    {%- else %}
-      and DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} is null
-    {%- endif %}
-    and DBT_INTERNAL_SOURCE.dbt_change_type in ('update','delete')
-    then update
-      set {{ columns.dbt_valid_to }} = DBT_INTERNAL_SOURCE.{{ columns.dbt_valid_to }}
-
-  when not matched
-    and DBT_INTERNAL_SOURCE.dbt_change_type = 'insert'
-    then insert ({{ insert_cols_csv }})
+  when not matched then insert ({{ insert_cols_csv }})
     values
     (
       {%- for column_name in insert_cols -%}

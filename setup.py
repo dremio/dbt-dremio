@@ -38,7 +38,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "dbt-core>=1.9",
-        "dbt-common>=1.13.0,<2.0",
+        "dbt-common>=1.11,<2.0",
         "dbt-adapters>=1.10.1, <2.0",
         "requests>=2.31.0",
     ],
