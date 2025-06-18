@@ -24,8 +24,8 @@ limitations under the License.*/
       and model.config.format is defined
       else none -%}
     {%- set format_clause = format_clause_from_node(model.config) if format is not none else none -%}
-    {%- set relation2 = api.Relation.create(database=relation.database, schema=relation.schema, identifier=relation.identifier, format=format, format_clause=format_clause) -%}
-    {{ return (relation2) }}
+    {%- set relation2 = api.Relation.create(database=relation.database, schema=relation.schema, identifier=relation.identifier, format=format, format_clause=format_clause, limit=relation.limit) -%}
+      {{ return (relation2) }}
   {%- else -%}
     {{ return (relation) }}
   {%- endif -%}
@@ -40,8 +40,8 @@ limitations under the License.*/
       and source.external.format is defined
       else none -%}
     {%- set format_clause = format_clause_from_node(source.external) if format is not none else none -%}
-    {%- set relation2 = api.Relation.create(database=relation.database, schema=relation.schema, identifier=relation.identifier, format=format, format_clause=format_clause) -%}
-    {{ return (relation2) }}
+    {%- set relation2 = api.Relation.create(database=relation.database, schema=relation.schema, identifier=relation.identifier, format=format, format_clause=format_clause, limit=relation.limit) -%}
+      {{ return (relation2) }}
   {%- else -%}
     {{ return (relation) }}
   {%- endif -%}
