@@ -19,6 +19,12 @@ from dbt.tests.adapter.basic.test_snapshot_check_cols import (
 from dbt.tests.adapter.basic.test_snapshot_timestamp import (
     BaseSnapshotTimestamp,
 )
+from dbt.tests.adapter.simple_snapshot.test_various_configs import (
+    BaseSnapshotDbtValidToCurrent,
+    BaseSnapshotColumnNames,
+    BaseSnapshotColumnNamesFromDbtProject,
+    BaseSnapshotInvalidColumnNames,
+)
 from tests.utils.util import BUCKET
 
 
@@ -97,3 +103,15 @@ class TestSnapshotTimestampDremio(BaseSnapshotTimestamp):
             "seeds": {"+twin_strategy": "prevent"},
             "name": "snapshot_strategy_timestamp",
         }
+
+class TestSnapshotDbtValidToCurrentDremio(BaseSnapshotDbtValidToCurrent):
+    pass
+
+class TestSnapshotColumnNamesDremio(BaseSnapshotColumnNames):
+    pass
+
+class TestSnapshotColumnNamesFromDbtProjectDremio(BaseSnapshotColumnNamesFromDbtProject):
+    pass
+
+class TestSnapshotInvalidColumnNamesDremio(BaseSnapshotInvalidColumnNames):
+    pass
