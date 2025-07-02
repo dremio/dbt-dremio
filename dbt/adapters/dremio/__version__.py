@@ -9,4 +9,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version = "1.8.4"
+version = "1.9.0"
