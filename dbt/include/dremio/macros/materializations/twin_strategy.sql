@@ -33,7 +33,7 @@ limitations under the License.*/
     {%- set conflicting_relation = adapter.get_relation(database=view_relation.database, schema=view_relation.schema, identifier=view_relation.identifier) -%}
   {%- endif -%}
 
-  {%- if conflicting_relation is not none -%}
+  {%- if conflicting_relation is not none and target_relation.type != conflicting_relation.type -%}
     {%- if twin_strategy == 'prevent' -%}
       -- Prevent strategy -> Drop the conflicting relation
       {{ adapter.drop_relation(conflicting_relation) }}
