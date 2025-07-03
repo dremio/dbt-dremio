@@ -6,7 +6,7 @@
 
 ## Dependency
 
-- Upgraded dbt-core to 1.9.1 and dbt-tests-adapter to 1.10.1
+- Upgraded dbt-core to 1.9.0 and dbt-tests-adapter to 1.11.0
 
 # dbt-dremio v1.8.4
 
