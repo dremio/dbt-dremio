@@ -13,14 +13,13 @@ import os
 import pytest
 
 from pathlib import Path
+from dbt_common.exceptions.base import DbtRuntimeError
 
 from tests.hooks.fixtures import (
     macros__hook,
     macros__before_and_after,
     models__hooks,
-    seeds__example_seed_csv,
-    macros_missing_column,
-    models__missing_column,
+    seeds__example_seed_csv
 )
 
 from dbt.tests.util import (
@@ -28,7 +27,7 @@ from dbt.tests.util import (
     run_dbt,
 )
 
-from dbt.tests.adapter.hooks.test_run_hooks import TestAfterRunHooks
+from dbt.tests.adapter.hooks.test_run_hooks import BaseAfterRunHooks
 
 from tests.utils.util import BUCKET, SOURCE
 
@@ -195,11 +194,9 @@ class TestPrePostRunHooksDremio(object):
         self.assert_used_schemas(project)
 
 
-class TestAfterRunHooksDremio(TestAfterRunHooks):
-    @pytest.fixture(scope="class")
-    def macros(self):
-        return {"temp_macro.sql": macros_missing_column}
-
-    @pytest.fixture(scope="class")
-    def models(self):
-        return {"test_column.sql": models__missing_column}
+class TestAfterRunHooksDremio(BaseAfterRunHooks):
+    def test_missing_column_pre_hook(self, project):
+        # Changing DbtDatabaseError to DbtRuntimeError because our exception_handler
+        # only raises DbtRuntimeError
+        with pytest.raises(DbtRuntimeError):
+            run_dbt(["run"], expect_pass=False)

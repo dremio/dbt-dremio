@@ -1,3 +1,13 @@
+# dbt-dremio v1.9.0
+
+## Changes
+
+- Updated dbt-dremio to match dbt-core v1.9 with the snapshots improvements
+
+## Dependency
+
+- Upgraded dbt-core to 1.9.0 and dbt-tests-adapter to 1.11.0
+
 # dbt-dremio v1.8.4
 
 ## Changes

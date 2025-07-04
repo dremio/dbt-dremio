@@ -14,22 +14,33 @@ limitations under the License.*/
 
 
 {% macro dremio__snapshot_merge_sql(target, source, insert_cols) -%}
-    {%- set insert_cols_csv = insert_cols | join(', ') -%}
+  {%- set columns = config.get("snapshot_table_column_names") or get_snapshot_table_column_names() -%}
+  {%- set insert_cols_csv = insert_cols | join(', ') -%}
 
-    merge into {{ target }} as DBT_INTERNAL_DEST
-    using {{ source }} as DBT_INTERNAL_SOURCE
-    on DBT_INTERNAL_SOURCE.dbt_scd_id = DBT_INTERNAL_DEST.dbt_scd_id
+  merge into {{ target }} as DBT_INTERNAL_DEST
+    using (
+      select * from {{ source }}
+      where dbt_change_type in ('update', 'delete', 'insert')
+    ) as DBT_INTERNAL_SOURCE
+    on (DBT_INTERNAL_SOURCE.{{ columns.dbt_scd_id }} = DBT_INTERNAL_DEST.{{ columns.dbt_scd_id }}
+        and DBT_INTERNAL_SOURCE.dbt_change_type in ('update', 'delete')
+        {%- if config.get("dbt_valid_to_current") %}
+        and (
+          DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} = {{ config.get('dbt_valid_to_current') }}
+          or DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} is null
+        )
+        {%- else %}
+        and DBT_INTERNAL_DEST.{{ columns.dbt_valid_to }} is null
+        {%- endif %})
 
-    when matched
-        then update
-        set dbt_valid_to = DBT_INTERNAL_SOURCE.dbt_valid_to
+    when matched then update set {{ columns.dbt_valid_to }} = DBT_INTERNAL_SOURCE.{{ columns.dbt_valid_to }}
 
-    when not matched
-        then insert ({{ insert_cols_csv }})
-        values
-            ({% for column_name in insert_cols -%}
-                DBT_INTERNAL_SOURCE.{{ column_name }}
-                {%- if not loop.last %}, {%- endif %}
-            {%- endfor %})
+    when not matched then insert ({{ insert_cols_csv }})
+      values
+      (
+        {%- for column_name in insert_cols -%}
+          DBT_INTERNAL_SOURCE.{{ column_name }}{% if not loop.last %}, {% endif %}
+        {%- endfor %}
+      )
 
 {% endmacro %}

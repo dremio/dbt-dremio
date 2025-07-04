@@ -41,15 +41,3 @@ class TestDremioEmpty(BaseTestEmpty):
             "model.sql": _models.model_sql,
             "sources.yml": schema_sources_yml,
         }
-
-    def test_run_with_empty(self, project):
-        # create source from seed
-        run_dbt(["seed"])
-
-        # run without empty - 3 expected rows in output - 1 from each input
-        # run_dbt(["run"])
-        # self.assert_row_count(project, "model", 3)
-
-        # run with empty - 0 expected rows in output
-        run_dbt(["build", "--empty"])
-        self.assert_row_count(project, "model", 0)
