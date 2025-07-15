@@ -16,6 +16,7 @@ from dbt.adapters.contracts.connection import Credentials
 from dataclasses import dataclass
 from typing import Optional
 from dbt.adapters.dremio.relation import DremioRelation
+from dbt_common.exceptions import DbtValidationError
 
 
 @dataclass
@@ -91,9 +92,16 @@ class DremioCredentials(Credentials):
         )
 
     @classmethod
-    def __pre_deserialize__(cls, data): # data is the project profile configuration
+    def __pre_deserialize__(cls, data):
+        # data parameter is the project profile configuration already aliased
+        space_source_configs = ["datalake", "root_path", "database", "schema"]
+        using_space_source = all(key in data for key in space_source_configs)
         enterprise_catalog_configs = ["enterprise_catalog_namespace", "enterprise_catalog_folder"]
         using_enterprise_catalog = all(key in data for key in enterprise_catalog_configs)
+        if using_space_source and using_enterprise_catalog:
+            raise DbtValidationError(
+                "Cannot use both enterprise catalog and individual storage configurations"
+            )
         # Using enterprise catalog means using it to store both tables and views
         # So internally we set it as both source and space before aliasing
         if using_enterprise_catalog:
