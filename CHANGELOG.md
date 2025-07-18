@@ -3,6 +3,7 @@
 ## Changes
 
 - Updated dbt-dremio to match dbt-core v1.9 with the snapshots improvements
+- Fixed job state CANCELLED handling
 
 ## Dependency
 
