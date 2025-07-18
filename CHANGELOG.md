@@ -3,6 +3,11 @@
 ## Changes
 
 - Updated dbt-dremio to match dbt-core v1.9 with the snapshots improvements
+- Support for Dremio Enterprise Catalogs
+
+## Features
+
+- [#298](https://github.com/dremio/dbt-dremio/pull/298) Support for Dremio Enterprise Catalogs
 
 ## Dependency
 
