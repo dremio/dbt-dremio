@@ -93,25 +93,7 @@ class DremioCredentials(Credentials):
 
     @classmethod
     def __pre_deserialize__(cls, data):
-        # data parameter is the project profile configuration already aliased
-        space_source_configs = ["datalake", "root_path", "database", "schema"]
-        using_space_source = all(key in data for key in space_source_configs)
-        enterprise_catalog_configs = ["enterprise_catalog_namespace", "enterprise_catalog_folder"]
-        using_enterprise_catalog = all(key in data for key in enterprise_catalog_configs)
-        if using_space_source and using_enterprise_catalog:
-            raise DbtValidationError(
-                "Cannot use both enterprise catalog and individual storage configurations"
-            )
-        # Using enterprise catalog means using it to store both tables and views
-        # So internally we set it as both source and space before aliasing
-        if using_enterprise_catalog:
-            data["object_storage_source"] = data["enterprise_catalog_namespace"]
-            data["object_storage_path"] = data["enterprise_catalog_folder"]
-            data["dremio_space"] = data["enterprise_catalog_namespace"]
-            data["dremio_space_folder"] = data["enterprise_catalog_folder"]
-            del data["enterprise_catalog_namespace"]
-            del data["enterprise_catalog_folder"]
-        data = super().__pre_deserialize__(data)
+        data = super().__pre_deserialize__(cls._validate_and_restructure_data(data))
         if "cloud_host" not in data:
             data["cloud_host"] = None
         if "software_host" not in data:
@@ -144,3 +126,25 @@ class DremioCredentials(Credentials):
             self.database = f"@{self.UID}"
         if self.schema is None:
             self.schema = DremioRelation.no_schema
+
+    @staticmethod
+    def _validate_and_restructure_data(data):
+        # data parameter is the project profile configuration already aliased
+        space_source_configs = ["datalake", "root_path", "database", "schema"]
+        using_space_source = all(key in data for key in space_source_configs)
+        enterprise_catalog_configs = ["enterprise_catalog_namespace", "enterprise_catalog_folder"]
+        using_enterprise_catalog = all(key in data for key in enterprise_catalog_configs)
+        if using_space_source and using_enterprise_catalog:
+            raise DbtValidationError(
+                "Cannot use both enterprise catalog and individual storage configurations"
+            )
+        # Using enterprise catalog means using it to store both tables and views
+        # So internally we set it as both source and space before aliasing
+        if using_enterprise_catalog:
+            data["object_storage_source"] = data["enterprise_catalog_namespace"]
+            data["object_storage_path"] = data["enterprise_catalog_folder"]
+            data["dremio_space"] = data["enterprise_catalog_namespace"]
+            data["dremio_space_folder"] = data["enterprise_catalog_folder"]
+            del data["enterprise_catalog_namespace"]
+            del data["enterprise_catalog_folder"]
+        return data
