@@ -132,7 +132,10 @@ class DremioCursor:
                 error_message = job_status_response["errorMessage"]
                 raise Exception(f"ERROR: {error_message}")
 
-            if job_status_state == "COMPLETED" or job_status_state == "CANCELLED":
+            if job_status_state == "CANCELLED":
+                raise Exception("Job was cancelled")
+
+            if job_status_state == "COMPLETED":
                 break
             last_job_state = job_status_state
             job_status_response = self._rest_client.job_status(job_id)

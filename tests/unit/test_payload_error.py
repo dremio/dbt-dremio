@@ -28,3 +28,14 @@ class TestPayloadErrorMessage(TestCase):
         }
         with self.assertRaises(Exception, msg="ERROR: Expected error message"):
             dremio_cursor_object._populate_rowcount()
+
+    @mock.patch("dbt.adapters.dremio.api.rest.client.DremioRestClient.job_status")
+    def test_job_cancelled_error(self, mocked_job_status):
+        dremio_cursor_object = DremioCursor(
+            DremioRestClient(Parameters("base_url", DremioAuthentication()))
+        )
+        mocked_job_status.return_value = {
+            "jobState": "CANCELLED",
+        }
+        with self.assertRaises(Exception, msg="Job was cancelled"):
+            dremio_cursor_object._populate_rowcount()
