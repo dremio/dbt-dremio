@@ -12,10 +12,10 @@
   - [`dbt init` prompts](#dbt-init-prompts)
     - [Basics](#basics)
     - [Connection Settings and Authentication](#connection-settings-and-authentication)
-    - [Default View and Table Storage Location](#9-12-default-view-and-table-storage-location)
-      - [Materializing Tables Location](#materializing-tables-location)
-      - [Creating Views Location](#creating-views-location)
-    - [Threads](#13-thread)
+    - [Storage Options](#storage-options)
+      - [Option: Use Enterprise Catalog](#option-use-enterprise-catalog-dremio-enterprise-edition-v26)
+      - [Option: Use Source & Space](#option-use-source--space)
+    - [Threads](#thread)
 - [Customizing Configurations in dbt with Dremio](#customizing-configurations-in-dbt-with-dremio)
   - [Configuring Defaults for a Group of Models in `dbt_project.yml`](#configuring-defaults-for-a-group-of-models-in-dbt_projectyml)
   - [Configuring an Individual Model with the config Function](#configuring-an-individual-model-with-the-config-function)
@@ -95,16 +95,21 @@ Now we can create a new dbt project using the command `dbt init`, this will be b
     - [2] software_with_username_password (if you are self-deploying Dremio like using Docker and want to authenticate using Username/Password)
     - [3] software_with_pat (if you are self-deploying Dremio like using Docker and want to authenticate using Personal Access Token which must be generated with Dremio REST API)
 
-#### Connection Settings and Authentication
-4. *software host*: The host part of the url for your Dremio instance, if running on your laptop this would be `localhost` or `127.0.0.1`
-5. *port*: The port Dremio is running on within the host, which should typically be port `9047`
-6. *username*: Your Dremio Username
-7. *password*: Your Dremio Password
-8. *use_ssl*: Whether to use a SSL connection (choose False if working locally)
+#### Storage Options
 
-#### 9-12: Default View and Table Storage Location
+There are currently **two** possible ways to configure the storage locations for your dbt models in Dremio:
 
-###### Materializing Tables Location
+4. Using an Enterprise Catalog, storing both tables and views in the same location.
+5. Using Source & Space, storing tables and views, respectively.
+
+##### Option: Use Enterprise Catalog *[Dremio Enterprise Edition v26+]*
+
+- `enterprise_catalog_namespace`: The name of the enterprise catalog you want to use.
+- `enterprise_catalog_folder`: The sub path within the enterprise catalog for storing tables and views.
+
+##### Option: Use Source & Space
+
+###### Source - Materializing Tables Location
 
 - `object_storage_source`: must be a Dremio source where tables can be written (S3, GCP, HDFS, AWS Glue, Polaris, Nessie), if you don't have one of these sources connected to Dremio accept the default `$scratch` option.
 - `object_storage_path`: the sub path for your object_storage_source
@@ -114,7 +119,7 @@ These two settings establish where physical tables are created by default, so if
 - `object_storage_source`: `nessie`
 - `object_storage_path`: `marketing.bronze`
 
-###### Creating Views Location
+###### Space - Materializing Views Location
 
 - `dremio_space`: This can be any Dremio Source that can track views (Spaces, Arctic Catalog, Nessie, Dremio Catalog) if you don't have any of these select the default option which will use the users homespace (every user gets a "home" space named after their username on Dremio Self-Deployed)
 
@@ -125,7 +130,14 @@ If I want views to be create by a default in `default.views` then the values wou
 - `dremio_space`: `default`
 - `dremio_space_folder`: `views`
 
-#### 13 Thread
+#### Connection Settings and Authentication
+6. *software host*: The host part of the url for your Dremio instance, if running on your laptop this would be `localhost` or `127.0.0.1`
+7. *port*: The port Dremio is running on within the host, which should typically be port `9047`
+8. *username*: Your Dremio Username
+9. *password*: Your Dremio Password
+10. *use_ssl*: Whether to use a SSL connection (choose False if working locally)
+
+#### Thread
 
 Just select the default `1` thread unless you want to use more threads.
 
