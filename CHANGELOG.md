@@ -4,6 +4,7 @@
 
 - Updated dbt-dremio to match dbt-core v1.9 with the snapshots improvements
 - Support for Dremio Enterprise Catalogs
+- Fixed job state CANCELLED handling
 
 ## Features
 
