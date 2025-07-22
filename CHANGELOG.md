@@ -1,3 +1,9 @@
+# dbt-dremio v1.9.1
+
+## Features
+
+- Added built-in `udf` materialization to create user-defined functions
+
 # dbt-dremio v1.9.0
 
 ## Changes
