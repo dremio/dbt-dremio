@@ -23,7 +23,7 @@ from dbt.tests.util import run_dbt, write_file
 
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
 
-from build.lib.dbt.adapters.dremio.api.rest.client import DremioRestClient
+from dbt.adapters.dremio.api.rest.client import DremioRestClient
 
 from tests.utils.util import BUCKET, SOURCE
 
@@ -55,7 +55,14 @@ models:
       - name: name
         description: |
           Some stuff here and then a call to
-          {{ doc('my_fun_doc')}}
+          name Column description "with double quotes"
+          and with 'single  quotes' as welll as other;
+          '''abc123'''
+          reserved -- characters
+          80% of statistics are made up on the spot
+          --
+          /* comment */
+          Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
     config:
         tags: ["test_tag1", "test_tag2", "test_tag3"]
   - name: view_model
@@ -110,7 +117,14 @@ models:
       - name: name
         description: |
           Some stuff here and then a call to
-          {{ doc('my_fun_doc')}}
+          name Column description "with double quotes"
+          and with 'single  quotes' as welll as other;
+          '''abc123'''
+          reserved -- characters
+          80% of statistics are made up on the spot
+          --
+          /* comment */
+          Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
     config:
         tags: ["test_tag1", "test_tag2", "test_tag3"]
   - name: view_model
@@ -157,7 +171,14 @@ models:
       - name: name
         description: |
           Some stuff here and then a call to
-          {{ doc('my_fun_doc')}}
+          name Column description "with double quotes"
+          and with 'single  quotes' as welll as other;
+          '''abc123'''
+          reserved -- characters
+          80% of statistics are made up on the spot
+          --
+          /* comment */
+          Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
     config:
         tags: ["test_tag1", "test_tag2", "test_tag3"]
   - name: view_model
@@ -300,7 +321,8 @@ class TestPersistDocs(BasePersistDocs):
         self._assert_view_wikis_and_tags(wiki, tags)
 
     def test_view_model_update_wikis_and_tags(self, project, client):
-        # Previous tags
+        # Create initial view_model
+        run_dbt(["run", "--select", "view_model"])
         object_id = self._get_relation_id(project, client, "view_model")
         tags = client.retrieve_tags(object_id)
         # Update
@@ -312,6 +334,8 @@ class TestPersistDocs(BasePersistDocs):
         self._assert_view_wikis_and_tags_update(updated_wiki, updated_tags, tags["version"])
 
     def test_view_model_delete_wikis_and_tags(self, project, client):
+        # First create the view_model
+        run_dbt(["run", "--select", "view_model"])
         # Previous tags
         object_id = self._get_relation_id(project, client, "view_model")
         tags = client.retrieve_tags(object_id)
@@ -348,9 +372,18 @@ reserved -- characters
 80% of statistics are made up on the spot
 --
 /* comment */
-Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting |
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
 | name | N/A | Some stuff here and then a call to
-{{ doc('my_fun_doc')}} |
+name Column description "with double quotes"
+and with 'single  quotes' as welll as other;
+'''abc123'''
+reserved -- characters
+80% of statistics are made up on the spot
+--
+/* comment */
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
 
 ## Tags
 - test_tag1
@@ -385,7 +418,8 @@ reserved -- characters
 80% of statistics are made up on the spot
 --
 /* comment */
-Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting |
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
 
 ## Tags
 - test_tag"""
@@ -410,7 +444,8 @@ reserved -- characters
 80% of statistics are made up on the spot
 --
 /* comment */
-Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting |
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
 
 ## Tags
 - test_tag
@@ -434,5 +469,5 @@ reserved -- characters
 --
 /* comment */
 Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting |"""
-        assert wiki.get("text") == expected_wiki and wiki.get("version") == 2
+        assert wiki.get("text") == expected_wiki and wiki.get("version") == 1
         assert tags.get("tags") == [] and tags.get("version") != previous_tag_version
