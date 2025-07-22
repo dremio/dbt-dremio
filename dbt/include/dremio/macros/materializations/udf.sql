@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 {% materialization udf, adapter='dremio' %}
-  {%- set folder_name = config.get('folder_name', '') -%}
+  {%- set folder_name = config.get('folder_name', validator=validation.any[basestring]) or '' -%}
   {%- set target = folder_name ~ ('.' if folder_name else '') ~ this.identifier -%}
 
-  {%- set parameter_list = config.get('parameter_list') -%}
-  {%- set ret = config.get('returns') -%}
+  {%- set parameter_list = config.get('parameter_list', validator=validation.any[basestring]) -%}
+  {%- set ret = config.get('returns', validator=validation.any[basestring]) -%}
 
   {%- set create_sql -%}
 CREATE OR REPLACE FUNCTION {{ target }}({{ parameter_list }})
