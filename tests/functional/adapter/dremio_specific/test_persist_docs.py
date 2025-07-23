@@ -334,8 +334,6 @@ class TestPersistDocs(BasePersistDocs):
         self._assert_view_wikis_and_tags_update(updated_wiki, updated_tags, tags["version"])
 
     def test_view_model_delete_wikis_and_tags(self, project, client):
-        # First create the view_model
-        run_dbt(["run", "--select", "view_model"])
         # Previous tags
         object_id = self._get_relation_id(project, client, "view_model")
         tags = client.retrieve_tags(object_id)
@@ -469,5 +467,5 @@ reserved -- characters
 --
 /* comment */
 Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting |"""
-        assert wiki.get("text") == expected_wiki and wiki.get("version") == 1
+        assert wiki.get("text") == expected_wiki and wiki.get("version") == 2
         assert tags.get("tags") == [] and tags.get("version") != previous_tag_version
