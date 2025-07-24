@@ -23,7 +23,7 @@ from dbt.tests.util import run_dbt, write_file
 
 from dbt.adapters.dremio.api.parameters import ParametersBuilder
 
-from build.lib.dbt.adapters.dremio.api.rest.client import DremioRestClient
+from dbt.adapters.dremio.api.rest.client import DremioRestClient
 
 from tests.utils.util import BUCKET, SOURCE
 
@@ -55,7 +55,14 @@ models:
       - name: name
         description: |
           Some stuff here and then a call to
-          {{ doc('my_fun_doc')}}
+          name Column description "with double quotes"
+          and with 'single  quotes' as welll as other;
+          '''abc123'''
+          reserved -- characters
+          80% of statistics are made up on the spot
+          --
+          /* comment */
+          Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
     config:
         tags: ["test_tag1", "test_tag2", "test_tag3"]
   - name: view_model
@@ -110,7 +117,14 @@ models:
       - name: name
         description: |
           Some stuff here and then a call to
-          {{ doc('my_fun_doc')}}
+          name Column description "with double quotes"
+          and with 'single  quotes' as welll as other;
+          '''abc123'''
+          reserved -- characters
+          80% of statistics are made up on the spot
+          --
+          /* comment */
+          Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
     config:
         tags: ["test_tag1", "test_tag2", "test_tag3"]
   - name: view_model
@@ -157,7 +171,14 @@ models:
       - name: name
         description: |
           Some stuff here and then a call to
-          {{ doc('my_fun_doc')}}
+          name Column description "with double quotes"
+          and with 'single  quotes' as welll as other;
+          '''abc123'''
+          reserved -- characters
+          80% of statistics are made up on the spot
+          --
+          /* comment */
+          Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
     config:
         tags: ["test_tag1", "test_tag2", "test_tag3"]
   - name: view_model
@@ -300,7 +321,6 @@ class TestPersistDocs(BasePersistDocs):
         self._assert_view_wikis_and_tags(wiki, tags)
 
     def test_view_model_update_wikis_and_tags(self, project, client):
-        # Previous tags
         object_id = self._get_relation_id(project, client, "view_model")
         tags = client.retrieve_tags(object_id)
         # Update
@@ -324,7 +344,10 @@ class TestPersistDocs(BasePersistDocs):
         self._assert_view_wikis_and_tags_delete(deleted_wiki, deleted_tags, tags["version"])
 
     def _assert_table_wikis_and_tags(self, wiki, tags):
-        expected_wiki = """Table model description "with double quotes"
+        expected_wiki = """# table_model
+
+## Description
+Table model description "with double quotes"
 and with 'single  quotes' as welll as other;
 '''abc123'''
 reserved -- characters
@@ -332,13 +355,45 @@ reserved -- characters
 --
 /* comment */
 Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
-"""
+
+
+## Columns
+
+| Column | Data Type | Description |
+| --- | --- | --- |
+| id | N/A | id Column description "with double quotes"
+and with 'single  quotes' as welll as other;
+'''abc123'''
+reserved -- characters
+80% of statistics are made up on the spot
+--
+/* comment */
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
+| name | N/A | Some stuff here and then a call to
+name Column description "with double quotes"
+and with 'single  quotes' as welll as other;
+'''abc123'''
+reserved -- characters
+80% of statistics are made up on the spot
+--
+/* comment */
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
+
+## Tags
+- test_tag1
+- test_tag2
+- test_tag3"""
         expected_tags = ["test_tag1", "test_tag2", "test_tag3"]
         assert wiki.get("text") == expected_wiki and wiki.get("version") == 0
         assert tags.get("tags") == expected_tags
 
     def _assert_view_wikis_and_tags(self, wiki, tags):
-        expected_wiki = """View model description "with double quotes"
+        expected_wiki = """# view_model
+
+## Description
+View model description "with double quotes"
 and with 'single  quotes' as welll as other;
 '''abc123'''
 reserved -- characters
@@ -346,17 +401,69 @@ reserved -- characters
 --
 /* comment */
 Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
-"""
+
+
+## Columns
+
+| Column | Data Type | Description |
+| --- | --- | --- |
+| id | N/A | id Column description "with double quotes"
+and with 'single  quotes' as welll as other;
+'''abc123'''
+reserved -- characters
+80% of statistics are made up on the spot
+--
+/* comment */
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
+
+## Tags
+- test_tag"""
         expected_tags = ["test_tag"]
         assert wiki.get("text") == expected_wiki and wiki.get("version") == 0
         assert tags.get("tags") == expected_tags
 
     def _assert_view_wikis_and_tags_update(self, wiki, tags, previous_tag_version):
-        expected_wiki = "Updated view description!"
-        expected_tags = ["test_tag","new_tag"]
+        expected_wiki = """# view_model
+
+## Description
+Updated view description!
+
+## Columns
+
+| Column | Data Type | Description |
+| --- | --- | --- |
+| id | N/A | id Column description "with double quotes"
+and with 'single  quotes' as welll as other;
+'''abc123'''
+reserved -- characters
+80% of statistics are made up on the spot
+--
+/* comment */
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting
+ |
+
+## Tags
+- test_tag
+- new_tag"""
+        expected_tags = ["test_tag", "new_tag"]
         assert wiki.get("text") == expected_wiki and wiki.get("version") == 1
         assert tags.get("tags") == expected_tags and tags.get("version") != previous_tag_version
 
     def _assert_view_wikis_and_tags_delete(self, wiki, tags, previous_tag_version):
-        assert wiki.get("text") == "" and wiki.get("version") == 2
+        expected_wiki = """# view_model
+
+## Columns
+
+| Column | Data Type | Description |
+| --- | --- | --- |
+| id | N/A | id Column description "with double quotes"
+and with 'single  quotes' as welll as other;
+'''abc123'''
+reserved -- characters
+80% of statistics are made up on the spot
+--
+/* comment */
+Some $lbl$ labeled $lbl$ and $$ unlabeled $$ dollar-quoting |"""
+        assert wiki.get("text") == expected_wiki and wiki.get("version") == 2
         assert tags.get("tags") == [] and tags.get("version") != previous_tag_version
