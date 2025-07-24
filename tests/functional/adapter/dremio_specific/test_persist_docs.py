@@ -321,8 +321,6 @@ class TestPersistDocs(BasePersistDocs):
         self._assert_view_wikis_and_tags(wiki, tags)
 
     def test_view_model_update_wikis_and_tags(self, project, client):
-        # Create initial view_model
-        run_dbt(["run", "--select", "view_model"])
         object_id = self._get_relation_id(project, client, "view_model")
         tags = client.retrieve_tags(object_id)
         # Update
