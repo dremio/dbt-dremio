@@ -102,28 +102,54 @@ RETURN 42
 """
 
 
-class TestBasicUDFMaterialization:
+class TestUDFMaterialization:
     @pytest.fixture(scope="class")
-    def models(self):
+    def models(self, unique_schema):
+        # Use the unique_schema fixture to dynamically set the schema for custom location test
+        custom_udf_with_schema = (
+            """
+{{ config(
+    materialized='udf',
+    database='dbt_test',
+    schema='"""
+            + unique_schema
+            + """',
+    parameter_list='x DOUBLE',
+    returns='DOUBLE'
+) }}
+
+RETURN x * x
+"""
+        )
         return {
             "basic_udf.sql": basic_udf_sql,
             "downstream_model.sql": downstream_model_sql,
+            "complex_udf.sql": complex_udf_sql,
+            "custom_location_udf.sql": custom_udf_with_schema,
         }
 
     def test_basic_udf_creation(self, project):
         # First compile to see what's generated
         compile_results = run_dbt(["compile"])
-        
+
         # Read the compiled SQL to debug
         import os
-        compiled_path = os.path.join(project.project_root, "target", "compiled", "test", "models", "downstream_model.sql")
+
+        compiled_path = os.path.join(
+            project.project_root,
+            "target",
+            "compiled",
+            "test",
+            "models",
+            "downstream_model.sql",
+        )
         if os.path.exists(compiled_path):
-            with open(compiled_path, 'r') as f:
+            with open(compiled_path, "r") as f:
                 compiled_sql = f.read()
                 print(f"\n\nCOMPILED downstream_model.sql:\n{compiled_sql}\n\n")
-        
-        # Run both models  
-        results = run_dbt(["run"])
+
+        # Run both models
+        results = run_dbt(["run", "--select", "basic_udf downstream_model"])
         assert len(results) == 2
         check_result_nodes_by_name(results, ["basic_udf", "downstream_model"])
 
@@ -131,43 +157,15 @@ class TestBasicUDFMaterialization:
         results = run_dbt(["docs", "generate"])
         assert results is not None
 
-
-class TestUDFParameterVariations:
-    @pytest.fixture(scope="class")
-    def models(self):
-        return {
-            "complex_udf.sql": complex_udf_sql,
-        }
-
     def test_udf_parameter_variations(self, project):
         # Run complex UDF model
-        results = run_dbt(["run"])
+        results = run_dbt(["run", "--select", "complex_udf"])
         assert len(results) == 1
         check_result_nodes_by_name(results, ["complex_udf"])
 
         # Verify they can be re-run (CREATE OR REPLACE)
-        results = run_dbt(["run"])
+        results = run_dbt(["run", "--select", "complex_udf"])
         assert len(results) == 1
-
-
-class TestUDFWithCustomLocation:
-    @pytest.fixture(scope="class")
-    def models(self, unique_schema):
-        # Use the unique_schema fixture to dynamically set the schema
-        custom_udf_with_schema = """
-{{ config(
-    materialized='udf',
-    database='dbt_test',
-    schema='""" + unique_schema + """',
-    parameter_list='x DOUBLE',
-    returns='DOUBLE'
-) }}
-
-RETURN x * x
-"""
-        return {
-            "custom_location_udf.sql": custom_udf_with_schema,
-        }
 
     def test_udf_with_custom_location(self, project):
         # Run the UDF with custom database/schema configuration
@@ -188,31 +186,48 @@ class TestUDFErrorHandling:
 
     def test_missing_returns_config(self, project):
         # This should fail due to missing returns config
-        results = run_dbt(["run", "--select", "invalid_udf_no_returns"], expect_pass=False)
+        results = run_dbt(
+            ["run", "--select", "invalid_udf_no_returns"], expect_pass=False
+        )
         assert len(results) == 1
         assert results[0].status == "error"
-        assert "UDF materialization requires 'returns' configuration" in results[0].message
+        assert (
+            "UDF materialization requires 'returns' configuration" in results[0].message
+        )
 
     def test_missing_parameter_list_config(self, project):
         # This should fail due to missing parameter_list config
-        results = run_dbt(["run", "--select", "invalid_udf_no_params"], expect_pass=False)
+        results = run_dbt(
+            ["run", "--select", "invalid_udf_no_params"], expect_pass=False
+        )
         assert len(results) == 1
         assert results[0].status == "error"
-        assert "UDF materialization requires 'parameter_list' configuration" in results[0].message
+        assert (
+            "UDF materialization requires 'parameter_list' configuration"
+            in results[0].message
+        )
 
     def test_empty_parameter_list(self, project):
         # This should fail due to empty parameter_list
         results = run_dbt(["run", "--select", "no_params_udf"], expect_pass=False)
         assert len(results) == 1
         assert results[0].status == "error"
-        assert "UDF materialization requires 'parameter_list' configuration" in results[0].message
+        assert (
+            "UDF materialization requires 'parameter_list' configuration"
+            in results[0].message
+        )
 
     def test_no_parameter_list_config_key(self, project):
         # This should fail due to no parameter_list config key
-        results = run_dbt(["run", "--select", "no_param_list_config"], expect_pass=False)
+        results = run_dbt(
+            ["run", "--select", "no_param_list_config"], expect_pass=False
+        )
         assert len(results) == 1
         assert results[0].status == "error"
-        assert "UDF materialization requires 'parameter_list' configuration" in results[0].message
+        assert (
+            "UDF materialization requires 'parameter_list' configuration"
+            in results[0].message
+        )
 
 
 class TestUDFDownstreamUsage:
@@ -273,7 +288,14 @@ class TestUDFDownstreamUsage:
         results = run_dbt(["run"])
         assert len(results) == 5
         check_result_nodes_by_name(
-            results, ["add_numbers", "multiply_numbers", "simple_view", "calculations_view", "final_report"]
+            results,
+            [
+                "add_numbers",
+                "multiply_numbers",
+                "simple_view",
+                "calculations_view",
+                "final_report",
+            ],
         )
 
         # Test selective execution
