@@ -1,5 +1,9 @@
 # dbt-dremio v1.9.1
 
+## Changes
+
+- [#299](https://github.com/dremio/dbt-dremio/pull/299) Enhance persist_docs macro to wrap model and column metadata (including descriptions, tags and tests) into a Markdown wiki for Dremio.
+
 ## Features
 
 - Added built-in `udf` materialization to create user-defined functions
