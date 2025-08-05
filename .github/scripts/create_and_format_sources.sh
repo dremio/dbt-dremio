@@ -92,11 +92,7 @@ manipulate_source "$DREMIO_HEALTH_URL/apiv2/source/dbt_test_source" \
       \"enableFileStatusCheck\":true,
       \"rootPath\":\"/\",
       \"defaultCtasFormat\":\"ICEBERG\",
-      \"propertyList\":[
-        {\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},
-        {\"name\":\"fs.s3a.endpoint\",\"value\":\"$HOST:9000\"},
-        {\"name\":\"dremio.s3.compat\",\"value\":\"true\"}
-      ],
+      \"propertyList\":[],
       \"whitelistedBuckets\":[],
       \"isCachingEnabled\":false,
       \"maxCacheSpacePct\":100
