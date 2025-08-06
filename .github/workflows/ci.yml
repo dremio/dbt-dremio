@@ -75,6 +75,9 @@ jobs:
       - name: Create MinIO bucket
         run: bash .github/scripts/create_minio_bucket.sh
 
+      - name: Extract Auth Token
+        run: bash .github/scripts/extract_auth_token.sh
+
       - name: Create and Format Sources
         run: bash .github/scripts/create_and_format_sources.sh
 

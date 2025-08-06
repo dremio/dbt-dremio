@@ -1,50 +1,20 @@
 #!/bin/bash
 set -e
 
-: "${RETRY_COUNT:?Need to set RETRY_COUNT}"
 : "${DREMIO_HEALTH_URL:?Need to set DREMIO_HEALTH_URL}"
-: "${SLEEP_INTERVAL:?Need to set SLEEP_INTERVAL}"
-: "${DREMIO_SOFTWARE_USERNAME:?Need to set DREMIO_SOFTWARE_USERNAME}"
-: "${DREMIO_SOFTWARE_PASSWORD:?Need to set DREMIO_SOFTWARE_PASSWORD}"
 : "${MINIO_ROOT_USER:?Need to set MINIO_ROOT_USER}"
 : "${MINIO_ROOT_PASSWORD:?Need to set MINIO_ROOT_PASSWORD}"
 
-for i in $(seq 1 $RETRY_COUNT); do
-  if curl -s $DREMIO_HEALTH_URL; then
-    echo "Dremio is up."
-    break
-  fi
-  echo "Waiting for Dremio to become ready... ($i/$RETRY_COUNT)"
-  sleep $SLEEP_INTERVAL
-done
-
-if ! curl -s $DREMIO_HEALTH_URL; then
-  echo "Dremio did not become ready in time."
-  exit 1
-fi
-
-# Obtain Dremio auth token
-echo "Logging into Dremio to obtain auth token..."
-AUTH_RESPONSE=$(curl -s -X POST "$DREMIO_HEALTH_URL/apiv2/login" \
-  -H "Content-Type: application/json" \
-  --data "{\"userName\":\"${DREMIO_SOFTWARE_USERNAME}\", \"password\":\"${DREMIO_SOFTWARE_PASSWORD}\"}")
-
-AUTH_TOKEN=$(echo "$AUTH_RESPONSE" | jq -r .token)
-
-# Check if AUTH_TOKEN is not empty
-if [ -z "$AUTH_TOKEN" ] || [ "$AUTH_TOKEN" == "null" ]; then
-  echo "Failed to obtain Dremio auth token."
-  exit 1
-fi
-
-echo "Obtained Dremio auth token."
-echo "::add-mask::$AUTH_TOKEN"
+# Get AUTH_TOKEN from environment or file
 if [ "$GITHUB_ACTIONS" = "true" ]; then
-  echo "Running in GitHub Actions"
-  echo "AUTH_TOKEN=${AUTH_TOKEN}" >> $GITHUB_ENV
+  : "${AUTH_TOKEN:?Need to set AUTH_TOKEN}"
   HOST="minio"
 else # Jenkins
-  echo $AUTH_TOKEN > /tmp/auth_token.txt
+  if [ ! -f /tmp/auth_token.txt ]; then
+    echo "Auth token file not found. Please run extract_auth_token.sh first."
+    exit 1
+  fi
+  AUTH_TOKEN=$(cat /tmp/auth_token.txt)
   HOST="localhost"
 fi
 
@@ -92,7 +62,11 @@ manipulate_source "$DREMIO_HEALTH_URL/apiv2/source/dbt_test_source" \
       \"enableFileStatusCheck\":true,
       \"rootPath\":\"/\",
       \"defaultCtasFormat\":\"ICEBERG\",
-      \"propertyList\":[],
+      \"propertyList\":[
+        {\"name\":\"fs.s3a.path.style.access\",\"value\":\"true\"},
+        {\"name\":\"fs.s3a.endpoint\",\"value\":\"$HOST:9000\"},
+        {\"name\":\"dremio.s3.compat\",\"value\":\"true\"}
+      ],
       \"whitelistedBuckets\":[],
       \"isCachingEnabled\":false,
       \"maxCacheSpacePct\":100
