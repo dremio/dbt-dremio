@@ -27,7 +27,8 @@ jobs:
   run-parallel-tests:
     name: Run Parallel Tests
     runs-on: ubuntu-latest
-    needs: discover-tests 
+    continue-on-error: true
+    needs: discover-tests
     env:
       RETRY_COUNT: 12 # number of retries for health checks
       SLEEP_INTERVAL: 5 # Sleep duration in seconds between retries
@@ -110,13 +111,15 @@ jobs:
         run: echo "sanitized_test_dir=$(echo ${{ matrix.test_dir }} | tr '/' '_')" >> $GITHUB_ENV
 
       - name: Run tests
-        continue-on-error: true
+        id: run_tests
         run: |
           mkdir reports/
           report_file="reports/${{ env.sanitized_test_dir }}.txt"
           pytest ${{ matrix.test_dir }} | tee $report_file
+          exit ${PIPESTATUS[0]}
 
       - name: Upload test report as artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.sanitized_test_dir }}
