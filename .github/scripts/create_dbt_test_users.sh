@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+: "${DREMIO_HEALTH_URL:?Need to set DREMIO_HEALTH_URL}"
+
 echo "Creating dbt test users in Dremio..."
 
 if [ -z "$AUTH_TOKEN" ]; then
@@ -16,7 +18,7 @@ create_user() {
   local email=$4
   local password=$5
 
-  curl -s 'http://localhost:9047/api/v3/user' \
+  curl -s "$DREMIO_HEALTH_URL/api/v3/user" \
     -H "Authorization: _dremio$AUTH_TOKEN" \
     -H 'Content-Type: application/json' \
     --data-raw "{\"firstName\":\"$firstName\",\"lastName\":\"$lastName\",\"name\":\"$name\",\"email\":\"$email\",\"password\":\"$password\"}"
