@@ -15,6 +15,7 @@ import pytest, os
 from dbt.tests.adapter.grants.test_snapshot_grants import (
     BaseSnapshotGrants,
     snapshot_schema_yml,
+    user2_snapshot_schema_yml,
 )
 from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.utils.util import (
@@ -22,7 +23,13 @@ from tests.utils.util import (
     BUCKET,
     SOURCE,
 )
-from dbt.tests.util import get_connection
+from dbt.tests.util import (
+    get_connection,
+    get_manifest,
+    run_dbt,
+    run_dbt_and_capture,
+    write_file,
+)
 
 # Override this model to use strategy timestamp
 # we use timestamp for now, as 'check' is not supported
@@ -72,7 +79,7 @@ class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
             profile.update(profiles_config_update)
         return profile
 
-    # Overrride this to use our version of relation_from_name
+    # Override this to use our version of relation_from_name
     def get_grants_on_relation(self, project, relation_name):
         relation = relation_from_name(project.adapter, relation_name)
         adapter = project.adapter
@@ -82,3 +89,29 @@ class TestSnapshotGrantsDremio(BaseGrantsDremio, BaseSnapshotGrants):
             _, grant_table = adapter.execute(show_grant_sql, fetch=True)
             actual_grants = adapter.standardize_grants_dict(grant_table)
         return actual_grants
+    
+    # Override to add user prefix in expected results
+    def test_snapshot_grants(self, project, get_test_users):
+        test_users = get_test_users
+        select_privilege_name = self.privilege_grantee_name_overrides()["select"]
+
+        # run the snapshot
+        results = run_dbt(["snapshot"])
+        assert len(results) == 1
+        expected = {select_privilege_name: ["user:" + test_users[0]]}
+        self.assert_expected_grants_match_actual(project, "my_snapshot", expected)
+
+        # run it again, nothing should have changed
+        (results, log_output) = run_dbt_and_capture(["--debug", "snapshot"])
+        assert len(results) == 1
+        assert "revoke " not in log_output
+        assert "grant " not in log_output
+        self.assert_expected_grants_match_actual(project, "my_snapshot", expected)
+
+        # change the grantee, assert it updates
+        updated_yaml = self.interpolate_name_overrides(user2_snapshot_schema_yml)
+        write_file(updated_yaml, project.project_root, "snapshots", "schema.yml")
+        (results, log_output) = run_dbt_and_capture(["--debug", "snapshot"])
+        assert len(results) == 1
+        expected = {select_privilege_name: ["user:" + test_users[1]]}
+        self.assert_expected_grants_match_actual(project, "my_snapshot", expected)

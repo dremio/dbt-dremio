@@ -58,9 +58,6 @@ class TestSeedGrantsDremio(BaseGrantsDremio, BaseSeedGrants):
         # seed command
         (results, log_output) = run_dbt_and_capture(["--debug", "seed"])
         assert len(results) == 1
-        manifest = get_manifest(project.project_root)
-        seed_id = "seed.test.my_seed"
-        seed = manifest.nodes[seed_id]
         expected = {select_privilege_name: ["user:" + test_users[0]]}
         assert "grant " in log_output
         self.assert_expected_grants_match_actual(project, "my_seed", expected)
@@ -92,9 +89,6 @@ class TestSeedGrantsDremio(BaseGrantsDremio, BaseSeedGrants):
         assert len(results) == 1
         assert "revoke " not in log_output
         assert "grant " not in log_output
-        manifest = get_manifest(project.project_root)
-        seed_id = "seed.test.my_seed"
-        seed = manifest.nodes[seed_id]
         expected_config = {}
         expected_actual = {select_privilege_name: [test_users[1]]}
         if self.seeds_support_partial_refresh():
