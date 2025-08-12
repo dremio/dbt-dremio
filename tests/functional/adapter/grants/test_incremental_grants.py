@@ -43,6 +43,7 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
             actual_grants = adapter.standardize_grants_dict(grant_table)
         return actual_grants
 
+    # Override to add user prefix in expected results
     def test_incremental_grants(self, project, get_test_users):
         # we want the test to fail, not silently skip
         test_users = get_test_users

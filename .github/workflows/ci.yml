@@ -93,9 +93,6 @@ jobs:
           pip install -r dev_requirements.txt
           pip install .
 
-      - name: Create dbt test users
-        run: bash .github/scripts/create_dbt_test_users.sh
-
       - name: Create dbt projects
         run: bash .github/scripts/create_dbt_projects.sh
 
