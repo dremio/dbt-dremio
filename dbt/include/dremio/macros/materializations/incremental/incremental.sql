@@ -36,20 +36,6 @@ limitations under the License.*/
   {%- set preexisting_backup_relation = load_cached_relation(backup_relation) -%}
   -- grab current tables grants config for comparison later on
   {% set grant_config = config.get('grants') %}
-  -- ensure grant have a prefix, defaults to user if not provided
-  {% if grant_config %}
-    {% for privilege, grantees in grant_config.items() %}
-      {% set updated_grantees = [] %}
-      {% for grantee in grantees %}
-        {% if ':' not in grantee %}
-          {% do updated_grantees.append('user:' ~ grantee) %}
-        {% else %}
-          {% do updated_grantees.append(grantee) %}
-        {% endif %}
-      {% endfor %}
-      {% do grant_config.update({privilege: updated_grantees}) %}
-    {% endfor %}
-  {% endif %}
   {{ drop_relation_if_exists(preexisting_intermediate_relation) }}
   {{ drop_relation_if_exists(preexisting_backup_relation) }}
 

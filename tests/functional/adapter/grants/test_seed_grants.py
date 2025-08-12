@@ -14,10 +14,21 @@
 
 import pytest, os
 
-from dbt.tests.adapter.grants.test_seed_grants import BaseSeedGrants
+from dbt.tests.adapter.grants.test_seed_grants import (
+    BaseSeedGrants,
+    user2_schema_base_yml,
+    ignore_grants_yml,
+    zero_grants_yml,
+)
 from tests.functional.adapter.grants.base_grants import BaseGrantsDremio
 from tests.utils.util import relation_from_name
-from dbt.tests.util import get_connection
+from dbt.tests.util import (
+    get_connection,
+    get_manifest,
+    run_dbt,
+    run_dbt_and_capture,
+    write_file,
+)
 
 DREMIO_EDITION = os.getenv("DREMIO_EDITION")
 
@@ -38,3 +49,75 @@ class TestSeedGrantsDremio(BaseGrantsDremio, BaseSeedGrants):
             _, grant_table = adapter.execute(show_grant_sql, fetch=True)
             actual_grants = adapter.standardize_grants_dict(grant_table)
         return actual_grants
+
+    # Override to add user prefix in expected results
+    def test_seed_grants(self, project, get_test_users):
+        test_users = get_test_users
+        select_privilege_name = self.privilege_grantee_name_overrides()["select"]
+
+        # seed command
+        (results, log_output) = run_dbt_and_capture(["--debug", "seed"])
+        assert len(results) == 1
+        manifest = get_manifest(project.project_root)
+        seed_id = "seed.test.my_seed"
+        seed = manifest.nodes[seed_id]
+        expected = {select_privilege_name: ["user:" + test_users[0]]}
+        assert "grant " in log_output
+        self.assert_expected_grants_match_actual(project, "my_seed", expected)
+
+        # run it again, with no config changes
+        (results, log_output) = run_dbt_and_capture(["--debug", "seed"])
+        assert len(results) == 1
+        # seeds are always full-refreshed on this adapter, so we need to re-grant
+        assert "revoke " not in log_output
+        assert "grant " in log_output
+        self.assert_expected_grants_match_actual(project, "my_seed", expected)
+
+        # change the grantee, assert it updates
+        updated_yaml = self.interpolate_name_overrides(user2_schema_base_yml)
+        write_file(updated_yaml, project.project_root, "seeds", "schema.yml")
+        (results, log_output) = run_dbt_and_capture(["--debug", "seed"])
+        assert len(results) == 1
+        expected = {select_privilege_name: ["user:" + test_users[1]]}
+        self.assert_expected_grants_match_actual(project, "my_seed", expected)
+
+        # run it again, with --full-refresh, grants should be the same
+        run_dbt(["seed", "--full-refresh"])
+        self.assert_expected_grants_match_actual(project, "my_seed", expected)
+
+        # change config to 'grants: {}' -- should be completely ignored
+        updated_yaml = self.interpolate_name_overrides(ignore_grants_yml)
+        write_file(updated_yaml, project.project_root, "seeds", "schema.yml")
+        (results, log_output) = run_dbt_and_capture(["--debug", "seed"])
+        assert len(results) == 1
+        assert "revoke " not in log_output
+        assert "grant " not in log_output
+        manifest = get_manifest(project.project_root)
+        seed_id = "seed.test.my_seed"
+        seed = manifest.nodes[seed_id]
+        expected_config = {}
+        expected_actual = {select_privilege_name: [test_users[1]]}
+        if self.seeds_support_partial_refresh():
+            # ACTUAL grants will NOT match expected grants
+            self.assert_expected_grants_match_actual(project, "my_seed", expected_actual)
+        else:
+            # there should be ZERO grants on the seed
+            self.assert_expected_grants_match_actual(project, "my_seed", expected_config)
+
+        # now run with ZERO grants -- all grants should be removed
+        # whether explicitly (revoke) or implicitly (recreated without any grants added on)
+        updated_yaml = self.interpolate_name_overrides(zero_grants_yml)
+        write_file(updated_yaml, project.project_root, "seeds", "schema.yml")
+        (results, log_output) = run_dbt_and_capture(["--debug", "seed"])
+        assert len(results) == 1
+        if self.seeds_support_partial_refresh():
+            assert "revoke " in log_output
+        expected = {}
+        self.assert_expected_grants_match_actual(project, "my_seed", expected)
+
+        # run it again -- dbt shouldn't try to grant or revoke anything
+        (results, log_output) = run_dbt_and_capture(["--debug", "seed"])
+        assert len(results) == 1
+        assert "revoke " not in log_output
+        assert "grant " not in log_output
+        self.assert_expected_grants_match_actual(project, "my_seed", expected)
