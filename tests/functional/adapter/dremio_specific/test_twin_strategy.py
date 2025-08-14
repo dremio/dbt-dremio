@@ -10,6 +10,7 @@ from tests.utils.util import (
 )
 
 DREMIO_EDITION = os.getenv("DREMIO_EDITION")
+DREMIO_ENTERPRISE_CATALOG = os.getenv("DREMIO_ENTERPRISE_CATALOG")
 
 schema_prevent_yml = """
 version: 2
@@ -267,7 +268,7 @@ class TestTwinStrategyNotAppliedDremio:
         target = dbt_profile_target
         # For enterprise catalog: object_storage_source == dremio_space AND object_storage_path == dremio_space_folder
         # This maps to: target.datalake == target.database AND target.root_path == target.schema
-        enterprise_catalog_name = os.getenv("DREMIO_ENTERPRISE_CATALOG")
+        enterprise_catalog_name = DREMIO_ENTERPRISE_CATALOG
         target["schema"] = unique_schema
         target["root_path"] = unique_schema # Make object_storage_path == dremio_space_folder
         target["datalake"] = enterprise_catalog_name  # Set object_storage_source to enterprise catalog
@@ -278,7 +279,7 @@ class TestTwinStrategyNotAppliedDremio:
             profile.update(profiles_config_update)
         return profile
 
-    @pytest.mark.skipif(DREMIO_EDITION == "community", reason="Enterprise catalog is only supported in Dremio EE/DC editions.")
+    @pytest.mark.skipif(DREMIO_EDITION == "community" or not os.getenv("DREMIO_ENTERPRISE_CATALOG"), reason="Enterprise catalog is only supported in Dremio EE/DC editions.")
     def test_twin_strategy_not_applied_with_enterprise_catalog(self, project, caplog):
         # Run with twin_strategy configured but enterprise catalog enabled
         # Should show warning and not apply twin strategy
