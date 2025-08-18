@@ -238,14 +238,6 @@ class TestTwinStrategyCloneDremio:
 
 class TestTwinStrategyNotAppliedDremio:
     @pytest.fixture(scope="class")
-    def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        # We only want the last part of the name
-        test_file = test_file.split(".")[-1]
-        unique_schema = f"{test_file}"
-        return unique_schema
-    
-    @pytest.fixture(scope="class")
     def models(self):
         return {
             "schema.yml": schema_allow_yml,
