@@ -237,6 +237,15 @@ class TestTwinStrategyCloneDremio:
         assert columns_table[0].name == "table_column"
 
 class TestTwinStrategyNotAppliedDremio:
+    # Override unique_schema to be the schema defined in Jenkins tests
+    @pytest.fixture(scope="class")
+    def unique_schema(request, prefix) -> str:
+        test_file = request.module.__name__
+        # We want everything besides the last part of the name (i.e. tests.functional.adapter.dremio_specific)
+        test_file = "_".join(test_file.split(".")[:-1])
+        unique_schema = {test_file}
+        return unique_schema
+
     @pytest.fixture(scope="class")
     def models(self):
         return {
