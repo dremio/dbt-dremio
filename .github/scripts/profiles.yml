@@ -28,3 +28,16 @@ test_sw_up_options:
       use_ssl: false
       user: dremio
   target: dev
+test_enterprise_catalog_options:
+  outputs:
+    dev:
+      enterprise_catalog_namespace: test_catalog
+      enterprise_catalog_folder: no_schema
+      pat: dremio123
+      port: 9047
+      software_host: localhost
+      threads: 1
+      type: dremio
+      use_ssl: false
+      user: dremio
+  target: dev

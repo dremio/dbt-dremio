@@ -1,4 +1,3 @@
-tests/component/test_profile_template.py::TestProfileTemplate::test_cloud_options
 tests/functional/adapter/dremio_specific/test_drop_temp_table.py::TestDropTempTableDremio::test_drop_temp_table
 tests/functional/adapter/dremio_specific/test_schema_parsing.py::TestSchemaParsingDremio::test_schema_with_dots
 tests/functional/adapter/dremio_specific/test_verify_ssl.py::TestVerifyCertificateDremio::test_insecure_request_warning_not_exist
