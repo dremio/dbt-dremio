@@ -43,7 +43,7 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
             actual_grants = adapter.standardize_grants_dict(grant_table)
         return actual_grants
 
-    # Need to override this to comment out one line (Line: 106)
+    # Override to add user prefix in expected results
     def test_incremental_grants(self, project, get_test_users):
         # we want the test to fail, not silently skip
         test_users = get_test_users
@@ -106,8 +106,7 @@ class TestIncrementalGrantsDremio(BaseGrantsDremio, BaseIncrementalGrants):
         # Incremental materialization, same config, rebuild now that table is missing
         (results, log_output) = run_dbt_and_capture(["--debug", "run"])
         assert len(results) == 1
-        # Need to comment this out, as it looks like the grant is copied over
-        # assert "grant " in log_output
+        assert "grant " in log_output
         assert "revoke " not in log_output
         self.assert_expected_grants_match_actual(
             project, "my_incremental_model", expected

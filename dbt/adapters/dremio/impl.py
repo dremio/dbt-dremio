@@ -161,7 +161,7 @@ class DremioAdapter(SQLAdapter):
         for row in grants_table:
             # Just needed to change these two values to match Dremio cols
             grantee = row["grantee_id"]
-            privilege = row["privilege"]
+            privilege = row["privilege"].lower()
             grantee_type = row["grantee_type"]
 
             if privilege in grants_dict.keys():

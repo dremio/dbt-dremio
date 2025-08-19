@@ -14,6 +14,7 @@
 
 import pytest
 
+from dbt.context.base import BaseContext  # diff_of_two_dicts only
 from dbt.tests.adapter.grants.base_grants import BaseGrants
 from tests.utils.util import BUCKET
 
@@ -59,3 +60,12 @@ class BaseGrantsDremio(BaseGrants):
         if profiles_config_update:
             profile.update(profiles_config_update)
         return profile
+
+    # Override to include assertion error message
+    def assert_expected_grants_match_actual(self, project, relation_name, expected_grants):
+        actual_grants = self.get_grants_on_relation(project, relation_name)
+        # need a case-insensitive comparison
+        # so just a simple "assert expected == actual_grants" won't work
+        diff_a = BaseContext.diff_of_two_dicts(actual_grants, expected_grants)
+        diff_b = BaseContext.diff_of_two_dicts(expected_grants, actual_grants)
+        assert diff_a == diff_b == {}, f"Expected {str(expected_grants)} but got {str(actual_grants)}"

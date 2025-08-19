@@ -128,6 +128,14 @@ class BaseTestPrePost(object):
 
 class TestPrePostModelHooksDremio(BaseTestPrePost):
     @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+    
+    @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
             "models": {
@@ -166,6 +174,14 @@ class TestPrePostModelHooksDremio(BaseTestPrePost):
 
 class TestPrePostModelHooksUnderscoresDremio(TestPrePostModelHooksDremio):
     @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+
+        return unique_schema
+    @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
             "models": {
@@ -194,6 +210,14 @@ class TestPrePostModelHooksUnderscoresDremio(TestPrePostModelHooksDremio):
 
 
 class TestHookRefsDremio(BaseTestPrePost):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+    
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -237,6 +261,14 @@ class TestHookRefsDremio(BaseTestPrePost):
 
 class TestPrePostModelHooksOnSeedsDremio(object):
     @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
     def seeds(self):
         return {"example_seed.csv": seeds__example_seed_csv}
 
@@ -277,6 +309,14 @@ class TestPrePostModelHooksOnSeedsPlusPrefixedDremio(
     TestPrePostModelHooksOnSeedsDremio
 ):
     @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
             "seed-paths": ["seeds"],
@@ -294,6 +334,14 @@ class TestPrePostModelHooksOnSeedsPlusPrefixedDremio(
 class TestPrePostModelHooksOnSeedsPlusPrefixedWhitespaceDremio(
     TestPrePostModelHooksOnSeedsDremio
 ):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -392,6 +440,14 @@ class PrePostModelHooksInConfigSetup(BaseTestPrePost):
 
 class TestPrePostModelHooksInConfigDremio(PrePostModelHooksInConfigSetup):
     @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
+    @pytest.fixture(scope="class")
     def project_config_update(self):
         return {"seeds": {"+twin_strategy": "prevent"}}
 
@@ -403,6 +459,14 @@ class TestPrePostModelHooksInConfigDremio(PrePostModelHooksInConfigSetup):
 
 
 class TestPrePostModelHooksInConfigWithCountDremio(PrePostModelHooksInConfigSetup):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {
@@ -443,6 +507,14 @@ class TestPrePostModelHooksInConfigWithCountDremio(PrePostModelHooksInConfigSetu
 
 
 class TestPrePostModelHooksInConfigKwargsDremio(TestPrePostModelHooksInConfigDremio):
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file = request.module.__name__
+        # We only want the last part of the name
+        test_file = test_file.split(".")[-1]
+        unique_schema = f"{BUCKET}.{prefix}_{test_file}"
+        return unique_schema
+    
     @pytest.fixture(scope="class")
     def project_config_update(self):
         return {"seeds": {"+twin_strategy": "prevent"}}

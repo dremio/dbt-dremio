@@ -17,6 +17,8 @@ To run our tests, a test environment must be set up.
     DBT_TEST_USER_1=dbt_test_user_1
     DBT_TEST_USER_2=dbt_test_user_2
     DBT_TEST_USER_3=dbt_test_user_3
+    DBT_TEST_ROLE_1=dbt_test_role_1
+    DBT_TEST_ROLE_2=dbt_test_role_2
     ```
    For cloud version of Dremio:
     ```
@@ -29,6 +31,8 @@ To run our tests, a test environment must be set up.
     DBT_TEST_USER_1=dbt_test_user_1
     DBT_TEST_USER_2=dbt_test_user_2
     DBT_TEST_USER_3=dbt_test_user_3
+    DBT_TEST_ROLE_1=dbt_test_role_1
+    DBT_TEST_ROLE_2=dbt_test_role_2
     ```
 1. Create the three users listed above (dbt_test_user_1, dbt_test_user_2, dbt_test_user_3) in the Dremio instance.
 1. Create a bucket in Object storage with a name `dbtdremios3`
