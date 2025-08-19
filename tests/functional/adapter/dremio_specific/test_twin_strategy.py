@@ -2,7 +2,7 @@ import os
 import pytest
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
-from dbt.tests.util import run_dbt, write_file
+from dbt.tests.util import run_dbt, write_file, run_dbt_and_capture
 from tests.utils.util import (
     check_relation_types,
     relation_from_name,
@@ -285,10 +285,11 @@ class TestTwinStrategyNotAppliedDremio:
         return profile
 
     @pytest.mark.skipif(DREMIO_EDITION == "community" or not os.getenv("DREMIO_ENTERPRISE_CATALOG"), reason="Enterprise catalog is only supported in Dremio EE/DC editions.")
-    def test_twin_strategy_not_applied_with_enterprise_catalog(self, project, caplog):
+    def test_twin_strategy_not_applied_with_enterprise_catalog(self, project):
         # Run with twin_strategy configured but enterprise catalog enabled
         # Should show warning and not apply twin strategy
-        run_dbt(["run"])
+        (results, log_output) = run_dbt_and_capture(["--debug","run"])
+        assert len(results) == 2 # Both models should build successfully
 
         # Check that the warning message appears in the logs
-        assert "WARNING: Twin strategy not applied - using enterprise catalog" in caplog
+        assert "WARNING: Twin strategy not applied - using enterprise catalog" in log_output
