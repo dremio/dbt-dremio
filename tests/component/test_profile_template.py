@@ -23,7 +23,7 @@ DREMIO_EDITION = os.getenv("DREMIO_EDITION")
 
 # Tests require manual setup before executing.
 #
-#     Prior to running these tests, create four dbt projects:
+#     Prior to running these tests, create six dbt projects:
 #
 #     1. `dbt init test_cloud_options`
 #         - accept all default options
@@ -37,13 +37,27 @@ DREMIO_EDITION = os.getenv("DREMIO_EDITION")
 #         - accept all default options
 #         - provide any value for mandatory options
 #
-#     4. `dbt init test_enterprise_catalog_options`
+#     4. `dbt init test_sw_enterprise_catalog_pat_options`
+#         - select software_with_pat
 #         - select enterprise catalog storage option
+#         - select PAT authentication
 #         - accept all default options
 #         - provide any value for mandatory options
 #
+#     5. `dbt init test_sw_enterprise_catalog_up_options`
+#         - select software_with_username_password
+#         - select enterprise catalog storage option
+#         - select username/password authentication
+#         - accept all default options
+#         - provide any value for mandatory options
+#
+#     6. `dbt init test_cloud_enterprise_catalog_options`
+#         - select cloud
+#         - select enterprise catalog storage option
+#         - accept all default options
+#         - provide any value for mandatory options
 #     These tests assumes there exists a $HOME/.dbt/profiles.yml
-#     file containing these four dbt projects.
+#     file containing these six dbt projects.
 
 
 class TestProfileTemplate:
@@ -58,7 +72,9 @@ class TestProfileTemplate:
         "test_sw_up_options"  # nosec hardcoded_password_string
     )
     _TEST_SOFTWARE_PAT_PROFILE_PROJECT = "test_sw_pat_options"
-    _TEST_ENTERPRISE_CATALOG_PROFILE_PROJECT = "test_enterprise_catalog_options"
+    _TEST_SW_ENTERPRISE_CATALOG_PAT_PROFILE_PROJECT = "test_sw_enterprise_catalog_pat_options"
+    _TEST_SW_ENTERPRISE_CATALOG_USER_PASSWORD_PROFILE_PROJECT = "test_sw_enterprise_catalog_up_options"
+    _TEST_CLOUD_ENTERPRISE_CATALOG_PROFILE_PROJECT = "test_cloud_enterprise_catalog_options"
 
     _PASSWORD_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS = {"password": None}
     _PAT_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS = {"pat": None}
@@ -79,11 +95,16 @@ class TestProfileTemplate:
         "port": 9047,
         "use_ssl": False,
     }
-    _ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS = {
+    _DREMIO_SW_ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS = {
         "enterprise_catalog_namespace": None,
         "enterprise_catalog_folder": None,
         "software_host": None,
         "port": 9047,
+        "use_ssl": False,
+    }
+    _DREMIO_CLOUD_ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS = {
+        "enterprise_catalog_namespace": None,
+        "enterprise_catalog_folder": None,
         "use_ssl": False,
     }
 
@@ -102,14 +123,19 @@ class TestProfileTemplate:
         | _DREMIO_SW_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS
         | _PAT_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS
     )
-    _DREMIO_ENTERPRISE_CATALOG_USERNAME_PASSWORD_PROFILE_OPTIONS = (
+    _DREMIO_SW_ENTERPRISE_CATALOG_USERNAME_PASSWORD_PROFILE_OPTIONS = (
         _COMMON_PROFILE_OPTIONS_WITH_DEFAULTS
-        | _ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS
+        | _DREMIO_SW_ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS
         | _PASSWORD_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS
     )
-    _DREMIO_ENTERPRISE_CATALOG_PAT_PROFILE_OPTIONS = (
+    _DREMIO_SW_ENTERPRISE_CATALOG_PAT_PROFILE_OPTIONS = (
         _COMMON_PROFILE_OPTIONS_WITH_DEFAULTS
-        | _ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS
+        | _DREMIO_SW_ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS
+        | _PAT_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS
+    )
+    _DREMIO_CLOUD_ENTERPRISE_CATALOG_PROFILE_OPTIONS_WITH_DEFAULTS = (
+        _COMMON_PROFILE_OPTIONS_WITH_DEFAULTS
+        | _DREMIO_CLOUD_ENTERPRISE_CATALOG_PROFILE_SPECIFIC_OPTIONS_WITH_DEFAULTS
         | _PAT_AUTH_PROFILE_OPTIONS_WITH_DEFAULTS
     )
 
@@ -124,8 +150,8 @@ class TestProfileTemplate:
     }
 
     @pytest.mark.skipif(
-        DREMIO_EDITION == "community",
-        reason="Cloud options are not available in Dremio community edition.",
+        DREMIO_EDITION != "cloud",
+        reason="Cloud options are not available in Dremio community/enterprise edition.",
     )
     def test_cloud_options(self) -> None:
         self._test_project_profile_options(
@@ -156,13 +182,33 @@ class TestProfileTemplate:
 
 
     @pytest.mark.skipif(
-        DREMIO_EDITION == "community",
-        reason="Enterprise catalog options are not available in Dremio community edition.",
+        DREMIO_EDITION != "enterprise",
+        reason="Dremio Software enterprise catalog options are specific to Dremio Enterprise edition.",
     )
-    def test_enterprise_catalog_options(self) -> None:
+    def test_sw_enterprise_catalog_username_password_options(self) -> None:
         self._test_project_profile_options(
-            self._get_dbt_test_project_dict(self._TEST_ENTERPRISE_CATALOG_PROFILE_PROJECT),
-            self._DREMIO_ENTERPRISE_CATALOG_PROFILE_OPTIONS,
+            self._get_dbt_test_project_dict(self._TEST_SW_ENTERPRISE_CATALOG_USER_PASSWORD_PROFILE_PROJECT),
+            self._DREMIO_SW_ENTERPRISE_CATALOG_USERNAME_PASSWORD_PROFILE_OPTIONS,
+        )
+
+    @pytest.mark.skipif(
+        DREMIO_EDITION != "enterprise",
+        reason="Dremio Software enterprise catalog options are specific to Dremio Enterprise edition.",
+    )
+    def test_sw_enterprise_catalog_pat_options(self) -> None:
+        self._test_project_profile_options(
+            self._get_dbt_test_project_dict(self._TEST_SW_ENTERPRISE_CATALOG_PAT_PROFILE_PROJECT),
+            self._DREMIO_SW_ENTERPRISE_CATALOG_PAT_PROFILE_OPTIONS,
+        )
+
+    @pytest.mark.skipif(
+        DREMIO_EDITION != "cloud",
+        reason="Dremio Software enterprise catalog options are specific to Dremio Enterprise edition.",
+    )
+    def test_cloud_enterprise_catalog_options(self) -> None:
+        self._test_project_profile_options(
+            self._get_dbt_test_project_dict(self._TEST_CLOUD_ENTERPRISE_CATALOG_PROFILE_PROJECT),
+            self._DREMIO_CLOUD_ENTERPRISE_CATALOG_PROFILE_OPTIONS_WITH_DEFAULTS,
         )
 
     @pytest.mark.skip

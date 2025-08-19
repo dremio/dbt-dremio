@@ -6,7 +6,8 @@ from dbt.tests.util import run_dbt, write_file
 from tests.utils.util import (
     check_relation_types,
     relation_from_name,
-    get_connection
+    get_connection,
+    BUCKET
 )
 
 DREMIO_EDITION = os.getenv("DREMIO_EDITION")
@@ -237,12 +238,15 @@ class TestTwinStrategyCloneDremio:
         assert columns_table[0].name == "table_column"
 
 class TestTwinStrategyNotAppliedDremio:
-    # Override unique_schema to be the schema defined in Jenkins tests
+    # Override unique_schema to be the schema defined in Jenkins tests, i.e., tests_functional_adapter_dremio_specific
     @pytest.fixture(scope="class")
     def unique_schema(self, request, prefix) -> str:
-        test_file = request.module.__name__
-        # We want everything besides the last part of the name (i.e. tests.functional.adapter.dremio_specific)
-        test_file = "_".join(test_file.split(".")[:-1])
+        test_file_path = request.module.__file__
+        relative_path = os.path.relpath(test_file_path, os.getcwd())
+        # Get directory path and remove filename
+        dir_path = os.path.dirname(relative_path)
+        # Replace '/' with '_' to create schema name
+        test_file = dir_path.replace('/', '_')
         unique_schema = test_file
         return unique_schema
 
