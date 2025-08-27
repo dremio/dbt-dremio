@@ -6,6 +6,10 @@
 - Refactored CI
 - Fixed tests for hooks and grants
 
+## Features
+
+- Added built-in `udf` materialization to create user-defined functions
+
 # dbt-dremio v1.9.0
 
 ## Changes
