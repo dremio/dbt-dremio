@@ -1,7 +1,21 @@
 #!/bin/bash
 set -e
 
-echo "Comparing actual test failures with expected failures..."
+# Check if expected failures file is provided as argument
+if [ $# -eq 0 ]; then
+    echo "Error: Expected failures file not provided."
+    exit 1
+fi
+
+expected_failures_file="$1"
+
+# Check if the expected failures file exists
+if [ ! -f "$expected_failures_file" ]; then
+    echo "Error: Expected failures file '$expected_failures_file' not found."
+    exit 1
+fi
+
+echo "Comparing actual test failures with expected failures from: $expected_failures_file"
 
 # Enable globstar for recursive globbing
 shopt -s globstar
@@ -10,7 +24,7 @@ shopt -s globstar
 actual_failures=$(grep -E "(FAILED tests|ERROR tests)" reports/**/*.txt | awk '{print $2}' | sort)
 
 # Read expected failures
-expected_failures=$(sort .github/expected_failures.txt)
+expected_failures=$(sort "$expected_failures_file")
 
 echo "Expected Failures:"
 echo "$expected_failures"

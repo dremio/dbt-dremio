@@ -284,7 +284,7 @@ class TestTwinStrategyNotAppliedDremio:
             profile.update(profiles_config_update)
         return profile
 
-    @pytest.mark.skipif(DREMIO_EDITION == "community" or not os.getenv("DREMIO_ENTERPRISE_CATALOG"), reason="Enterprise catalog is only supported in Dremio EE/DC editions.")
+    @pytest.mark.skipif(DREMIO_EDITION == "community" or not DREMIO_ENTERPRISE_CATALOG, reason="Enterprise catalog is only supported in Dremio EE/DC editions.")
     def test_twin_strategy_not_applied_with_enterprise_catalog(self, project):
         # Run with twin_strategy configured but enterprise catalog enabled
         # Should show warning and not apply twin strategy
