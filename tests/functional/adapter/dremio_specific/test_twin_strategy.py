@@ -1,12 +1,17 @@
+import os
 import pytest
 from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
-from dbt.tests.util import run_dbt, write_file
+from dbt.tests.util import run_dbt, write_file, run_dbt_and_capture
 from tests.utils.util import (
     check_relation_types,
     relation_from_name,
-    get_connection
+    get_connection,
+    BUCKET
 )
+
+DREMIO_EDITION = os.getenv("DREMIO_EDITION")
+DREMIO_ENTERPRISE_CATALOG = os.getenv("DREMIO_ENTERPRISE_CATALOG")
 
 schema_prevent_yml = """
 version: 2
@@ -231,3 +236,60 @@ class TestTwinStrategyCloneDremio:
         assert columns_view[0].name == "table_column" 
         assert len(columns_table) == 1
         assert columns_table[0].name == "table_column"
+
+class TestTwinStrategyNotAppliedDremio:
+    # Override unique_schema to be the schema defined in Jenkins tests, i.e., tests_functional_adapter_dremio_specific
+    @pytest.fixture(scope="class")
+    def unique_schema(self, request, prefix) -> str:
+        test_file_path = request.module.__file__
+        relative_path = os.path.relpath(test_file_path, os.getcwd())
+        # Get directory path and remove filename
+        dir_path = os.path.dirname(relative_path)
+        # Replace '/' with '_' to create schema name
+        test_file = dir_path.replace('/', '_')
+        unique_schema = test_file
+        return unique_schema
+
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {
+            "schema.yml": schema_allow_yml,
+            "view_model.sql": view_model_sql,
+            "table_model.sql": table_model_sql,
+        }
+
+    @pytest.fixture(scope="class")
+    def dbt_profile_data(
+        self, unique_schema, dbt_profile_target, profiles_config_update
+    ):
+        profile = {
+            "test": {
+                "outputs": {
+                    "default": {},
+                },
+                "target": "default",
+            },
+        }
+        target = dbt_profile_target
+        # For enterprise catalog: object_storage_source == dremio_space AND object_storage_path == dremio_space_folder
+        # This maps to: target.datalake == target.database AND target.root_path == target.schema
+        enterprise_catalog_name = DREMIO_ENTERPRISE_CATALOG
+        target["schema"] = unique_schema
+        target["root_path"] = unique_schema # Make object_storage_path == dremio_space_folder
+        target["datalake"] = enterprise_catalog_name  # Set object_storage_source to enterprise catalog
+        target["database"] = enterprise_catalog_name  # Set dremio_space to same enterprise catalog
+
+        profile["test"]["outputs"]["default"] = target
+        if profiles_config_update:
+            profile.update(profiles_config_update)
+        return profile
+
+    @pytest.mark.skipif(DREMIO_EDITION == "community" or not DREMIO_ENTERPRISE_CATALOG, reason="Enterprise catalog is only supported in Dremio EE/DC editions.")
+    def test_twin_strategy_not_applied_with_enterprise_catalog(self, project):
+        # Run with twin_strategy configured but enterprise catalog enabled
+        # Should show warning and not apply twin strategy
+        (results, log_output) = run_dbt_and_capture(["--debug","run"])
+        assert len(results) == 2 # Both models should build successfully
+
+        # Check that the warning message appears in the logs
+        assert "WARNING: Twin strategy not applied - using enterprise catalog" in log_output
