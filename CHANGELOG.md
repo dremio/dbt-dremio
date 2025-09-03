@@ -2,6 +2,7 @@
 
 ## Changes
 
+- Fix column quoting in incremental merge strategy for SQL keywords - ensures proper handling of columns with SQL keyword names in incremental materializations
 - [#299](https://github.com/dremio/dbt-dremio/pull/299) Enhance persist_docs macro to wrap model and column metadata (including descriptions, tags and tests) into a Markdown wiki for Dremio.
 - Refactored CI
 - Fixed tests for hooks and grants
