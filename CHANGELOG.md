@@ -7,6 +7,10 @@
 - Fixed tests for hooks and grants
 - Added Dremio Enterprise Catalog tests
 
+## Features
+
+- Added built-in `udf` materialization to create user-defined functions
+
 # dbt-dremio v1.9.0
 
 ## Changes

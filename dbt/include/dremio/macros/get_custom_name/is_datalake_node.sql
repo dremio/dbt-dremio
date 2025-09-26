@@ -14,5 +14,5 @@ limitations under the License.*/
 
 {% macro is_datalake_node(node) -%}
   {{ return(node.resource_type in ['test', 'seed', 'snapshot']
-    or (node.resource_type == 'model' and node.config.materialized not in ['view', 'reflection'])) }}
+    or (node.resource_type == 'model' and node.config.materialized not in ['view', 'reflection', 'udf'])) }}
 {%- endmacro %}
