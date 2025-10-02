@@ -3,8 +3,8 @@ Babel==2.12.1
 betterproto==1.2.5
 certifi==2023.7.22
 charset-normalizer==3.1.0
-dbt-core==1.9.0
-dbt-tests-adapter==1.11.0
+dbt-core==1.10.0
+dbt-tests-adapter==1.15.0
 python-dotenv==1.0.1
 exceptiongroup==1.1.1
 future==0.18.3
@@ -13,7 +13,6 @@ h2==4.1.0
 hpack==4.0.0
 hyperframe==6.0.1
 iniconfig==2.0.0
-jsonschema==4.17.3
 leather==0.3.4
 MarkupSafe==2.1.2
 msgpack==1.0.5
