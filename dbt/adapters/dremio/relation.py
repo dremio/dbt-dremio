@@ -18,6 +18,7 @@ from dbt.adapters.base.relation import (
     BaseRelation,
     Policy,
     ComponentName,
+    EventTimeFilter,
 )
 from typing import Optional, Tuple, Iterator
 
@@ -45,6 +46,7 @@ class DremioRelation(BaseRelation):
     no_schema = "no_schema"
     format: Optional[str] = None
     format_clause: Optional[str] = None
+    event_time_filter: Optional[EventTimeFilter] = None
 
     def quoted_by_component(self, identifier, componentName):
         dot_char = "."
@@ -85,3 +87,41 @@ class DremioRelation(BaseRelation):
                 ):  # or key == ComponentName.Schema):
                     path_part = self.quoted_by_component(path_part, key)
             yield key, path_part
+
+    def _format_timestamp(self, timestamp_str: str) -> str:
+        """
+        Convert timestamp with timezone info to Dremio-compatible format.
+        Removes timezone information and limits microseconds precision since Dremio
+        doesn't support timezone info in timestamp literals and has limited microsecond precision.
+
+        Example: '2025-10-02 11:45:01.142708+00:00' -> '2025-10-02 11:45:01.142'
+        """
+        if timestamp_str is None:
+            return timestamp_str
+
+        # Remove timezone information (e.g., +00:00, -05:00, Z)
+        # This regex matches timezone patterns at the end of the string
+        timestamp_str = str(timestamp_str)
+        timestamp_str = re.sub(r'[+-]\d{2}:\d{2}$|Z$', '', timestamp_str)
+
+        # Limit microseconds to 3 digits (milliseconds) as Dremio does not support full 6-digit microseconds
+        # Pattern: YYYY-MM-DD HH:MM:SS.ssssss -> YYYY-MM-DD HH:MM:SS.sss
+        timestamp_str = re.sub(r'(\.\d{3})\d{3}$', r'\1', timestamp_str)
+
+        return timestamp_str
+
+    def _render_event_time_filtered(self, event_time_filter: EventTimeFilter) -> str:
+        """
+        Returns "" if start and end are both None
+        """
+        filter = ""
+        start_ts = self._format_timestamp(event_time_filter.start)
+        end_ts = self._format_timestamp(event_time_filter.end)
+        if event_time_filter.start and event_time_filter.end:
+            filter = f"{event_time_filter.field_name} >= '{start_ts}' and {event_time_filter.field_name} < '{end_ts}'"
+        elif event_time_filter.start:
+            filter = f"{event_time_filter.field_name} >= '{start_ts}'"
+        elif event_time_filter.end:
+            filter = f"{event_time_filter.field_name} < '{end_ts}'"
+
+        return filter
