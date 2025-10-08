@@ -49,7 +49,7 @@ if [ -n "$unexpected_failures" ]; then
 fi
 
 if [ -n "$missing_failures" ]; then
-  echo "::warning::Expected test failures that did not occur (they passed):"
+  echo "⚠️ Expected test failures that did not occur (they passed):"
   echo "$missing_failures"
   exit_code=1
 fi
