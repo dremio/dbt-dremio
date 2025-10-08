@@ -56,7 +56,7 @@ class TestDremioUnitTestingTypes(BaseUnitTestingTypes):
             ["array[timestamp '2019-01-01']", "['2019-01-01 00:00:00.000']"],
 
             # Binary
-            ["cast('abc' as binary)", "YWJj"],
+            ["cast('abc' as varbinary)", "YWJj"],
 
             # Intervals
             ["interval '2' year", "\"'2' year\""],
