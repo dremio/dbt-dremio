@@ -16,7 +16,6 @@ iniconfig==2.0.0
 leather==0.3.4
 MarkupSafe==2.1.2
 msgpack==1.0.5
-multidict==6.0.4
 parsedatetime==2.4
 pip-licenses==4.1.0
 pluggy==1.0.0
