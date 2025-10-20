@@ -1,11 +1,20 @@
-# dbt-dremio v1.9.1
+# dbt-dremio v1.10.0
 
 ## Changes
 
-- [#299](https://github.com/dremio/dbt-dremio/pull/299) Enhance persist_docs macro to wrap model and column metadata (including descriptions, tags and tests) into a Markdown wiki for Dremio.
+- Updated dbt-dremio to match dbt-core v1.10 with sample mode
+- Enhanced persist_docs macro to wrap model and column metadata (including descriptions, tags and tests) into a Markdown wiki for Dremio.
 - Refactored CI
 - Fixed tests for hooks and grants
 - Added Dremio Enterprise Catalog tests
+
+## Features
+
+- [#310](https://github.com/dremio/dbt-dremio/pull/310) Sample mode
+
+## Dependency
+
+- Upgraded dbt-core to 1.10.0 and dbt-tests-adapter to 1.16.0
 
 # dbt-dremio v1.9.0
 
