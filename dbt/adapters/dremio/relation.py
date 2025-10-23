@@ -110,6 +110,7 @@ class DremioRelation(BaseRelation):
 
         return timestamp_str
 
+    # Override in order to apply _format_timestamp
     def _render_event_time_filtered(self, event_time_filter: EventTimeFilter) -> str:
         """
         Returns "" if start and end are both None
