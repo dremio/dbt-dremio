@@ -21,7 +21,7 @@ echo "Comparing actual test failures with expected failures from: $expected_fail
 shopt -s globstar
 
 # Extract actual failures from test reports
-actual_failures=$(grep -E "(FAILED tests|ERROR tests)" reports/**/*.txt | awk '{print $2}' | sort)
+actual_failures=$(grep -E "(FAILED tests|ERROR tests)" reports/**/*.txt | awk '{print $2}' | sort -u)
 
 # Read expected failures
 expected_failures=$(sort "$expected_failures_file")
@@ -49,7 +49,7 @@ if [ -n "$unexpected_failures" ]; then
 fi
 
 if [ -n "$missing_failures" ]; then
-  echo "::warning::Expected test failures that did not occur (they passed):"
+  echo "⚠️ Expected test failures that did not occur (they passed):"
   echo "$missing_failures"
   exit_code=1
 fi

@@ -112,7 +112,7 @@ jobs:
         run: |
           mkdir reports/
           report_file="reports/${{ env.sanitized_test_dir }}.txt"
-          pytest ${{ matrix.test_dir }} | tee $report_file
+          pytest -s ${{ matrix.test_dir }} | tee $report_file
           exit ${PIPESTATUS[0]}
 
       - name: Upload test report as artifact
