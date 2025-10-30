@@ -64,7 +64,7 @@ limitations under the License.*/
         ({{ dest_cols_csv }})
     values
         ({% for column_name in dest_columns | map(attribute="name") -%}
-            DBT_INTERNAL_SOURCE.{{ column_name }}
+            DBT_INTERNAL_SOURCE.{{ adapter.quote(column_name) }}
             {%- if not loop.last %}, {%- endif %}
         {%- endfor %})
 
