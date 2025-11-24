@@ -126,22 +126,3 @@ class DremioRelation(BaseRelation):
             filter = f"{event_time_filter.field_name} < '{end_ts}'"
 
         return filter
-
-    def __str__(self) -> str:
-        """
-        Override string representation to show the full Dremio path in logs.
-        This ensures database.schema.identifier is displayed correctly.
-        """
-        # Build the path components without quotes for logging
-        parts = []
-
-        if self.database:
-            parts.append(self.database)
-
-        if self.schema and self.schema != self.no_schema:
-            parts.append(self.schema)
-
-        if self.identifier:
-            parts.append(self.identifier)
-
-        return ".".join(parts)
