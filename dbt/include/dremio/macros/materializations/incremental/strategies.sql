@@ -55,7 +55,7 @@ limitations under the License.*/
     {% if unique_key %}
     when matched then update set
         {% for column_name in update_columns -%}
-            {{ adapter.quote(column_name) }} = DBT_INTERNAL_SOURCE.{{ adapter.quote(column_name) }}
+            {{ column_name }} = DBT_INTERNAL_SOURCE.{{ column_name }}
             {%- if not loop.last %}, {%- endif %}
         {%- endfor %}
     {% endif %}
