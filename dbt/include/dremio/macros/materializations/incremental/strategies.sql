@@ -70,11 +70,11 @@ limitations under the License.*/
 
 {% endmacro %}
 
-{% macro dbt_dremio_get_incremental_sql(strategy, source, target, dest_columns, unique_key) %}
+{% macro dbt_dremio_get_incremental_sql(strategy, source, target, dest_columns, unique_key, incremental_predicates=none) %}
   {%- if strategy == 'append' -%}
     {{ dremio__get_incremental_append_sql(source, target, dest_columns) }}
   {%- elif strategy == 'merge' -%}
-    {{dremio__get_incremental_merge_sql(target, source, unique_key, dest_columns, incremental_predicates=none)}} 
+    {{dremio__get_incremental_merge_sql(target, source, unique_key, dest_columns, incremental_predicates)}} 
   {%- else -%}
     {% set no_sql_for_strategy_msg -%}
       No known SQL for the incremental strategy provided: {{ strategy }}
