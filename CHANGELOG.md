@@ -10,7 +10,11 @@
 
 ## Features
 
-- [#310](https://github.com/dremio/dbt-dremio/pull/310) Sample mode
+- [#306](https://github.com/dremio/dbt-dremio/pull/306) incremental_predicates option has no effect
+
+## Fixes
+
+- [#315](https://github.com/dremio/dbt-dremio/pull/315) Fix issue with persist_docs macro
 
 ## Dependency
 
