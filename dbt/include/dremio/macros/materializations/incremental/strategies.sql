@@ -32,13 +32,13 @@ limitations under the License.*/
         {% if unique_key is sequence and unique_key is not mapping and unique_key is not string %}
             {% for key in unique_key %}
                 {% set this_key_match %}
-                    DBT_INTERNAL_SOURCE.{{ key }} = DBT_INTERNAL_DEST.{{ key }}
+                    DBT_INTERNAL_SOURCE.{{ adapter.quote(key) }} = DBT_INTERNAL_DEST.{{ adapter.quote(key) }}
                 {% endset %}
                 {% do predicates.append(this_key_match) %}
             {% endfor %}
         {% else %}
             {% set unique_key_match %}
-                DBT_INTERNAL_SOURCE.{{ unique_key }} = DBT_INTERNAL_DEST.{{ unique_key }}
+                DBT_INTERNAL_SOURCE.{{ adapter.quote(unique_key) }} = DBT_INTERNAL_DEST.{{ adapter.quote(unique_key) }}
             {% endset %}
             {% do predicates.append(unique_key_match) %}
         {% endif %}
@@ -55,7 +55,7 @@ limitations under the License.*/
     {% if unique_key %}
     when matched then update set
         {% for column_name in update_columns -%}
-            {{ column_name }} = DBT_INTERNAL_SOURCE.{{ column_name }}
+            {{ adapter.quote(column_name.name) }} = DBT_INTERNAL_SOURCE.{{ adapter.quote(column_name.name) }}
             {%- if not loop.last %}, {%- endif %}
         {%- endfor %}
     {% endif %}
@@ -64,7 +64,7 @@ limitations under the License.*/
         ({{ dest_cols_csv }})
     values
         ({% for column_name in dest_columns | map(attribute="name") -%}
-            DBT_INTERNAL_SOURCE.{{ column_name }}
+            DBT_INTERNAL_SOURCE.{{ adapter.quote(column_name) }}
             {%- if not loop.last %}, {%- endif %}
         {%- endfor %})
 
