@@ -10,7 +10,7 @@
 
 ## Features
 
-- [#306](https://github.com/dremio/dbt-dremio/pull/306) incremental_predicates option has no effect
+- [#306](https://github.com/dremio/dbt-dremio/issues/306) incremental_predicates option has no effect
 
 ## Fixes
 
