@@ -1,3 +1,9 @@
+# dbt-dremio v1.10.1
+
+## Changes
+
+- Reenabled `object_storage_path` and `root_path` as config parameters.
+
 # dbt-dremio v1.10.0
 
 ## Changes
