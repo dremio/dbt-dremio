@@ -256,7 +256,7 @@ class TestGetCustomSchema:
         # Expected path components - root_path config should be ignored for views
         credentials = project.adapter.config.credentials
         expected_database = credentials.database
-        expected_schema = credentials.schema # root_path config is ignored for tables
+        expected_schema = credentials.schema # root_path config is ignored for views
         expected_identifier = "custom_schema_view_with_root_path_config"
 
         # Get the actual relation from Dremio
