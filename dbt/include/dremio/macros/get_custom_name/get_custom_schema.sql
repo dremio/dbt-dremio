@@ -15,6 +15,8 @@ limitations under the License.*/
 {% macro dremio__generate_schema_name(custom_schema_name, node) -%}
   {%- set default_schema = target.schema if not is_datalake_node(node)
     else target.root_path -%}
+  {%- set custom_schema_name = custom_schema_name if not is_datalake_node(node)
+    else node.config.root_path -%}
   {{ generate_schema_name_impl(default_schema, custom_schema_name, node) }}
 {%- endmacro %}
 

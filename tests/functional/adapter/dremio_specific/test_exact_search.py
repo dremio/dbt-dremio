@@ -2,6 +2,7 @@ import pytest
 from dbt.tests.util import run_dbt, get_connection
 
 from tests.utils.util import relation_from_name
+from tests.fixtures.profiles import unique_schema, dbt_profile_data
 
 
 class TestExactSearchEnabled:
@@ -12,7 +13,7 @@ class TestExactSearchEnabled:
             "create_table.sql": """
                 {{ config(
                     materialized='table',
-                    schema='schema') }}
+                    root_path='schema') }}
                 select 1 as ilike
             """
         }
