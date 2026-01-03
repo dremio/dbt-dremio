@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: dbt_dremio
-version: 1.0
-config-version: 2
-
-quoting:
-    database: true
-    schema: true
-    identifier: true
-
-macro-paths: ["macros"]
-
-vars:
-    "dremio:reflections_metadata_enabled": false
-    "dremio:exact_search_enabled": false
+version: "1"
+context:
+  active-host: "sp188.us1.dbt.com"
+  active-project: "70471823538053"
+projects:
+  - project-name: "DBT_MYNEWPROJECT"
+    project-id: "70471823538053"
+    account-name: "Fujitsu "
+    account-id: "70471823520768"
+    account-host: "sp188.us1.dbt.com"
+    token-name: "cloud-cli-08f1"
+    token-value: "dbtu_VQ7QoRktZUQXa8t5IX_L7WnFDCtTp8hC0AtPEA7M-uOmvC_kK8"
