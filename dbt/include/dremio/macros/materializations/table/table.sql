@@ -15,16 +15,27 @@ limitations under the License.*/
 {% materialization table, adapter = 'dremio' %}
 
   {%- set identifier = model['alias'] -%}
+  {%- set branch = config.get('branch', validator=validation.any[string]) -%}
   {%- set format = config.get('format', validator=validation.any[basestring]) or 'iceberg' -%}
   {%- set old_relation = adapter.get_relation(database=database, schema=schema, identifier=identifier) -%}
   {%- set target_relation = this.incorporate(type='table') -%}
   {% set grant_config = config.get('grants') %}
   {{ run_hooks(pre_hooks) }}
 
+  -- create branch first if needed
+  {% if branch is not none %}
+    {{ create_branch_statement(target_relation, branch) }}
+  {% endif %}
+
   -- setup: if the target relation already exists, drop it
   -- in case if the existing and future table is delta, we want to do a
   -- create or replace table instead of dropping, so we don't have the table unavailable
-  {% if old_relation is not none -%}
+  {% if branch is not none %}
+    {%- set branch_relation_exists = get_relation_at_branch(database, schema, identifier, branch) -%}
+    {% if branch_relation_exists %}
+      {{ drop_relation_with_branch(target_relation, branch) }}
+    {% endif %}
+  {% elif old_relation is not none -%}
     {{ adapter.drop_relation(old_relation) }}
   {%- endif %}
 
