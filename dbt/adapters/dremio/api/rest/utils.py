@@ -120,6 +120,13 @@ def _check_error(response, details=""):
         except:  # NOQA
             return response.text
     if code == 400:
+        # Dremio Cloud returns 400 for an existing folder/object, whereas
+        # Software returns 409. Normalize so callers can catch a single
+        # DremioAlreadyExistsException.
+        if "An object already exists with that name" in response.text:
+            raise DremioAlreadyExistsException(
+                "Already exists:" + details, error, response
+            )
         raise DremioBadRequestException("Bad request:" + details, error,
                                         response)
     if code == 401:

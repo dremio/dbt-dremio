@@ -10,9 +10,12 @@
 # limitations under the License.
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from dbt_common.exceptions import DbtRuntimeError
-from dbt.adapters.dremio.api.rest.error import DremioRequestTimeoutException
+from dbt.adapters.dremio.api.rest.error import (
+    DremioAlreadyExistsException,
+    DremioRequestTimeoutException,
+)
 from dbt.adapters.dremio.connections import DremioConnectionManager
 
 
@@ -46,3 +49,22 @@ class TestRetryConnection:
 
         # Assert
         assert mocked_post_func.call_count == TOTAL_CONNECTION_ATTEMPTS
+
+
+class TestCreateFolders:
+    def test_create_folders_swallows_already_exists(self):
+        # Guards the integration path: _check_error normalizes Cloud's
+        # 400 "already exists" to DremioAlreadyExistsException, which the
+        # existing handler in _create_folders is responsible for swallowing.
+        mgr = DremioConnectionManager.__new__(DremioConnectionManager)
+        mgr._make_new_folder_json = MagicMock(return_value="{}")
+        rest_client = MagicMock()
+        rest_client.create_catalog_api.side_effect = DremioAlreadyExistsException(
+            msg="Already exists:",
+            original_exception="400 Client Error: Bad Request",
+        )
+
+        mgr._create_folders("mySource", "staging.subfolder", rest_client)
+
+        # Both folders in the path attempted; both swallowed
+        assert rest_client.create_catalog_api.call_count == 2
