@@ -275,10 +275,13 @@ class DremioConnectionManager(SQLConnectionManager):
         thread_connection = self.get_thread_connection()
         connection = self.open(thread_connection)
         rest_client = connection.handle.get_client()
+        return self._catalog_item_exists([path], rest_client)
+
+    def _catalog_item_exists(self, path_list, rest_client: DremioRestClient):
         try:
             catalog_info = rest_client.get_catalog_item(
                 catalog_id=None,
-                catalog_path=[path],
+                catalog_path=path_list,
             )
             return catalog_info.get("id") is not None
         except DremioNotFoundException:
@@ -434,7 +437,12 @@ class DremioConnectionManager(SQLConnectionManager):
         temp_path_list = [database]
         for folder in schema.split("."):
             temp_path_list.append(folder)
-            folder_json = self._make_new_folder_json(temp_path_list)
+            folder_path = list(temp_path_list)
+            if self._catalog_item_exists(folder_path, rest_client):
+                logger.debug(f"Folder {folder} already exists.")
+                continue
+
+            folder_json = self._make_new_folder_json(folder_path)
             try:
                 rest_client.create_catalog_api(folder_json)
             except DremioAlreadyExistsException:
