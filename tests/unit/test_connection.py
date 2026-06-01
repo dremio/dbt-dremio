@@ -10,10 +10,12 @@
 # limitations under the License.
 
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 from dbt_common.exceptions import DbtRuntimeError
 from dbt.adapters.dremio.api.rest.error import (
     DremioAlreadyExistsException,
+    DremioNotFoundException,
+    DremioPermissionException,
     DremioRequestTimeoutException,
 )
 from dbt.adapters.dremio.connections import DremioConnectionManager
@@ -59,6 +61,10 @@ class TestCreateFolders:
         mgr = DremioConnectionManager.__new__(DremioConnectionManager)
         mgr._make_new_folder_json = MagicMock(return_value="{}")
         rest_client = MagicMock()
+        rest_client.get_catalog_item.side_effect = DremioNotFoundException(
+            msg="Not found:",
+            original_exception="404 Client Error: Not Found",
+        )
         rest_client.create_catalog_api.side_effect = DremioAlreadyExistsException(
             msg="Already exists:",
             original_exception="400 Client Error: Bad Request",
@@ -68,3 +74,56 @@ class TestCreateFolders:
 
         # Both folders in the path attempted; both swallowed
         assert rest_client.create_catalog_api.call_count == 2
+
+    def test_create_folders_skips_existing_folders(self):
+        mgr = DremioConnectionManager.__new__(DremioConnectionManager)
+        mgr._make_new_folder_json = MagicMock(return_value="{}")
+        rest_client = MagicMock()
+        rest_client.get_catalog_item.return_value = {"id": "folder-id"}
+
+        mgr._create_folders("mySource", "staging.subfolder", rest_client)
+
+        rest_client.get_catalog_item.assert_has_calls(
+            [
+                call(catalog_id=None, catalog_path=["mySource", "staging"]),
+                call(
+                    catalog_id=None,
+                    catalog_path=["mySource", "staging", "subfolder"],
+                ),
+            ]
+        )
+        rest_client.create_catalog_api.assert_not_called()
+
+    def test_create_folders_creates_only_missing_folders(self):
+        mgr = DremioConnectionManager.__new__(DremioConnectionManager)
+        mgr._make_new_folder_json = MagicMock(return_value="{}")
+        rest_client = MagicMock()
+        rest_client.get_catalog_item.side_effect = [
+            {"id": "staging-folder"},
+            DremioNotFoundException(
+                msg="Not found:",
+                original_exception="404 Client Error: Not Found",
+            ),
+        ]
+
+        mgr._create_folders("mySource", "staging.subfolder", rest_client)
+
+        rest_client.create_catalog_api.assert_called_once_with("{}")
+
+    def test_create_folders_raises_permission_error_for_missing_folder(self):
+        mgr = DremioConnectionManager.__new__(DremioConnectionManager)
+        mgr._make_new_folder_json = MagicMock(return_value="{}")
+        rest_client = MagicMock()
+        rest_client.get_catalog_item.side_effect = DremioNotFoundException(
+            msg="Not found:",
+            original_exception="404 Client Error: Not Found",
+        )
+        rest_client.create_catalog_api.side_effect = DremioPermissionException(
+            msg="No permission:",
+            original_exception="403 Client Error: Forbidden",
+        )
+
+        with pytest.raises(DremioPermissionException):
+            mgr._create_folders("mySource", "staging", rest_client)
+
+        rest_client.create_catalog_api.assert_called_once_with("{}")
