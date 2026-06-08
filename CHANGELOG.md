@@ -2,6 +2,7 @@
 
 ## Changes
 
+- Avoided creating existing folders during schema setup.
 - Reenabled `object_storage_path` and `root_path` as config parameters.
 
 # dbt-dremio v1.10.0
