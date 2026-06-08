@@ -3,6 +3,9 @@
 ## Changes
 
 - Reenabled `object_storage_path` and `root_path` as config parameters.
+- Fixed CI MinIO client installation by following download redirects.
+- Suppressed Dremio Cloud folder-creation errors when a folder already exists.
+- Avoided creating existing folders during schema setup.
 
 # dbt-dremio v1.10.0
 

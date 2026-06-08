@@ -22,7 +22,7 @@ README
 
 package_name = "dbt-dremio"
 
-package_version = "1.10.0"
+package_version = "1.10.1"
 
 description = """The Dremio adapter plugin for dbt"""
 
