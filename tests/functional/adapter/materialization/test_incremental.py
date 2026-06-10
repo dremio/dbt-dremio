@@ -30,7 +30,7 @@ from tests.utils.util import (
     relation_from_name,
     check_relations_equal
 )
-from dbt.tests.util import run_dbt
+from dbt.tests.util import run_dbt, run_dbt_and_capture
 from dbt.tests.adapter.basic import files
 from collections import namedtuple
 
@@ -204,3 +204,79 @@ class TestBaseMergeExcludeColumnsDremio(BaseMergeExcludeColumns):
         check_relations_equal(
             project.adapter, [expected_fields.relation, test_case_fields.relation]
         )
+
+models__incremental_predicates_sql = """
+{{ config(
+    materialized = 'incremental',
+    unique_key = 'id',
+    incremental_strategy='merge',
+    incremental_predicates=["DBT_INTERNAL_DEST.id >= 2"]
+) }}
+
+{% if not is_incremental() %}
+
+-- data for first invocation of model
+
+select 1 as id, 'hello' as msg, 'blue' as color
+union all
+select 2 as id, 'goodbye' as msg, 'red' as color
+
+{% else %}
+
+-- data for subsequent incremental update
+
+select 1 as id, 'hey' as msg, 'blue' as color
+union all
+select 2 as id, 'yo' as msg, 'green' as color
+union all
+select 3 as id, 'anyway' as msg, 'purple' as color
+
+{% endif %}
+"""
+
+
+class TestIncrementalPredicates:
+    """Test that incremental_predicates are properly included in MERGE ON clause."""
+    
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {
+            "incremental_predicates.sql": models__incremental_predicates_sql,
+            "schema.yml": schema_base_yml
+        }
+
+    def test_incremental_predicates_in_merge_sql(self, project):
+        """Test that incremental_predicates are included in the generated MERGE SQL."""
+        # First run to create the table
+        results = run_dbt(["run", "--select", "incremental_predicates"])
+        assert len(results) == 1
+        
+        # Second run to trigger incremental merge with predicates
+        (results, log_output) = run_dbt_and_capture(["--debug", "run", "--select", "incremental_predicates"])
+        assert len(results) == 1
+        
+        # Verify that the MERGE SQL contains the incremental_predicates in the ON clause
+        # The ON clause should include both the unique_key match and the incremental_predicates
+        assert "DBT_INTERNAL_DEST.id >= 2" in log_output, \
+            "incremental_predicates not found in generated SQL"
+        
+        # Verify the MERGE statement structure
+        assert "merge into" in log_output.lower(), "MERGE statement not found"
+        assert "on" in log_output.lower(), "ON clause not found in MERGE statement"
+        
+        # Check that the predicate appears in the ON clause context
+        # The ON clause should have both the unique_key match and the predicate
+        merge_sql_lower = log_output.lower()
+        on_clause_start = merge_sql_lower.find("on")
+        if on_clause_start != -1:
+            # Extract a reasonable portion after the ON clause
+            on_clause_section = log_output[on_clause_start:on_clause_start + 500]
+            assert "DBT_INTERNAL_DEST.id >= 2" in on_clause_section or "dbt_internal_dest.id >= 2" in on_clause_section.lower(), \
+                "incremental_predicates not found in ON clause section of MERGE statement"
+        
+        # Verify the table was created and has data
+        relation = relation_from_name(project.adapter, "incremental_predicates")
+        result = project.run_sql(
+            f"select count(*) as num_rows from {relation}", fetch="one"
+        )
+        assert result[0] >= 2, "Table should have at least 2 rows"
