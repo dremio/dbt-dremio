@@ -64,6 +64,28 @@ select 3 as id, 'anyway' as msg, 'purple' as color
 {% endif %}
 """
 
+models__incremental_keyword_columns_sql = """
+{{ config(
+    materialized = 'incremental',
+    unique_key = 'id',
+    incremental_strategy='merge'
+) }}
+
+{% if not is_incremental() %}
+
+-- data for first invocation of model
+
+select 1 as id, 'test' as "language", 95 as "count"
+
+{% else %}
+
+-- data for subsequent incremental update
+
+select 2 as id, 'test2' as "language", 88 as "count"
+
+{% endif %}
+"""
+
 ResultHolder = namedtuple(
     "ResultHolder",
     [
@@ -204,3 +226,37 @@ class TestBaseMergeExcludeColumnsDremio(BaseMergeExcludeColumns):
         check_relations_equal(
             project.adapter, [expected_fields.relation, test_case_fields.relation]
         )
+
+
+class TestIncrementalColumnQuoting:
+    @pytest.fixture(scope="class")
+    def models(self):
+        return {
+            "incremental_keyword_columns.sql": models__incremental_keyword_columns_sql,
+            "schema.yml": schema_base_yml
+        }
+
+    def test_incremental_keyword_columns(self, project):
+        results = run_dbt(["run", "--select", "incremental_keyword_columns"])
+        assert len(results) == 1
+
+        results = run_dbt(["run", "--select", "incremental_keyword_columns"])
+        assert len(results) == 1
+
+        relation = relation_from_name(project.adapter, "incremental_keyword_columns")
+        result = project.run_sql(
+            f"select count(*) as num_rows from {relation}", fetch="one"
+        )
+        assert result[0] == 2
+
+        rows = project.run_sql(
+            f'select id, "language", "count" from {relation} order by id', 
+            fetch="all"
+        )
+        assert len(rows) == 2
+        assert rows[0][0] == 1
+        assert rows[0][1] == 'test'
+        assert rows[0][2] == 95
+        assert rows[1][0] == 2
+        assert rows[1][1] == 'test2'
+        assert rows[1][2] == 88
