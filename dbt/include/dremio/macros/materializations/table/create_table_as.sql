@@ -34,6 +34,7 @@ limitations under the License.*/
   {{ sql_header if sql_header is not none }}
 
   create table {{ relation }}
+  {{ branch_clause() }}
   {{ partition_method() }} {{ config_cols("partition by") }}
   {{ config_cols("distribute by") }}
   {{ config_cols("localsort by") }}
@@ -64,3 +65,11 @@ limitations under the License.*/
     with single writer
   {%- endif -%}
 {%- endmacro -%}
+
+{%- macro branch_clause() -%}
+  {%- set branch = config.get('branch', validator=validation.any[string]) -%}
+  {%- if branch is not none -%}
+    at branch {{ branch }}
+  {%- endif -%}
+{%- endmacro -%}
+
