@@ -3,6 +3,7 @@
 ## Changes
 
 - Updated dbt-dremio to match dbt-core v1.11
+- Updated the unit test materialization to the new `get_expected_sql` signature and quoted expected column names (dbt-core 1.11)
 - CI now runs on Python 3.11; the adapter requires Python >= 3.10 (required by dbt-core 1.11)
 
 ## Dependency
