@@ -1,3 +1,14 @@
+# dbt-dremio v1.11.0
+
+## Changes
+
+- Updated dbt-dremio to match dbt-core v1.11
+- CI now runs on Python 3.11; the adapter requires Python >= 3.10 (required by dbt-core 1.11)
+
+## Dependency
+
+- Upgraded dbt-core to 1.11.14 and dbt-tests-adapter to 1.20.0
+
 # dbt-dremio v1.10.1
 
 ## Changes
