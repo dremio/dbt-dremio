@@ -12,10 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-{%- macro ref(model_name, v=None) -%}
-  {%- set relation = builtins.ref(model_name, v=v) -%}
+{%- macro ref(model_name_or_package, model_name=none, v=none, version=none) -%}
+  {%- set effective_version = v if v is not none else version -%}
+  {%- if model_name is not none -%}
+    {%- set relation = builtins.ref(model_name_or_package, model_name, v=effective_version) -%}
+    {%- set _model_name = model_name -%}
+  {%- else -%}
+    {%- set relation = builtins.ref(model_name_or_package, v=effective_version) -%}
+    {%- set _model_name = model_name_or_package -%}
+  {%- endif -%}
   {%- if execute and graph -%}
-    {%- set model = graph.nodes.values() | selectattr("name", "equalto", model_name) | list | first -%}
+    {%- set model = graph.nodes.values() | selectattr("name", "equalto", _model_name) | list | first -%}
     {%- if model.config.materialized == 'reflection' -%}
       {% do exceptions.CompilationError("Reflections cannot be ref()erenced (" ~ relation ~ ")") %}
     {%- endif -%}
