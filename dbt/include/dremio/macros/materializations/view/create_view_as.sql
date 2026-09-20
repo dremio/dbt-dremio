@@ -15,6 +15,7 @@ limitations under the License.*/
 {% macro dremio__create_view_as(relation, sql) -%}
   {% set contract_config = config.get('contract') %}
   {%- set sql_header = config.get('sql_header', none) -%}
+  {%- set branch = config.get('branch', validator=validation.any[string]) -%}
 
   {{ sql_header if sql_header is not none }}
 
@@ -23,6 +24,6 @@ limitations under the License.*/
      {{ get_assert_columns_equivalent(sql) }}
      {% set sql = get_select_subquery(sql) %}
   {% endif %}
-  as {{ sql }}
+  as {{ sql }}{%- if branch is not none %} at branch {{ branch }}{%- endif %}
 
 {%- endmacro %}
