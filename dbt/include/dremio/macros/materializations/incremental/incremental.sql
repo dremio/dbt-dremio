@@ -71,7 +71,7 @@ limitations under the License.*/
     {%- set file_format = dbt_dremio_validate_get_file_format(raw_file_format) -%}
     {%- set incremental_predicates = config.get('predicates', none) or config.get('incremental_predicates', none) -%}
     {%- set strategy = dbt_dremio_validate_get_incremental_strategy(incremental_strategy) -%}
-    {% set build_sql = dbt_dremio_get_incremental_sql(strategy, intermediate_relation, target_relation, dest_columns, unique_key) %}
+    {% set build_sql = dbt_dremio_get_incremental_sql(strategy, intermediate_relation, target_relation, dest_columns, unique_key, incremental_predicates) %}
     
   {% endif %}
 
