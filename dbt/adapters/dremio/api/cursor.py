@@ -115,7 +115,7 @@ class DremioCursor:
     def _populate_rowcount(self):
         if self.closed:
             raise Exception("CursorClosed")
-        # keep checking job status until status is one of COMPLETE, CANCELLED or FAILED
+        # keep checking job status until status is one of COMPLETED, CANCELED or FAILED
         # map job results to AdapterResponse
         job_id = self._job_id
 
@@ -132,7 +132,14 @@ class DremioCursor:
                 error_message = job_status_response["errorMessage"]
                 raise Exception(f"ERROR: {error_message}")
 
-            if job_status_state == "CANCELLED":
+            if job_status_state in ("CANCELED", "CANCELLED"):
+                cancellation_reason = job_status_response.get(
+                    "cancellationReason"
+                )
+                if cancellation_reason:
+                    raise Exception(
+                        f"Job was cancelled: {cancellation_reason}"
+                    )
                 raise Exception("Job was cancelled")
 
             if job_status_state == "COMPLETED":
